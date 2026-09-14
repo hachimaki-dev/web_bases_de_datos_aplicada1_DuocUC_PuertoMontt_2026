@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACT1 — Consultores de Datos · Bases de Datos Aplicada 1 · Profe Carlitos</title>
+  <meta name="description" content="Actividad en parejas: Diagnosticar problemas de datos, diseñar modelo relacional, implementar en Google Sheets y Glide, y presentar solución.">
+  <link rel="stylesheet" href="../../shared/fonts.css">
+  <link rel="stylesheet" href="../../shared/styles.css">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    body { overflow-y: auto; background: var(--bg); }
+    .guide-container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+    .guide-header {
+      margin-bottom: 36px;
+      padding-bottom: 24px;
+      border-bottom: 2px solid var(--ink);
+    }
+    .section-divider {
+      margin: 36px 0 24px;
+      padding: 16px 0;
+      border-top: 2px solid var(--line);
+    }
+
+    /* Badges */
+    .act-badge {
+      display: inline-block;
+      background: var(--ink);
+      color: var(--bg);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+    }
+    .case-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--ink);
+      color: var(--bg);
+      margin-bottom: 8px;
+    }
+
+    /* Tabs */
+    .main-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 0;
+      border-bottom: 3px solid var(--ink);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 20;
+      padding-top: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+    .main-tab {
+      padding: 12px 18px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink-muted);
+      border: 2px solid transparent;
+      border-bottom: none;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      margin-bottom: -3px;
+      transition: color 0.15s, background 0.15s;
+      background: none;
+      font-family: var(--font-body);
+      letter-spacing: -0.01em;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .main-tab:hover { color: var(--ink); background: var(--bg-muted); }
+    .main-tab.active {
+      color: var(--ink);
+      background: var(--bg);
+      border-color: var(--ink);
+      border-bottom: 3px solid var(--bg);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Timeline 100 min */
+    .timeline-wrap {
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: var(--sp-lg);
+      margin: var(--sp-md) 0 var(--sp-lg);
+    }
+    .timeline-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: var(--sp-sm);
+      margin-top: var(--sp-md);
+    }
+    .timeline-slot {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      text-align: center;
+    }
+    .timeline-slot.critical {
+      border: 2px solid var(--accent-durazno);
+      background: var(--pastel-durazno);
+    }
+    .timeline-time-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--ink);
+      color: var(--bg);
+      margin-bottom: 6px;
+    }
+    .timeline-slot.critical .timeline-time-badge {
+      background: var(--accent-durazno);
+      color: #fff;
+    }
+    .timeline-slot-title {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .timeline-slot-sub {
+      font-size: 11px;
+      color: var(--ink-muted);
+      line-height: 1.2;
+    }
+
+    /* Stage cards */
+    .stage-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: var(--sp-lg);
+      margin-bottom: var(--sp-md);
+    }
+    .stage-header {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-md);
+      margin-bottom: var(--sp-md);
+    }
+    .stage-number {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .stage-title { font-size: 18px; font-weight: 700; }
+    .stage-time {
+      font-size: 12px;
+      color: var(--ink-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .stage-deliverable {
+      background: var(--pastel-menta);
+      color: var(--accent-menta);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: var(--sp-sm);
+    }
+
+    /* Problem cards */
+    .problem-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: var(--sp-md) var(--sp-lg);
+      margin-bottom: var(--sp-sm);
+      position: relative;
+      padding-left: 54px;
+    }
+    .problem-number {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--pastel-rosa);
+      color: var(--accent-rosa);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .problem-card p { margin: 0; font-size: 14px; color: var(--ink-soft); }
+
+    /* Tables */
+    .messy-table-container {
+      overflow-x: auto;
+      margin: var(--sp-md) 0;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line);
+    }
+    .messy-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 820px;
+    }
+    .messy-table th {
+      background: var(--bg-muted);
+      color: var(--ink);
+      text-align: left;
+      padding: 8px 12px;
+      font-weight: 700;
+      border-bottom: 2px solid var(--line);
+      white-space: nowrap;
+    }
+    .messy-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    .messy-table tr:nth-child(even) { background: var(--bg-soft); }
+    .messy-table .highlight-red { background: rgba(248,215,218,0.45); }
+    .messy-table .highlight-yellow { background: rgba(255,249,219,0.5); }
+
+    .rubric-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin: 16px 0;
+    }
+    .rubric-table th {
+      background: var(--bg-muted);
+      text-align: left;
+      padding: 10px 12px;
+      font-weight: 700;
+      border-bottom: 2px solid var(--line);
+    }
+    .rubric-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    /* Client Profile Card */
+    .client-profile {
+      background: var(--bg-soft);
+      border-radius: var(--radius-lg);
+      padding: var(--sp-lg);
+      margin-bottom: var(--sp-lg);
+    }
+    .client-info h3 { margin: 4px 0; font-size: 22px; }
+    .client-info .client-role { font-size: 13px; color: var(--ink-muted); font-weight: 600; margin-bottom: var(--sp-sm); }
+    .client-quote {
+      background: var(--pastel-amarillo);
+      color: var(--accent-amarillo);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      font-size: 13px;
+      font-style: italic;
+      margin-top: var(--sp-sm);
+    }
+
+    /* Quick Guide Steps */
+    .glide-step {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: var(--sp-md) var(--sp-lg);
+      margin-bottom: var(--sp-md);
+    }
+    .glide-step h4 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+    .glide-step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    /* Cheat table */
+    .cheat-box {
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      margin: var(--sp-sm) 0;
+    }
+    .cheat-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 13px;
+      flex-wrap: wrap;
+    }
+    .cheat-pill {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* Error cards */
+    .error-card {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--incorrect);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      margin-bottom: 8px;
+    }
+    .error-symptom {
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--incorrect-ink);
+      margin-bottom: 2px;
+    }
+    .error-solution {
+      font-size: 13px;
+      color: var(--ink-soft);
+      margin: 0;
+    }
+
+    /* Checklist */
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-sm);
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+    }
+    .checklist-item:last-child { border-bottom: none; }
+    .checklist-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent-menta);
+      flex-shrink: 0;
+    }
+    .checklist-item.checked label { text-decoration: line-through; color: var(--ink-muted); }
+
+    /* Rules grid */
+    .rules-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sp-md);
+      margin: var(--sp-md) 0;
+    }
+    @media (max-width: 760px) {
+      .rules-grid { grid-template-columns: 1fr; }
+      .main-tab { padding: 10px 12px; font-size: 12px; }
+      .timeline-bar { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="guide-container">
+
+    <header class="guide-header">
+      <div style="font-size:40px; margin-bottom:12px;">👽</div>
+      <div class="act-badge">Actividad en Parejas</div>
+      <h1 style="font-size:clamp(26px,3.5vw,40px); margin:0 0 6px;">Consultores de Datos</h1>
+      <p class="lead" style="margin:0;">Diagnóstico, normalización y aplicación práctica para negocios locales</p>
+      <p class="small" style="margin-top:6px;">Bases de Datos Aplicada 1 · 2° semestre 2026 · Profe Carlitos</p>
+    </header>
+
+    <!-- TABS -->
+    <div class="main-tabs">
+      <button class="main-tab" :class="{active: tab==='briefing'}" @click="switchTab('briefing')">Briefing</button>
+      <button class="main-tab" :class="{active: tab==='caso1'}" @click="switchTab('caso1')">Caso 1: Bencinera</button>
+      <button class="main-tab" :class="{active: tab==='caso2'}" @click="switchTab('caso2')">Caso 2: La Bemola</button>
+      <button class="main-tab" :class="{active: tab==='caso3'}" @click="switchTab('caso3')">Caso 3: Feria Ganadera</button>
+      <button class="main-tab" :class="{active: tab==='glide'}" @click="switchTab('glide')">Guía Glide</button>
+      <button class="main-tab" :class="{active: tab==='rubrica'}" @click="switchTab('rubrica')">Rúbrica</button>
+    </div>
+
+    <!-- TAB 1: BRIEFING -->
+    <div class="tab-content" :class="{active: tab==='briefing'}">
+      <div style="margin-top:28px;">
+
+        <div class="callout callout-lavanda" style="margin-bottom:24px;">
+          <h4 style="margin:0 0 6px;">El encargo</h4>
+          <p style="margin:0; font-size:14px; line-height:1.5;">
+            Trabajarán en parejas como equipo de consultores de datos. Su misión es analizar la información de un negocio local de Puerto Montt que tiene problemas graves por mantener todos sus datos mezclados en una única planilla. Deberán ordenar la información, estructurar una base de datos relacional limpia, cargar datos reales en Google Sheets y entregar una aplicación funcional en Glide.
+          </p>
+        </div>
+
+        <h2>Reglas de trabajo</h2>
+        <div class="rules-grid">
+          <div class="card card-menta">
+            <strong>1. Trabajo en parejas</strong>
+            <p style="margin:4px 0 0; font-size:13px;">Elijan uno de los tres clientes disponibles. Ambos deben participar activamente en el diseño y en la app.</p>
+          </div>
+          <div class="card card-celeste">
+            <strong>2. Información autosuficiente</strong>
+            <p style="margin:4px 0 0; font-size:13px;">Todo lo necesario está descrito en el caso. No requieren datos externos ni consultar al docente por datos inventados.</p>
+          </div>
+          <div class="card card-durazno">
+            <strong>3. Enfoque práctico</strong>
+            <p style="margin:4px 0 0; font-size:13px;">Diseñen solo las tablas necesarias para resolver los problemas del negocio (2 a 3 tablas bien relacionadas son suficientes).</p>
+          </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <h2>Distribución del tiempo (Bloque de 120 min · 100 min efectivos)</h2>
+        <p style="font-size:14px; color:var(--ink-soft); margin-bottom:12px;">
+          Descontando el inicio y el cierre, cuentan con <strong>100 minutos de trabajo continuo</strong>. Para avanzar sin retrasos, sigan esta distribución:
+        </p>
+
+        <div class="timeline-wrap">
+          <div class="timeline-bar">
+            <div class="timeline-slot">
+              <span class="timeline-time-badge">00 - 10 min</span>
+              <div class="timeline-slot-title">Inicio</div>
+              <div class="timeline-slot-sub">Armar pareja y elegir caso</div>
+            </div>
+            <div class="timeline-slot">
+              <span class="timeline-time-badge">10 - 30 min (20m)</span>
+              <div class="timeline-slot-title">Fase 1</div>
+              <div class="timeline-slot-sub">Diagnóstico y modelo relacional</div>
+            </div>
+            <div class="timeline-slot critical">
+              <span class="timeline-time-badge">30 - 55 min (25m)</span>
+              <div class="timeline-slot-title">Fase 2</div>
+              <div class="timeline-slot-sub">Google Sheets normalizado</div>
+            </div>
+            <div class="timeline-slot">
+              <span class="timeline-time-badge">55 - 90 min (35m)</span>
+              <div class="timeline-slot-title">Fase 3</div>
+              <div class="timeline-slot-sub">Prototipo y relación en Glide</div>
+            </div>
+            <div class="timeline-slot">
+              <span class="timeline-time-badge">90 - 110 min (20m)</span>
+              <div class="timeline-slot-title">Fase 4</div>
+              <div class="timeline-slot-sub">Presentación comercial</div>
+            </div>
+            <div class="timeline-slot">
+              <span class="timeline-time-badge">110 - 120 min</span>
+              <div class="timeline-slot-title">Cierre</div>
+              <div class="timeline-slot-sub">Entrega y retroalimentación</div>
+            </div>
+          </div>
+        </div>
+
+        <h2>Fases del proyecto</h2>
+
+        <div class="stage-card">
+          <div class="stage-header">
+            <div class="stage-number">1</div>
+            <div>
+              <div class="stage-title">Diagnóstico y Modelo Lógico</div>
+              <div class="stage-time">20 minutos</div>
+            </div>
+          </div>
+          <p style="font-size:14px; margin:0 0 8px;">Revisen el caso y el extracto de planilla de su cliente. En un borrador:</p>
+          <ul style="font-size:14px; margin:0 0 10px; padding-left:20px;">
+            <li>Anoten los 3 problemas principales que detectan en la planilla (redundancias, nombres repetidos, datos mezclados).</li>
+            <li>Definan <strong>2 o 3 tablas</strong> necesarias para ordenar el negocio.</li>
+            <li>Indiquen para cada tabla su <strong>Llave Primaria (PK)</strong> y la <strong>Llave Foránea (FK)</strong> que las conecta.</li>
+          </ul>
+          <div class="stage-deliverable">Entregable: Esquema de 2 a 3 tablas con columnas, PK y FK definidas.</div>
+        </div>
+
+        <div class="stage-card" style="border-color:var(--accent-durazno);">
+          <div class="stage-header">
+            <div class="stage-number" style="background:var(--accent-durazno); color:#fff;">2</div>
+            <div>
+              <div class="stage-title">Planilla en Google Sheets</div>
+              <div class="stage-time">25 minutos · Base para Glide</div>
+            </div>
+          </div>
+          <p style="font-size:14px; margin:0 0 8px;">Creen una hoja de cálculo en Google Sheets siguiendo 3 reglas:</p>
+          <ul style="font-size:14px; margin:0 0 10px; padding-left:20px;">
+            <li><strong>Una pestaña por tabla:</strong> Una hoja para la entidad principal y otra para los registros o movimientos.</li>
+            <li><strong>Fila 1 de encabezados:</strong> Solo nombres de campos sin celdas combinadas (ej: <code>RUT</code>, <code>Nombre</code>, <code>Telefono</code>).</li>
+            <li><strong>4 a 5 filas con datos reales:</strong> Nombres, precios y datos coherentes. Los valores de las llaves deben coincidir exactamente entre hojas.</li>
+          </ul>
+          <div class="stage-deliverable">Entregable: Archivo de Google Sheets con pestañas separadas y datos cargados.</div>
+        </div>
+
+        <div class="stage-card">
+          <div class="stage-header">
+            <div class="stage-number">3</div>
+            <div>
+              <div class="stage-title">Prototipo funcional en Glide</div>
+              <div class="stage-time">35 minutos</div>
+            </div>
+          </div>
+          <p style="font-size:14px; margin:0 0 8px;">Conecten el Google Sheet a Glide y configuren la app (ver pestaña <em>Guía Glide</em>):</p>
+          <ul style="font-size:14px; margin:0 0 10px; padding-left:20px;">
+            <li><strong>Relación en Data Editor:</strong> Crear una columna tipo <em>Relation</em> con <em>Match multiple</em> entre la tabla maestra y la de detalle.</li>
+            <li><strong>Pantallas en Layout Editor:</strong> Configurar la vista principal (Cards o List) y la vista de detalle con los datos relacionados.</li>
+            <li><strong>Formulario:</strong> Habilitar la opción de agregar registros con el botón "+".</li>
+            <li><strong>Publicar:</strong> Generar el enlace y verificar la app en el celular mediante código QR.</li>
+          </ul>
+          <div class="stage-deliverable">Entregable: Enlace público de la app en Glide funcionando.</div>
+        </div>
+
+        <div class="stage-card">
+          <div class="stage-header">
+            <div class="stage-number">4</div>
+            <div>
+              <div class="stage-title">Presentación comercial (Pitch)</div>
+              <div class="stage-time">20 minutos</div>
+            </div>
+          </div>
+          <p style="font-size:14px; margin:0 0 8px;">Preparen 3 diapositivas concisas en Canva o similar:</p>
+          <ol style="font-size:14px; margin:0 0 10px; padding-left:20px;">
+            <li><strong>El problema:</strong> Qué fallas graves tenía el cliente en su planilla.</li>
+            <li><strong>La solución:</strong> Qué tablas diseñaron y cómo resolvieron el desorden.</li>
+            <li><strong>La app en vivo:</strong> Demostración de la aplicación en Glide resolviendo el flujo de trabajo.</li>
+          </ol>
+          <div class="stage-deliverable">Entregable: Enlace a la presentación de 3 láminas y demo funcional.</div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <h2>Registro de avance de la pareja</h2>
+        <p style="font-size:13px; color:var(--ink-muted);">Marquen cada hito a medida que lo completen:</p>
+
+        <div style="background:var(--bg-soft); border-radius:var(--radius-lg); padding:var(--sp-md) var(--sp-lg);">
+          <div class="checklist-item" v-for="(item, i) in checklist" :key="i" :class="{checked: item.done}">
+            <input type="checkbox" v-model="item.done" :id="'check-'+i">
+            <label :for="'check-'+i">{{ item.text }}</label>
+          </div>
+          <div style="margin-top:var(--sp-md); text-align:right; font-size:13px; color:var(--ink-muted); font-weight:700;">
+            Progreso completado: {{ checklistProgress }}%
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /tab briefing -->
+
+    <!-- TAB 2: CASO 1 — BENCINERA DON TITO -->
+    <div class="tab-content" :class="{active: tab==='caso1'}">
+      <div style="margin-top:28px;">
+
+        <div class="client-profile">
+          <span class="case-tag">Caso 1</span>
+          <div class="client-info">
+            <h3>Bencinera Don Tito</h3>
+            <div class="client-role">Estación de servicio · Ruta 5 Sur, sector Alerce — Puerto Montt</div>
+            <p style="font-size:14px; line-height:1.5;">
+              Don Tito administra una estación de servicio con venta de combustibles (93, 95, 97 y diésel), una tienda de conveniencia ("Mini Tito") y un programa de clientes frecuentes con puntos. Cuenta con 8 operarios en turnos rotativos. Actualmente registra todas las operaciones en una sola hoja de cálculo.
+            </p>
+            <div class="client-quote">
+              "Anoto las cargas de bencina, las compras de la tienda, los turnos y los clientes con puntos en la misma planilla. Cuando busco el historial de un cliente o quiero saber qué combustible se vende más, tengo que revisar fila por fila."
+            </div>
+          </div>
+        </div>
+
+        <h2>Fallas reportadas en la operación</h2>
+        <div class="problem-card">
+          <div class="problem-number">1</div>
+          <p><strong>Datos mezclados:</strong> En la misma tabla conviven ventas de combustible, compras en la tienda y asignaciones de turnos de trabajadores.</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-number">2</div>
+          <p><strong>Redundancia de clientes:</strong> Cada carga de combustible vuelve a escribir nombre, RUT y teléfono del cliente, provocando registros duplicados con formatos distintos.</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-number">3</div>
+          <p><strong>Anomalía de actualización en turnos:</strong> Si un trabajador cambia de teléfono o dirección, se debe modificar en decenas de filas históricas.</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-number">4</div>
+          <p><strong>Dificultad de cálculo:</strong> Los productos de la tienda y los litros de combustible usan las mismas columnas, impidiendo calcular totales sin errores.</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-number">5</div>
+          <p><strong>Pérdida de fidelidad:</strong> El mismo cliente aparece con RUT con puntos y sin puntos, dispersando los puntos acumulados.</p>
+        </div>
+
+        <div class="section-divider"></div>
+        <h2>Planilla actual del negocio (Extracto desordenado)</h2>
+
+        <div class="messy-table-container">
+          <table class="messy-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Detalle</th>
+                <th>Cantidad</th>
+                <th>Precio</th>
+                <th>Total</th>
+                <th>Cliente</th>
+                <th>RUT</th>
+                <th>Teléfono</th>
+                <th>Puntos</th>
+                <th>Trabajador</th>
+                <th>Turno</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>01/08/2026</td>
+                <td>Combustible</td>
+                <td>95 octanos</td>
+                <td>35 lts</td>
+                <td>$1.290</td>
+                <td>$45.150</td>
+                <td>Juan Pérez</td>
+                <td>12.345.678-9</td>
+                <td>+569 8765 4321</td>
+                <td>45</td>
+                <td>Carlos Muñoz</td>
+                <td>Mañana</td>
+              </tr>
+              <tr class="highlight-yellow">
+                <td>01/08/2026</td>
+                <td>Tienda</td>
+                <td>Bebida 500ml</td>
+                <td>2</td>
+                <td>$1.200</td>
+                <td>$2.400</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>Carlos Muñoz</td>
+                <td>Mañana</td>
+              </tr>
+              <tr class="highlight-red">
+                <td>02/08/2026</td>
+                <td>Combustible</td>
+                <td>Diésel</td>
+                <td>60 lts</td>
+                <td>$1.050</td>
+                <td>$63.000</td>
+                <td>J. Perez</td>
+                <td>12345678-9</td>
+                <td>56987654321</td>
+                <td>60</td>
+                <td>Luis Soto</td>
+                <td>Tarde</td>
+              </tr>
+              <tr>
+                <td>02/08/2026</td>
+                <td>Combustible</td>
+                <td>93 octanos</td>
+                <td>20 lts</td>
+                <td>$1.240</td>
+                <td>$24.800</td>
+                <td>Ana Morales</td>
+                <td>15.678.901-2</td>
+                <td>+569 1234 5678</td>
+                <td>24</td>
+                <td>Luis Soto</td>
+                <td>Tarde</td>
+              </tr>
+              <tr class="highlight-yellow">
+                <td>03/08/2026</td>
+                <td>Combustible</td>
+                <td>95 octanos</td>
+                <td>40 lts</td>
+                <td>$1.290</td>
+                <td>$51.600</td>
+                <td>juan perez</td>
+                <td>12.345.678-9</td>
+                <td>+569 8765 4321</td>
+                <td>51</td>
+                <td>Carlos Muñoz</td>
+                <td>Noche</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-durazno" style="margin-top:16px;">
+          <p style="margin:0; font-size:13px;">
+            <strong>Observación para el modelo:</strong> Don Tito necesita separar al menos dos entidades: una tabla para <code>Clientes</code> (con RUT único, nombre, teléfono y puntos) y una tabla para <code>Cargas</code> (fecha, tipo de combustible, litros, total y el RUT del cliente relacionado).
+          </p>
+        </div>
+
+      </div>
+    </div><!-- /tab caso1 -->
+
+    <!-- TAB 3: CASO 2 — LA BEMOLA -->
+    <div class="tab-content" :class="{active: tab==='caso2'}">
+      <div style="margin-top:28px;">
+
+        <div class="client-profile">
+          <span class="case-tag">Caso 2</span>
+          <div class="client-info">
+            <h3>La Bemola — Instrumentos & Sonido</h3>
+            <div class="client-role">Tienda de instrumentos y arriendos · Centro de Puerto Montt</div>
+            <p style="font-size:14px; line-height:1.5;">
+              Catalina tiene una tienda que combina venta de instrumentos, arriendo de equipamiento para eventos (amplificadores, micrófonos, parlantes) y clases particulares. Lleva todo en un mismo archivo, lo que ha provocado dobles arriendos para el mismo fin de semana y descontrol en la devolución de equipos.
+            </p>
+            <div class="client-quote">
+              "Arrendé un amplificador que ya estaba reservado porque no tenía cómo saber si estaba disponible. Los datos de arriendos, compras y alumnos están mezclados en una lista plana."
+            </div>
+          </div>
+        </div>
+
+        <h2>Fallas reportadas en la operación</h2>
+        <div class="problem-card">
+          <div class="problem-number">1</div>
+          <p><strong>Mezcla de ventas y arriendos:</strong> Un instrumento vendido y un amplificador en arriendo temporal figuran en las mismas columnas.</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-number">2</div>
+          <p><strong>Duplicidad de datos de equipos:</strong> Cada vez que se arrienda un equipo se vuelven a escribir su marca, modelo, número de serie y valor diario.</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-number">3</div>
+          <p><strong>Falta de control de clientes:</strong> El nombre del arrendatario se anota sin código único, dificultando rastrear quién tiene qué equipo prestado.</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-number">4</div>
+          <p><strong>Sobrecarga en datos de profesores:</strong> Para cada clase semanal de un alumno se copian los datos personales del profesor y del alumno.</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-number">5</div>
+          <p><strong>Inconsistencia en devoluciones:</strong> No hay un estado claro (disponible / arrendado / en mantención) asociado al inventario.</p>
+        </div>
+
+        <div class="section-divider"></div>
+        <h2>Planilla actual del negocio (Extracto desordenado)</h2>
+
+        <div class="messy-table-container">
+          <table class="messy-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Operación</th>
+                <th>Artículo</th>
+                <th>Marca/Modelo</th>
+                <th>Precio</th>
+                <th>Cliente / Contacto</th>
+                <th>Teléfono</th>
+                <th>Días / Horario</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>05/08/2026</td>
+                <td>Venta</td>
+                <td>Guitarra acústica</td>
+                <td>Yamaha C40</td>
+                <td>$89.990</td>
+                <td>Roberto Andrade</td>
+                <td>+569 4455 6677</td>
+                <td></td>
+                <td>Vendido</td>
+              </tr>
+              <tr class="highlight-red">
+                <td>06/08/2026</td>
+                <td>Arriendo</td>
+                <td>Amplificador 100W</td>
+                <td>Marshall MG100</td>
+                <td>$25.000/día</td>
+                <td>Banda Rock Sur</td>
+                <td>+569 7788 9900</td>
+                <td>2 días</td>
+                <td>Arrendado</td>
+              </tr>
+              <tr class="highlight-yellow">
+                <td>06/08/2026</td>
+                <td>Clase</td>
+                <td>Clase Batería</td>
+                <td>Profe Pablo</td>
+                <td>$15.000</td>
+                <td>Tomás Vidal</td>
+                <td>+569 1122 3344</td>
+                <td>Jue 17:00</td>
+                <td>Activo</td>
+              </tr>
+              <tr class="highlight-red">
+                <td>07/08/2026</td>
+                <td>Arriendo</td>
+                <td>Amplificador 100W</td>
+                <td>Marshall MG100</td>
+                <td>$25.000/día</td>
+                <td>Teatro Diego Rivera</td>
+                <td>+569 2233 4455</td>
+                <td>1 día</td>
+                <td>Conflicto fecha</td>
+              </tr>
+              <tr>
+                <td>08/08/2026</td>
+                <td>Venta</td>
+                <td>Cuerdas guitarra</td>
+                <td>D'Addario 0.10</td>
+                <td>$8.990</td>
+                <td>R. Andrade</td>
+                <td>+569 4455 6677</td>
+                <td></td>
+                <td>Vendido</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-menta" style="margin-top:16px;">
+          <p style="margin:0; font-size:13px;">
+            <strong>Observación para el modelo:</strong> Catalina necesita separar una tabla para <code>Equipos</code> (con código único, nombre, categoría, precio de arriendo y estado) y una tabla para <code>Arriendos</code> (código de equipo, cliente, teléfono, fecha inicio y fecha fin).
+          </p>
+        </div>
+
+      </div>
+    </div><!-- /tab caso2 -->
+
+    <!-- TAB 4: CASO 3 — FERIA GANADERA -->
+    <div class="tab-content" :class="{active: tab==='caso3'}">
+      <div style="margin-top:28px;">
+
+        <div class="client-profile">
+          <span class="case-tag">Caso 3</span>
+          <div class="client-info">
+            <h3>Feria Ganadera Los Volcanes</h3>
+            <div class="client-role">Remates ganaderos · Sector Chinquihue — Puerto Montt</div>
+            <p style="font-size:14px; line-height:1.5;">
+              Don Ernesto organiza remates ganaderos semanales en Puerto Montt, donde ganaderos de la región llevan animales (vacunos, ovinos, terneros) para subasta. Requiere registrar con precisión a cada ganadero vendedor, los animales presentados con su número DIIO oficial y los compradores finales.
+            </p>
+            <div class="client-quote">
+              "Para cada animal vuelvo a escribir nombre, RUT y predio del ganadero. Cuando el SAG exige trazabilidad por número de DIIO, me cuesta saber de quién era y en qué remate se subastó."
+            </div>
+          </div>
+        </div>
+
+        <h2>Fallas reportadas en la operación</h2>
+        <div class="problem-card">
+          <div class="problem-number">1</div>
+          <p><strong>Repetición masiva de ganaderos:</strong> Si un ganadero trae 15 animales, sus datos personales y predio se copian 15 veces fila tras fila.</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-number">2</div>
+          <p><strong>Categorías inconsistentes:</strong> La categoría del animal se escribe como 'novillo', 'nov.' o 'nobillo', impidiendo calcular estadísticas oficiales.</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-number">3</div>
+          <p><strong>Ambigüedad en precios:</strong> Se anota en la misma columna el precio por kilo y en otras el precio total del animal sin distinción.</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-number">4</div>
+          <p><strong>Falta de identificación obligatoria:</strong> Algunos registros carecen del DIIO oficial exigido para la trazabilidad ganadera.</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-number">5</div>
+          <p><strong>Dificultad de reprogramación:</strong> Cuando un remate se cancela o pospone, se deben modificar manualmente cientos de filas.</p>
+        </div>
+
+        <div class="section-divider"></div>
+        <h2>Planilla actual del negocio (Extracto desordenado)</h2>
+
+        <div class="messy-table-container">
+          <table class="messy-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Ganadero</th>
+                <th>RUT</th>
+                <th>Ubicación</th>
+                <th>Categoría</th>
+                <th>Peso Kg</th>
+                <th>Precio</th>
+                <th>DIIO (Oficial)</th>
+                <th>Comprador</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>02/08/2026</td>
+                <td>Manuel Huenulao</td>
+                <td>8.765.432-1</td>
+                <td>Fundo El Roble, Frutillar</td>
+                <td>novillo</td>
+                <td>480</td>
+                <td>$1.850/kg</td>
+                <td>CL-123456</td>
+                <td>Agrícola Los Maitenes</td>
+              </tr>
+              <tr class="highlight-yellow">
+                <td>02/08/2026</td>
+                <td>Manuel Huenulao</td>
+                <td>8.765.432-1</td>
+                <td>Fundo El Roble, Frutillar</td>
+                <td>Ternero</td>
+                <td>220</td>
+                <td>$385.000</td>
+                <td></td>
+                <td>Carlos Saavedra</td>
+              </tr>
+              <tr class="highlight-red">
+                <td>09/08/2026</td>
+                <td>Manuel Huenulao</td>
+                <td>8.765.432-1</td>
+                <td>Fundo El Roble, Frutillar</td>
+                <td>nov.</td>
+                <td>510</td>
+                <td>$1.900/kg</td>
+                <td>CL-345678</td>
+                <td>Agric. Los Maitenes</td>
+              </tr>
+              <tr>
+                <td>09/08/2026</td>
+                <td>Héctor Ñancupil</td>
+                <td>9.876.543-2</td>
+                <td>Parcela 23, Pto. Varas</td>
+                <td>vaquilla</td>
+                <td>350</td>
+                <td>$1.650/kg</td>
+                <td>CL-789012</td>
+                <td>Agrícola Los Maitenes</td>
+              </tr>
+              <tr class="highlight-yellow">
+                <td>16/08/2026</td>
+                <td>Hector Nancupil</td>
+                <td>9.876.543-2</td>
+                <td>Parcela 23, Puerto Varas</td>
+                <td>Vaca</td>
+                <td>550</td>
+                <td>$1.200.000</td>
+                <td>CL-901234</td>
+                <td>Carlos Saavedra</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-celeste" style="margin-top:16px;">
+          <p style="margin:0; font-size:13px;">
+            <strong>Observación para el modelo:</strong> Don Ernesto requiere una tabla para <code>Ganaderos</code> (RUT, nombre, teléfono, predio) y una tabla para <code>Animales</code> (DIIO como llave primaria, categoría estandarizada, peso, precio, RUT del ganadero relacionado y comprador).
+          </p>
+        </div>
+
+      </div>
+    </div><!-- /tab caso3 -->
+
+    <!-- TAB 5: GUÍA GLIDE -->
+    <div class="tab-content" :class="{active: tab==='glide'}">
+      <div style="margin-top:28px;">
+
+        <div class="callout callout-celeste" style="margin-bottom:20px;">
+          <h4 style="margin:0 0 4px;">Regla fundamental de Google Sheets</h4>
+          <p style="margin:0; font-size:13px; line-height:1.4;">
+            Glide es un visor que lee directamente tu hoja de Google Sheets. Para que funcione a la primera:
+            <br>• <strong>Pestañas separadas:</strong> 1 pestaña por tabla (ej. <code>Clientes</code> y <code>Cargas</code>).
+            <br>• <strong>Fila 1 única de nombres:</strong> Solo encabezados (sin celdas combinadas ni títulos arriba).
+            <br>• <strong>Datos limpios:</strong> 4 a 5 filas con datos de prueba por tabla.
+            <br>• <strong>Llaves iguales:</strong> El valor de la llave foránea debe coincidir exactamente con la llave primaria.
+          </p>
+        </div>
+
+        <h2>Pasos para construir la aplicación</h2>
+
+        <div class="glide-step">
+          <h4><span class="glide-step-num">1</span> Conectar Google Sheets</h4>
+          <ul style="margin:0; padding-left:20px; font-size:13px; line-height:1.6;">
+            <li>Entren a <a href="https://www.glideapps.com" target="_blank">glideapps.com</a> e inicien sesión con su cuenta Google.</li>
+            <li>Hagan clic en <strong>+ New App</strong> (o Create App).</li>
+            <li>Seleccionen como origen <strong>Google Sheets</strong> y elijan su archivo de Google Drive.</li>
+            <li>Glide importará las pestañas y generará una primera pantalla por cada una.</li>
+          </ul>
+        </div>
+
+        <div class="glide-step" style="border-color:var(--accent-menta);">
+          <h4><span class="glide-step-num" style="background:var(--accent-menta); color:var(--bg);">2</span> Crear la Relación entre tablas (Data Editor)</h4>
+          <p style="font-size:13px; margin:0 0 6px;">Este paso vincula la tabla maestra con sus movimientos:</p>
+          <ol style="margin:0; padding-left:20px; font-size:13px; line-height:1.6;">
+            <li>En la barra lateral izquierda, hagan clic en el icono de tabla (<strong>Data Editor</strong>).</li>
+            <li>Seleccionen la tabla principal (ej: <code>Clientes</code> o <code>Equipos</code>).</li>
+            <li>Al final de las columnas a la derecha, hagan clic en <strong>+ Add Column</strong>.</li>
+            <li>Nombre de columna: escriban <code>Movimientos</code> (o similar).</li>
+            <li>Tipo de columna: elijan <strong>Relation</strong>.</li>
+            <li>Configurar: Columna local (ej: <code>RUT</code>) = Tabla relacionada (ej: <code>Cargas</code> -> <code>RUT_Cliente</code>).</li>
+            <li>Marcar la casilla <strong>Match multiple</strong> (porque un cliente puede tener varios registros). Clic en <strong>Done</strong>.</li>
+          </ol>
+        </div>
+
+        <div class="glide-step">
+          <h4><span class="glide-step-num">3</span> Mostrar los datos relacionados (Layout Editor)</h4>
+          <ul style="margin:0; padding-left:20px; font-size:13px; line-height:1.6;">
+            <li>En la barra lateral izquierda, hagan clic en el icono de pantalla (<strong>Layout Editor</strong>).</li>
+            <li>En la lista principal, elijan el estilo visual en el panel derecho: <strong>Cards</strong> o <strong>List</strong>.</li>
+            <li>Hagan clic sobre cualquier tarjeta para ingresar a su <strong>pantalla de detalle</strong>.</li>
+            <li>En el detalle, hagan clic en <strong>+ Add Component</strong> y seleccionen <strong>Collection</strong>.</li>
+            <li>En el panel derecho de la colección, en <strong>Data Source</strong>, seleccionen la columna de relación creada en el paso anterior.</li>
+            <li>Listo: la ficha del cliente ahora muestra automáticamente todas sus operaciones asociadas.</li>
+          </ul>
+        </div>
+
+        <div class="glide-step">
+          <h4><span class="glide-step-num">4</span> Habilitar botón para agregar datos</h4>
+          <ul style="margin:0; padding-left:20px; font-size:13px; line-height:1.6;">
+            <li>En la pantalla de lista donde deseen permitir nuevos ingresos (ej: Cargas o Arriendos).</li>
+            <li>En el panel lateral derecho, marquen la casilla <strong>Allow users to add items</strong>.</li>
+            <li>Aparecerá un botón <strong>+</strong> en la app que genera un formulario automático para registrar datos.</li>
+          </ul>
+        </div>
+
+        <div class="glide-step">
+          <h4><span class="glide-step-num">5</span> Publicar y probar en el celular</h4>
+          <ul style="margin:0; padding-left:20px; font-size:13px; line-height:1.6;">
+            <li>Hagan clic en el botón <strong>Publish</strong> en la esquina superior derecha.</li>
+            <li>Copien el enlace público o escaneen el <strong>código QR</strong> con la cámara de su teléfono para probarla en vivo.</li>
+          </ul>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <h2>Relaciones recomendadas por caso</h2>
+
+        <div class="cheat-box">
+          <strong>Caso 1: Bencinera Don Tito</strong>
+          <div class="cheat-row">
+            <span class="cheat-pill">Clientes.RUT</span>
+            <span>conecta con</span>
+            <span class="cheat-pill">Cargas.RUT_Cliente</span>
+            <span style="font-size:12px; color:var(--ink-muted); margin-left:auto;">Match multiple activado</span>
+          </div>
+        </div>
+
+        <div class="cheat-box">
+          <strong>Caso 2: La Bemola</strong>
+          <div class="cheat-row">
+            <span class="cheat-pill">Equipos.Codigo</span>
+            <span>conecta con</span>
+            <span class="cheat-pill">Arriendos.Cod_Equipo</span>
+            <span style="font-size:12px; color:var(--ink-muted); margin-left:auto;">Match multiple activado</span>
+          </div>
+        </div>
+
+        <div class="cheat-box">
+          <strong>Caso 3: Feria Ganadera Los Volcanes</strong>
+          <div class="cheat-row">
+            <span class="cheat-pill">Ganaderos.RUT</span>
+            <span>conecta con</span>
+            <span class="cheat-pill">Animales.RUT_Ganadero</span>
+            <span style="font-size:12px; color:var(--ink-muted); margin-left:auto;">Match multiple activado</span>
+          </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <h2>Solución a 3 problemas frecuentes</h2>
+
+        <div class="error-card">
+          <div class="error-symptom">1. La relación en Glide aparece vacía</div>
+          <p class="error-solution">Revisen que los códigos en ambas tablas coincidan exactamente y no tengan un espacio en blanco al final en Google Sheets.</p>
+        </div>
+
+        <div class="error-card">
+          <div class="error-symptom">2. Cambié un dato en Sheets pero no se ve en Glide</div>
+          <p class="error-solution">En Data Editor, hagan clic derecho sobre la tabla y elijan <em>Reload sheet</em> para sincronizar de inmediato.</p>
+        </div>
+
+        <div class="error-card">
+          <div class="error-symptom">3. Aparecen columnas en blanco o con nombres raros</div>
+          <p class="error-solution">En Google Sheets seleccionen las columnas vacías a la derecha de sus datos, hagan clic derecho y elijan <em>Eliminar columnas</em>.</p>
+        </div>
+
+      </div>
+    </div><!-- /tab glide -->
+
+    <!-- TAB 6: RÚBRICA -->
+    <div class="tab-content" :class="{active: tab==='rubrica'}">
+      <div style="margin-top:28px;">
+
+        <h2>Criterios de evaluación</h2>
+        <p style="font-size:13px; color:var(--ink-soft);">La calificación considera 4 aspectos esenciales del proyecto:</p>
+
+        <table class="rubric-table">
+          <thead>
+            <tr>
+              <th style="width:22%;">Criterio</th>
+              <th style="width:10%;">Ponderación</th>
+              <th style="width:34%;">Logrado</th>
+              <th style="width:34%;">En desarrollo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Diagnóstico y Modelo Lógico</strong></td>
+              <td><strong>30%</strong></td>
+              <td>Identifica con precisión las anomalías de la planilla. Diseña 2 a 3 tablas con campos claros, Llave Primaria única y Llave Foránea de enlace correcta.</td>
+              <td>El modelo tiene redundancias evidentes, omite llaves primarias o las relaciones no son claras.</td>
+            </tr>
+            <tr>
+              <td><strong>Google Sheets normalizado</strong></td>
+              <td><strong>25%</strong></td>
+              <td>Hojas separadas por entidad, encabezados estrictos en Fila 1 sin celdas combinadas y 4-5 registros coherentes con llaves coincidentes.</td>
+              <td>Mezcla entidades en una hoja, tiene celdas combinadas o los identificadores no coinciden entre tablas.</td>
+            </tr>
+            <tr>
+              <td><strong>Prototipo en Glide</strong></td>
+              <td><strong>30%</strong></td>
+              <td>App funcional con origen en Sheets, relación configurada correctamente, pantalla de detalle mostrando registros vinculados y botón de agregar activo.</td>
+              <td>La app no tiene la relación configurada, no muestra el detalle o contiene errores de navegación.</td>
+            </tr>
+            <tr>
+              <td><strong>Presentación y Síntesis</strong></td>
+              <td><strong>15%</strong></td>
+              <td>Presentación concisa (3 láminas) que explica el problema, la solución de datos y demuestra la app funcionando.</td>
+              <td>Presentación incompleta, no demuestra la app o no conecta con el problema original.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="section-divider"></div>
+
+        <h2>Checklist de entrega final</h2>
+        <div class="callout callout-menta" style="margin:16px 0;">
+          <p style="margin:0; font-size:14px;">
+            <strong>Entrega única:</strong> Envíen un solo mensaje o documento con los 3 enlaces:
+            <br>1. Enlace al archivo de Google Sheets (modo lector o comentarista).
+            <br>2. Enlace público a la app publicada en Glide.
+            <br>3. Enlace a la presentación de 3 láminas en Canva (o documento con captura del esquema).
+          </p>
+        </div>
+
+        <div style="margin-top:48px; text-align:center; padding:24px 0; border-top:2px solid var(--line);">
+          <div style="font-size:36px; margin-bottom:8px;">👽</div>
+          <p class="lead" style="margin:0 auto; font-size:15px;">Diseñen datos limpios y la aplicación se construirá casi sola.</p>
+        </div>
+
+      </div>
+    </div><!-- /tab rubrica -->
+
+  </div><!-- /guide-container -->
+</div><!-- /app -->
+
+<script>
+  const { createApp } = Vue;
+
+  createApp({
+    data() {
+      return {
+        tab: 'briefing',
+        checklist: [
+          { text: '00-10m: Pareja conformada y cliente seleccionado', done: false },
+          { text: '10-30m: Problemas de datos identificados en el caso', done: false },
+          { text: '10-30m: Tablas diseñadas con Llaves Primarias (PK) y Llaves Foráneas (FK)', done: false },
+          { text: '30-55m: Google Sheets creado (1 pestaña por tabla, fila 1 encabezados, 4-5 filas reales)', done: false },
+          { text: '55-90m: App conectada en Glide y columna Relation configurada en Data Editor', done: false },
+          { text: '55-90m: Pantalla de detalle mostrando datos relacionados y botón de agregar activo', done: false },
+          { text: '90-110m: Presentación de 3 láminas lista y app probada en el celular con código QR', done: false }
+        ]
+      };
+    },
+    computed: {
+      checklistProgress() {
+        const done = this.checklist.filter(i => i.done).length;
+        return Math.round((done / this.checklist.length) * 100);
+      }
+    },
+    methods: {
+      switchTab(t) {
+        this.tab = t;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  }).mount('#app');
+</script>
+
+</body>
+</html>
