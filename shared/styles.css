@@ -310,6 +310,67 @@ code {
 .callout-rosa     { background: var(--pastel-rosa); color: var(--accent-rosa); }
 .callout-amarillo { background: var(--pastel-amarillo); color: var(--accent-amarillo); }
 
+/* --- ENGINE ACCORDION (Diferencias entre motores) ---------- */
+.engine-tip {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg-soft);
+  margin: var(--sp-md) 0;
+  max-width: 900px;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.engine-tip[open] {
+  border-color: var(--ink-soft);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.engine-tip summary {
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  background: var(--bg-muted);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  user-select: none;
+  transition: background 0.15s, color 0.15s;
+}
+.engine-tip summary:hover {
+  background: var(--line);
+  color: var(--ink);
+}
+.engine-tip summary::-webkit-details-marker {
+  display: none;
+}
+.engine-tip summary::before {
+  content: '⚙️';
+  font-size: 14px;
+}
+.engine-tip summary::after {
+  content: '▾';
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 700;
+  transition: transform 0.2s;
+}
+.engine-tip[open] summary::after {
+  transform: rotate(180deg);
+}
+.engine-tip-content {
+  padding: var(--sp-md) var(--sp-lg);
+  font-size: 14px;
+  line-height: 1.6;
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+}
+.engine-tip-content p:last-child {
+  margin-bottom: 0;
+}
+
+
 /* --- TAGS -------------------------------------------------- */
 .tag {
   display: inline-block;

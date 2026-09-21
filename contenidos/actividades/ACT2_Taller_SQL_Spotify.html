@@ -1,0 +1,3377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACT2 — Taller SQL Progresivo: Caso Spotify · Bases de Datos Aplicada 1 · Profe Carlitos</title>
+  <meta name="description" content="Taller progresivo de Oracle SQL. Construcción incremental de un esquema relacional para Spotify: DDL, restricciones de integridad, normalización 1FN-3FN, transacciones ACID y consultas relacionales.">
+  <link rel="stylesheet" href="../../shared/fonts.css">
+  <link rel="stylesheet" href="../../shared/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+  <style>
+    body { overflow-y: auto; background: var(--bg); }
+
+    .guide-container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+    .guide-header {
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 2px solid var(--ink);
+    }
+    .header-avatar {
+      font-size: 36px;
+      margin-bottom: 12px;
+      line-height: 1;
+    }
+    .guide-header h1 {
+      font-size: clamp(24px, 3.5vw, 36px);
+      margin: 8px 0 6px;
+      line-height: 1.2;
+      letter-spacing: -0.03em;
+    }
+    .guide-header .lead {
+      font-size: 15px;
+      color: var(--ink-soft);
+      margin: 0 0 12px;
+      line-height: 1.5;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--ink-muted);
+    }
+
+    /* Badges */
+    .act-badge {
+      display: inline-block;
+      background: var(--ink);
+      color: var(--bg);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+    .session-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--pastel-celeste);
+      color: var(--accent-celeste);
+    }
+    .session-badge.s2 {
+      background: var(--pastel-lavanda);
+      color: var(--accent-lavanda);
+    }
+
+    /* Tabs */
+    .main-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 0;
+      border-bottom: 3px solid var(--ink);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 20;
+      padding-top: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+    .main-tab {
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-muted);
+      border: 2px solid transparent;
+      border-bottom: none;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      margin-bottom: -3px;
+      transition: color 0.15s, background 0.15s;
+      background: none;
+      font-family: var(--font-body);
+      letter-spacing: -0.01em;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .main-tab:hover { color: var(--ink); background: var(--bg-muted); }
+    .main-tab.active {
+      color: var(--ink);
+      background: var(--bg);
+      border-color: var(--ink);
+      border-bottom: 3px solid var(--bg);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Section divider */
+    .section-divider {
+      margin: 32px 0 24px;
+      padding: 0;
+      border: none;
+      border-top: 2px solid var(--line);
+    }
+
+    /* Timeline */
+    .timeline-wrap {
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: var(--sp-lg);
+      margin: var(--sp-md) 0 var(--sp-lg);
+    }
+    .timeline-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: var(--sp-sm);
+      margin-top: var(--sp-md);
+    }
+    .timeline-slot {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      text-align: center;
+    }
+    .timeline-slot-title {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .timeline-slot-sub {
+      font-size: 11px;
+      color: var(--ink-muted);
+      line-height: 1.25;
+    }
+    .timeline-time-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--ink);
+      color: var(--bg);
+      margin-bottom: 6px;
+    }
+
+    /* Step Cards (Minimalist) */
+    .step-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: var(--sp-lg);
+      margin-bottom: var(--sp-lg);
+      background: var(--bg);
+      transition: border-color 0.15s ease;
+    }
+    .step-card:hover {
+      border-color: #CBD5E1;
+    }
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: var(--sp-md);
+      flex-wrap: wrap;
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--bg);
+      font-size: 12px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .step-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      margin: 0;
+      flex: 1;
+    }
+    .step-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+    }
+    .badge-defecto  { background: var(--pastel-rosa); color: var(--accent-rosa); }
+    .badge-solucion { background: var(--pastel-menta); color: var(--accent-menta); }
+    .badge-analisis { background: var(--pastel-amarillo); color: var(--accent-amarillo); }
+    .badge-concepto { background: var(--pastel-lavanda); color: var(--accent-lavanda); }
+    .badge-consulta { background: var(--pastel-celeste); color: var(--accent-celeste); }
+
+    .step-instruction {
+      font-size: 14px;
+      color: var(--ink-soft);
+      margin: var(--sp-sm) 0;
+      line-height: 1.6;
+    }
+
+    /* Code Wrapper with Copy Button */
+    .code-wrapper {
+      position: relative;
+      margin: var(--sp-sm) 0 var(--sp-md);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: var(--bg-soft);
+    }
+    .code-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px;
+      background: var(--bg-muted);
+      border-bottom: 1px solid var(--line);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .copy-btn {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-soft);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+      font-family: var(--font-body);
+    }
+    .copy-btn:hover {
+      background: var(--bg-soft);
+      border-color: var(--ink-soft);
+      color: var(--ink);
+    }
+    .copy-btn.copied {
+      background: var(--pastel-menta);
+      border-color: var(--accent-menta);
+      color: var(--accent-menta);
+    }
+    .code-wrapper pre {
+      margin: 0;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      overflow-x: auto;
+    }
+    .code-wrapper pre code {
+      padding: 14px 16px;
+      font-size: 13px;
+      line-height: 1.6;
+      font-family: var(--font-mono);
+      display: block;
+      background: transparent;
+    }
+
+    /* Callouts */
+    .callout {
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      margin: var(--sp-md) 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--ink);
+    }
+    .callout-title {
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    .callout p {
+      margin: 0;
+      color: var(--ink);
+    }
+    .callout code {
+      background: rgba(0, 0, 0, 0.08);
+      color: var(--ink);
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+    }
+    .callout-rosa     { background: var(--pastel-rosa); border-left: 4px solid var(--accent-rosa); }
+    .callout-rosa .callout-title { color: var(--accent-rosa); }
+    .callout-celeste  { background: var(--pastel-celeste); border-left: 4px solid var(--accent-celeste); }
+    .callout-celeste .callout-title { color: var(--accent-celeste); }
+    .callout-menta    { background: var(--pastel-menta); border-left: 4px solid var(--accent-menta); }
+    .callout-menta .callout-title { color: var(--accent-menta); }
+    .callout-lavanda  { background: var(--pastel-lavanda); border-left: 4px solid var(--accent-lavanda); }
+    .callout-lavanda .callout-title { color: var(--accent-lavanda); }
+    .callout-amarillo { background: var(--pastel-amarillo); border-left: 4px solid var(--accent-amarillo); }
+    .callout-amarillo .callout-title { color: var(--accent-amarillo); }
+
+    /* FN tag */
+    .fn-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      padding: 2px 7px;
+      border-radius: var(--radius-sm);
+      background: var(--pastel-lavanda);
+      color: var(--accent-lavanda);
+      vertical-align: baseline;
+    }
+    .fn-tag.acid {
+      background: var(--pastel-durazno);
+      color: var(--accent-durazno);
+    }
+
+    /* Oracle error box */
+    .oracle-error {
+      background: #FFF5F5;
+      border: 1px solid #FED7D7;
+      border-left: 3px solid #E53E3E;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #9B2C2C;
+      margin: var(--sp-sm) 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* Checklist */
+    .checklist-wrap {
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: var(--sp-lg);
+      margin: var(--sp-lg) 0;
+    }
+    .checklist-wrap h3 {
+      font-size: 15px;
+      font-weight: 700;
+      margin: 0 0 var(--sp-md);
+      letter-spacing: -0.01em;
+    }
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-sm);
+      padding: 8px 0;
+      font-size: 14px;
+      border-bottom: 1px solid var(--line);
+      cursor: pointer;
+      user-select: none;
+    }
+    .check-item:last-child { border-bottom: none; }
+    .check-item input[type="checkbox"] {
+      width: 18px; height: 18px; accent-color: var(--accent-menta);
+      cursor: pointer; flex-shrink: 0;
+    }
+    .check-item.done span { text-decoration: line-through; color: var(--ink-muted); }
+    .progress-bar {
+      height: 5px;
+      background: var(--bg-muted);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: var(--sp-sm);
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent-menta);
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    /* Exercise cards */
+    .exercise-group { margin-bottom: var(--sp-xl); }
+    .exercise-group h3 {
+      font-size: 16px;
+      margin-bottom: var(--sp-md);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-sm);
+    }
+    .level-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+    .level-tag.base { background: var(--level-base); color: var(--level-base-ink); }
+    .level-tag.inter { background: var(--level-inter); color: var(--level-inter-ink); }
+
+    .exercise-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 14px 16px 14px 52px;
+      margin-bottom: var(--sp-sm);
+      position: relative;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--ink-soft);
+      background: var(--bg);
+    }
+    .exercise-number {
+      position: absolute;
+      left: 14px;
+      top: 14px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--bg-muted);
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    /* Model diagram */
+    .model-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: var(--sp-md);
+      margin: var(--sp-lg) 0;
+    }
+    .model-table-card {
+      border: 2px solid var(--ink);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      font-size: 13px;
+      background: var(--bg);
+    }
+    .model-table-card .table-name {
+      background: var(--ink);
+      color: var(--bg);
+      padding: 8px 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 12px;
+    }
+    .model-table-card .table-name.pivot {
+      background: var(--accent-lavanda);
+    }
+    .model-table-card ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .model-table-card li {
+      padding: 6px 12px;
+      border-bottom: 1px solid var(--line);
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    .model-table-card li:last-child { border-bottom: none; }
+    .model-table-card li .col-badge {
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      margin-left: 4px;
+    }
+    .col-badge.pk { background: var(--pastel-durazno); color: var(--accent-durazno); }
+    .col-badge.fk { background: var(--pastel-celeste); color: var(--accent-celeste); }
+    .col-badge.uq { background: var(--pastel-lavanda); color: var(--accent-lavanda); }
+    .col-badge.nn { background: var(--pastel-menta); color: var(--accent-menta); }
+    .col-badge.chk { background: var(--pastel-rosa); color: var(--accent-rosa); }
+
+    /* Tables */
+    .rubric-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin: 16px 0;
+    }
+    .rubric-table th {
+      background: var(--bg-muted);
+      text-align: left;
+      padding: 10px 12px;
+      font-weight: 700;
+      border-bottom: 2px solid var(--line);
+    }
+    .rubric-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    /* Tab navigation footer */
+    .tab-nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 36px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+    }
+    .tab-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: var(--font-body);
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--ink);
+    }
+    .tab-nav-btn:hover {
+      background: var(--bg-muted);
+      border-color: var(--ink-soft);
+    }
+    .tab-nav-btn.primary {
+      background: var(--ink);
+      color: var(--bg);
+      border-color: var(--ink);
+    }
+    .tab-nav-btn.primary:hover {
+      background: #2D2D44;
+    }
+
+
+    /* Your Turn Box */
+    .your-turn-box {
+      margin-top: var(--sp-md);
+      padding: 14px 16px;
+      background: var(--bg-soft);
+      border: 1px dashed #CBD5E1;
+      border-radius: var(--radius-md);
+      transition: border-color 0.15s ease;
+    }
+    .your-turn-box:hover {
+      border-color: var(--ink-soft);
+    }
+    .your-turn-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .your-turn-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: var(--radius-sm);
+      background: var(--ink);
+      color: var(--bg);
+    }
+    .your-turn-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .your-turn-desc {
+      font-size: 13px;
+      color: var(--ink-soft);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* Toast Notification */
+    .toast-notification {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      max-width: 380px;
+      background: var(--ink);
+      color: var(--bg);
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      z-index: 100;
+      font-size: 13px;
+      line-height: 1.45;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .toast-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .toast-body strong {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--pastel-durazno);
+      margin-bottom: 3px;
+    }
+    .toast-body p {
+      margin: 0;
+      color: #E2E8F0;
+      font-size: 13px;
+    }
+    .toast-close {
+      background: none;
+      border: none;
+      color: #94A3B8;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0;
+      margin-left: auto;
+      line-height: 1;
+    }
+    .toast-close:hover {
+      color: #FFF;
+    }
+    .toast-fade-enter-active, .toast-fade-leave-active {
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .toast-fade-enter-from, .toast-fade-leave-to {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    /* Engine tip overrides & light code-block fix */
+    details.engine-tip {
+      margin: var(--sp-md) 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: var(--bg);
+      overflow: hidden;
+    }
+    .engine-tip summary {
+      background: var(--bg-muted);
+      color: var(--ink);
+      font-weight: 700;
+      font-size: 13px;
+      padding: 10px 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .engine-tip-content {
+      padding: 16px 20px;
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.6;
+      border-top: 1px solid var(--line);
+    }
+    .engine-tip-content p {
+      color: var(--ink-soft);
+      margin: 0 0 10px;
+    }
+    .engine-tip-content code {
+      background: rgba(0, 0, 0, 0.06);
+      color: var(--ink);
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+    }
+    /* Critical: Override dark background of .code-block so atom-one-light syntax highlighting is 100% readable! */
+    pre.code-block,
+    .engine-tip pre.code-block,
+    .engine-tip .code-block {
+      background: var(--bg-soft) !important;
+      color: var(--ink) !important;
+      border: 1px solid var(--line) !important;
+      border-radius: var(--radius-md) !important;
+      padding: 14px 16px !important;
+      font-size: 13px !important;
+      line-height: 1.6 !important;
+      font-family: var(--font-mono) !important;
+      margin: var(--sp-sm) 0 var(--sp-md) !important;
+      overflow-x: auto !important;
+      box-shadow: none !important;
+    }
+    pre.code-block code,
+    .engine-tip pre.code-block code,
+    .engine-tip .code-block code {
+      background: transparent !important;
+      color: var(--ink) !important;
+      font-family: var(--font-mono) !important;
+      padding: 0 !important;
+    }
+
+    @media (max-width: 600px) {
+      .guide-container { padding: 24px 12px 60px; }
+      .guide-header h1 { font-size: 22px; }
+      .main-tab { padding: 8px 10px; font-size: 12px; }
+      .step-card { padding: var(--sp-md); }
+      .model-grid { grid-template-columns: 1fr; }
+      .tab-nav-bar { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="guide-container">
+
+    <!-- HEADER -->
+    <header class="guide-header">
+      <div class="header-avatar">👽</div>
+      <span class="act-badge">Taller SQL Progresivo · Caso Spotify</span>
+      <h1>Construcción de un Esquema Relacional en Oracle SQL</h1>
+      <p class="lead">Modelamiento físico incremental, normalización hasta 3FN, integridad referencial, transacciones ACID y consultas relacionales.</p>
+      <div class="meta-row">
+        <span><strong>2 sesiones</strong> (5 bloques pedagógicos)</span>
+        <span>·</span>
+        <span>Oracle Database (SQL Developer / VS Code)</span>
+        <span>·</span>
+        <span>Enfoque: Diagnóstico y refactorización incremental</span>
+      </div>
+    </header>
+
+    <!-- TABS -->
+    <nav class="main-tabs" role="tablist">
+      <button class="main-tab" :class="{active: tab==='intro'}" @click="switchTab('intro')">Introducción</button>
+      <button class="main-tab" :class="{active: tab==='b1'}" @click="switchTab('b1')">Bloque 1</button>
+      <button class="main-tab" :class="{active: tab==='b2'}" @click="switchTab('b2')">Bloque 2</button>
+      <button class="main-tab" :class="{active: tab==='b3'}" @click="switchTab('b3')">Bloque 3</button>
+      <button class="main-tab" :class="{active: tab==='b4'}" @click="switchTab('b4')">Bloque 4</button>
+      <button class="main-tab" :class="{active: tab==='b5'}" @click="switchTab('b5')">Bloque 5</button>
+      <button class="main-tab" :class="{active: tab==='ejercicios'}" @click="switchTab('ejercicios')">Ejercicios</button>
+      <button class="main-tab" :class="{active: tab==='modelo'}" @click="switchTab('modelo')">Modelo Final</button>
+    </nav>
+
+    <!-- ================================================================ -->
+    <!-- TAB: INTRODUCCIÓN                                                -->
+    <!-- ================================================================ -->
+    <div class="tab-content" :class="{active: tab==='intro'}">
+      <div style="margin-top:28px;">
+
+        <h2>Lectura Inicial Recomendada: Fundamentos Antes de Tipear</h2>
+        <p class="step-instruction">
+          Bienvenido al taller práctico de SQL. Si es la primera vez que interactúas con una base de datos relacional y con el lenguaje SQL, es normal que la terminología te parezca abstracta. Para que no te sientas perdido durante los ejercicios prácticos, esta introducción reúne <strong>los dos pilares conceptuales</strong> que necesitas dominar:
+        </p>
+
+        <ol style="margin: 12px 0 24px 20px; font-size: 14px; line-height: 1.7; color: var(--ink-soft);">
+          <li><strong>Cómo ordenar los datos (Las 3 Formas Normales)</strong>: Explicadas de forma técnica y traducidas inmediatamente a lenguaje cotidiano con el caso Spotify.</li>
+          <li><strong>El diccionario de comandos SQL del taller</strong>: Qué hace cada instrucción, sus variantes, en qué casos se usan y por qué las necesitamos.</li>
+        </ol>
+
+        <div class="callout callout-amarillo">
+          <span class="callout-title">Metodología de trabajo del taller</span>
+          A lo largo de los bloques no aprenderás memorizando teoría, sino cometiendo fallos reales en Oracle:
+          <strong>1. Ejecutar una estructura deficiente</strong> →
+          <strong>2. Observar el error o anomalía de datos</strong> →
+          <strong>3. Entender la razón de fondo</strong> →
+          <strong>4. Corregir y aplicar la regla definitiva</strong>.
+        </div>
+
+        <hr class="section-divider">
+
+        <!-- ============================================================ -->
+        <!-- SECCIÓN 1: LAS 3 FORMAS NORMALES (TÉCNICO + HUMANO)          -->
+        <!-- ============================================================ -->
+        <h2>1. Las 3 Formas Normales: De la Teoría Matemática al Mundo Real</h2>
+        <p class="step-instruction">
+          La <strong>normalización</strong> es el proceso de organizar las tablas de una base de datos para evitar dos grandes problemas: que los datos se repitan innecesariamente (redundancia) y que al modificar o borrar algo la información quede desincronizada (anomalías).
+        </p>
+
+        <!-- 1FN -->
+        <div class="step-card" style="margin-bottom: 20px;">
+          <div class="step-header">
+            <span class="step-num">1FN</span>
+            <span class="step-title">Primera Forma Normal (1FN)</span>
+            <span class="step-badge badge-concepto">Atomicidad</span>
+          </div>
+
+          <div class="callout callout-lavanda" style="margin-top: 0;">
+            <span class="callout-title">Definición técnica formal</span>
+            <p>Una relación está en 1FN si y solo si todos los dominios subyacentes contienen exclusivamente <strong>valores atómicos e indivisibles</strong>, y no existen grupos repetitivos ni atributos multivaluados.</p>
+          </div>
+
+          <div class="callout callout-menta">
+            <span class="callout-title">En lenguaje cotidiano: "Una celda, un solo dato"</span>
+            <p>Significa que <strong>nunca debes meter una lista de cosas adentro de una sola casilla</strong> separadas por comas (como guardar <code>'Pop, Reggaeton, Trap'</code> en la columna de género), ni tampoco crear columnas repetidas como <code>genero_1</code>, <code>genero_2</code>, <code>genero_3</code>.</p>
+          </div>
+
+          <p class="step-instruction"><strong>Ejemplo claro en Spotify:</strong></p>
+          <p class="step-instruction">
+            Si la canción 'Blinding Lights' de The Weeknd pertenece a los géneros Pop y Synthwave, <strong>no</strong> debes guardarla como <code>'Pop, Synthwave'</code> en un campo de texto. Si lo haces así, cuando un usuario busque <em>"Canciones de Pop"</em>, la base de datos no la va a encontrar porque buscará el texto exacto <code>'Pop'</code>. Cada dato debe ser indivisible (atómico). Si hay varios géneros, se deben separar mediante relaciones.
+          </p>
+        </div>
+
+        <!-- 2FN -->
+        <div class="step-card" style="margin-bottom: 20px;">
+          <div class="step-header">
+            <span class="step-num">2FN</span>
+            <span class="step-title">Segunda Forma Normal (2FN)</span>
+            <span class="step-badge badge-concepto">Dependencia Completa</span>
+          </div>
+
+          <div class="callout callout-lavanda" style="margin-top: 0;">
+            <span class="callout-title">Definición técnica formal</span>
+            <p>Una relación está en 2FN si está en 1FN y cada atributo no clave depende funcionalmente de manera completa de la clave primaria. <strong>Aplica exclusivamente cuando la tabla tiene una clave primaria compuesta</strong> (formada por 2 o más columnas). No deben existir dependencias parciales.</p>
+          </div>
+
+          <div class="callout callout-menta">
+            <span class="callout-title">En lenguaje cotidiano: "No mezcles datos del todo con datos de una parte"</span>
+            <p>Si una tabla tiene una clave formada por dos identificadores juntos (como una tabla intermedia <code>cancion_genero</code> con <code>id_cancion + id_genero</code>), cualquier columna adicional que agregues ahí debe pertenecer a la <strong>combinación completa</strong>, no a una de las dos partes por separado.</p>
+          </div>
+
+          <p class="step-instruction"><strong>Ejemplo claro en Spotify:</strong></p>
+          <p class="step-instruction">
+            En la tabla de canciones, si guardas la fecha de lanzamiento del álbum y el nombre del álbum junto a cada canción, esos datos pertenecen al <strong>disco completo</strong>, no a una pista individual. Si el álbum tiene 15 canciones, vas a escribir el título del álbum 15 veces. La 2FN te exige extraer el álbum a su propia tabla <code>album</code>, dejando en la canción solo una referencia (clave foránea).
+          </p>
+        </div>
+
+        <!-- 3FN -->
+        <div class="step-card" style="margin-bottom: 20px;">
+          <div class="step-header">
+            <span class="step-num">3FN</span>
+            <span class="step-title">Tercera Forma Normal (3FN)</span>
+            <span class="step-badge badge-concepto">Sin Dependencias Transitivas</span>
+          </div>
+
+          <div class="callout callout-lavanda" style="margin-top: 0;">
+            <span class="callout-title">Definición técnica formal</span>
+            <p>Una relación está en 3FN si está en 2FN y ningún atributo no clave depende transitivamente de la clave primaria (es decir, no debe existir una cadena funcional donde la clave primaria determina al atributo A, y el atributo A determina al atributo B).</p>
+          </div>
+
+          <div class="callout callout-menta">
+            <span class="callout-title">En lenguaje cotidiano: "Los datos no deben depender de intermediarios"</span>
+            <p>Un dato en una tabla debe depender <strong>directamente de la clave primaria</strong>, no de otra columna cualquiera de la tabla. Si una columna depende de otra columna intermedia, esa información pertenece a otra tabla.</p>
+          </div>
+
+          <p class="step-instruction"><strong>Ejemplo claro en Spotify:</strong></p>
+          <p class="step-instruction">
+            Imagina que en la tabla <code>cancion</code> guardas: <code>id_cancion</code>, <code>titulo</code>, <code>id_artista</code>, <code>nombre_artista</code> y <code>pais_artista</code>.<br>
+            Pregúntate: ¿El país de origen depende del ID de la canción? <strong>No</strong>, el país depende del artista. La canción apunta al artista, y el artista apunta al país (eso es el "tránsito" o intermediario).<br>
+            ¿Qué problema causa esto en la vida real? Si Bad Bunny tiene 40 canciones en tu base de datos, vas a escribir <em>'Puerto Rico'</em> 40 veces. Si alguien comete una falta de ortografía en una sola fila, las estadísticas de tu empresa se rompen. La 3FN te exige crear la tabla <code>artista(id_artista, nombre_artista, pais)</code> y dejar solo <code>id_artista</code> en la canción.
+          </p>
+        </div>
+
+        <hr class="section-divider">
+
+        <!-- ============================================================ -->
+        <!-- SECCIÓN 2: DICCIONARIO DE COMANDOS SQL                       -->
+        <!-- ============================================================ -->
+        <h2>2. Diccionario de Comandos SQL del Taller</h2>
+        <p class="step-instruction">
+          En este taller utilizaremos sentencias del estándar SQL implementadas en <strong>Oracle Database</strong>. A continuación, se detallan los comandos, sus variantes y en qué casos concretos los emplearás:
+        </p>
+
+        <!-- DDL -->
+        <h3>A. Comandos DDL (Data Definition Language) — Estructura de Tablas</h3>
+        <p class="step-instruction">Son las instrucciones que crean, modifican o destruyen las tablas y sus reglas en la base de datos:</p>
+
+        <div style="overflow-x:auto; margin: 16px 0;">
+          <table class="rubric-table">
+            <thead>
+              <tr>
+                <th style="width: 28%;">Instrucción / Tipo</th>
+                <th style="width: 37%;">Sintaxis de Ejemplo</th>
+                <th style="width: 35%;">¿Cuándo se usa?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>CREATE TABLE</code></td>
+                <td><code>CREATE TABLE nombre (<br>&nbsp;&nbsp;columna TIPO REGLA<br>);</code></td>
+                <td>Crea una tabla nueva especificando el nombre de cada columna y su tipo de dato.</td>
+              </tr>
+              <tr>
+                <td><code>NUMBER</code></td>
+                <td><code>id_cancion NUMBER</code><br><code>precio NUMBER(10,2)</code></td>
+                <td>Almacena números. <code>NUMBER</code> a secas es ideal para identificadores enteros. <code>NUMBER(10,2)</code> almacena hasta 10 dígitos con 2 decimales (ideal para dinero/precios).</td>
+              </tr>
+              <tr>
+                <td><code>VARCHAR2(n)</code></td>
+                <td><code>titulo VARCHAR2(200)</code></td>
+                <td>Almacena cadenas de texto de longitud variable hasta <em>n</em> caracteres. En Oracle siempre se usa <code>VARCHAR2</code> en lugar del tradicional <code>VARCHAR</code>.</td>
+              </tr>
+              <tr>
+                <td><code>DATE</code></td>
+                <td><code>fecha_lanzamiento DATE</code></td>
+                <td>Almacena fecha y hora. Para insertar una fecha fija en Oracle se usa el literal <code>DATE '2022-05-06'</code>. Para la fecha del sistema actual se usa <code>SYSDATE</code>.</td>
+              </tr>
+              <tr>
+                <td><code>GENERATED ALWAYS AS IDENTITY</code></td>
+                <td><code>id NUMBER GENERATED ALWAYS AS IDENTITY</code></td>
+                <td>Indica a Oracle que genere los números correlativos automáticamente (1, 2, 3...). Evita que los usuarios asignen IDs a mano y colisionen entre sí.</td>
+              </tr>
+              <tr>
+                <td><code>DROP TABLE</code></td>
+                <td><code>DROP TABLE nombre_tabla;</code></td>
+                <td>Elimina la tabla por completo junto con sus datos. <strong>Regla obligatoria</strong>: primero se borran las tablas hijas (las que tienen claves foráneas) y después las tablas madres.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- RESTICCIONES / CONSTRAINTS -->
+        <h3 style="margin-top: 28px;">B. Restricciones de Integridad (Constraints) — Las Reglas Protectoras</h3>
+        <p class="step-instruction">
+          Las restricciones impiden que ingresen datos corruptos o ilógicos a la base de datos. Se pueden declarar en la misma línea de la columna (en línea) o al final de la tabla (fuera de línea, con la cláusula <code>CONSTRAINT</code>):
+        </p>
+
+        <div style="overflow-x:auto; margin: 16px 0;">
+          <table class="rubric-table">
+            <thead>
+              <tr>
+                <th style="width: 25%;">Restricción</th>
+                <th style="width: 40%;">Sintaxis en Oracle</th>
+                <th style="width: 35%;">Propósito y Regla de Negocio</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>PRIMARY KEY</code><br>(Clave Primaria)</td>
+                <td><code>CONSTRAINT pk_cancion<br>PRIMARY KEY (id_cancion)</code></td>
+                <td>Identificador único de cada fila. Oracle prohíbe duplicados y prohíbe valores nulos. Cada tabla debe tener una.</td>
+              </tr>
+              <tr>
+                <td><code>PRIMARY KEY</code> Compuesta</td>
+                <td><code>CONSTRAINT pk_cg<br>PRIMARY KEY (id_cancion, id_genero)</code></td>
+                <td>Se usa en tablas intermedias (pivote) para relaciones de muchos a muchos (N:M). La combinación de ambos IDs no se puede repetir.</td>
+              </tr>
+              <tr>
+                <td><code>FOREIGN KEY</code><br>(Clave Foránea)</td>
+                <td><code>CONSTRAINT fk_cancion_album<br>FOREIGN KEY (id_album)<br>REFERENCES album(id_album)</code></td>
+                <td>Conecta una tabla hija con su tabla padre. Oracle comprueba que el ID exista en la tabla padre antes de permitir la inserción (evita hijos huérfanos).</td>
+              </tr>
+              <tr>
+                <td><code>NOT NULL</code></td>
+                <td><code>titulo VARCHAR2(200) NOT NULL</code></td>
+                <td>Campo obligatorio. Si intentas insertar una fila sin este dato o con <code>NULL</code>, Oracle rechaza la operación.</td>
+              </tr>
+              <tr>
+                <td><code>UNIQUE</code></td>
+                <td><code>CONSTRAINT uq_email<br>UNIQUE (email)</code></td>
+                <td>Garantiza que ningún valor se repita en esa columna (ej: no pueden haber dos usuarios con el mismo correo ni dos géneros con el mismo nombre).</td>
+              </tr>
+              <tr>
+                <td><code>CHECK</code></td>
+                <td><code>CONSTRAINT chk_precio<br>CHECK (precio_mensual >= 0)</code></td>
+                <td>Impone una condición lógica. Si la condición no se cumple (ej. precio negativo), Oracle aborta la inserción con error <code>ORA-02290</code>.</td>
+              </tr>
+              <tr>
+                <td><code>DEFAULT</code></td>
+                <td><code>fecha DATE DEFAULT SYSDATE NOT NULL</code></td>
+                <td>Valor por defecto automático si la sentencia de inserción no incluye esa columna.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- DML y TCL -->
+        <h3 style="margin-top: 28px;">C. Comandos DML y TCL — Manejo de Datos y Transacciones</h3>
+        <p class="step-instruction">Instrucciones para insertar, consultar, confirmar o deshacer cambios en los datos:</p>
+
+        <div style="overflow-x:auto; margin: 16px 0;">
+          <table class="rubric-table">
+            <thead>
+              <tr>
+                <th style="width: 25%;">Comando</th>
+                <th style="width: 40%;">Ejemplo</th>
+                <th style="width: 35%;">¿Para qué se usa?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>INSERT INTO</code><br>(Con columnas)</td>
+                <td><code>INSERT INTO cancion (titulo, duracion)<br>VALUES ('Dakiti', 206);</code></td>
+                <td><strong>Forma recomendada</strong>: especifica qué columnas vas a llenar. Es obligatoria cuando la tabla usa <code>IDENTITY</code> para no enviar el ID a mano.</td>
+              </tr>
+              <tr>
+                <td><code>DELETE FROM</code></td>
+                <td><code>DELETE FROM cancion<br>WHERE id_cancion = 1;</code></td>
+                <td>Elimina filas que cumplan la condición del <code>WHERE</code>. Si olvidas el <code>WHERE</code>, borras todas las filas de la tabla.</td>
+              </tr>
+              <tr>
+                <td><code>COMMIT</code></td>
+                <td><code>COMMIT;</code></td>
+                <td>Confirma definitivamente las operaciones en el disco de la base de datos. Hasta que no haces <code>COMMIT</code>, los cambios solo existen en tu sesión.</td>
+              </tr>
+              <tr>
+                <td><code>ROLLBACK</code></td>
+                <td><code>ROLLBACK;</code></td>
+                <td>El "Ctrl+Z" de la base de datos. Deshace todos los INSERT, UPDATE o DELETE realizados desde el último <code>COMMIT</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- DQL: JOIN y GROUP BY -->
+        <h3 style="margin-top: 28px;">D. Consultas Relacionales (DQL) — Unir Tablas y Calcular Totales</h3>
+        <p class="step-instruction">
+          En el Bloque 5 y en el Banco de Ejercicios harás preguntas al modelo de Spotify. Para eso utilizaremos dos herramientas fundamentales:
+        </p>
+
+        <div class="step-card" style="margin-bottom: 20px;">
+          <div class="step-header">
+            <span class="step-num">JOIN</span>
+            <span class="step-title">INNER JOIN: Unir datos entre tablas relacionadas</span>
+          </div>
+          <p class="step-instruction">
+            Las bases de datos relacionales separan los datos en varias tablas para no repetir información. Para ver la información junta de nuevo, usamos <code>INNER JOIN</code> indicando el "puente" que las une (<code>ON clave_foranea = clave_primaria</code>):
+          </p>
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Ejemplo conceptual · INNER JOIN</span>
+            </div>
+            <pre><code class="language-sql">-- Traer el título de la canción junto con el nombre de su artista
+SELECT c.titulo, a.nombre_artista
+FROM cancion c
+INNER JOIN artista a ON c.id_artista = a.id_artista;</code></pre>
+          </div>
+          <p class="step-instruction">
+            <strong>¿Qué significa <code>c</code> y <code>a</code>?</strong> Son <em>alias</em> (apodos cortos) para no tener que escribir <code>cancion.titulo</code> o <code>artista.nombre_artista</code> cada vez.
+          </p>
+        </div>
+
+        <div class="step-card" style="margin-bottom: 20px;">
+          <div class="step-header">
+            <span class="step-num">GRP</span>
+            <span class="step-title">GROUP BY: Agrupar filas y calcular estadísticas</span>
+          </div>
+          <p class="step-instruction">
+            Cuando necesitas contar (<code>COUNT(*)</code>), sumar (<code>SUM()</code>) o promediar (<code>AVG()</code>), usamos <code>GROUP BY</code> para indicar bajo qué criterio se agrupan los datos:
+          </p>
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Ejemplo conceptual · GROUP BY con COUNT(*)</span>
+            </div>
+            <pre><code class="language-sql">-- ¿Cuántas canciones tiene cada artista?
+SELECT a.nombre_artista, COUNT(*) AS total_canciones
+FROM cancion c
+INNER JOIN artista a ON c.id_artista = a.id_artista
+GROUP BY a.nombre_artista;</code></pre>
+          </div>
+          <div class="callout callout-lavanda">
+            <span class="callout-title">Regla de oro inquebrantable de GROUP BY</span>
+            <p>Toda columna que escribas en el <code>SELECT</code> que <strong>no</strong> esté adentro de una función de cálculo (como <code>COUNT</code>, <code>SUM</code>, <code>MAX</code>) debe figurar <strong>obligatoriamente</strong> en la cláusula <code>GROUP BY</code>. Si pones <code>a.nombre_artista</code> arriba, debe estar abajo en el <code>GROUP BY</code>.</p>
+          </div>
+        </div>
+
+        <div class="callout callout-celeste">
+          <span class="callout-title">Entorno listo</span>
+          Abre tu VS Code con la extensión <strong>Oracle SQL Developer</strong> conectada a tu base de datos del laboratorio. Ejecuta cada bloque en orden — los scripts de cada etapa dependen de las tablas creadas en la etapa anterior.
+        </div>
+
+        <div class="tab-nav-bar">
+          <div></div>
+          <button class="tab-nav-btn primary" @click="switchTab('b1')">Iniciar Bloque 1 →</button>
+        </div>
+
+      </div>
+    </div><!-- /tab intro -->
+
+
+        <!-- TAB: BLOQUE 1 — La Gran Tabla Caótica                           -->
+    <!-- ================================================================ -->
+    <div class="tab-content" :class="{active: tab==='b1'}">
+      <div style="margin-top:28px;">
+
+        <h2><span class="session-badge">Sesión 1 · Bloque 1</span></h2>
+        <h2 style="margin-top:8px;">La Tabla Caótica Inicial</h2>
+        <p class="step-instruction">
+          Iniciaremos creando una tabla plana de canciones sin restricciones de integridad. Este ejercicio demuestra las vulnerabilidades que surgen al prescindir de claves primarias, secuencias automáticas y restricciones de obligatoriedad.
+        </p>
+
+        <!-- PASO 1: SIN PK -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">01</span>
+            <span class="step-title">Creación de tabla sin Clave Primaria</span>
+            <span class="step-badge badge-defecto">Prueba de fallo</span>
+          </div>
+          <p class="step-instruction">Ejecuta en tu entorno Oracle la creación de la tabla inicial:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DDL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">CREATE TABLE cancion (
+    id_cancion        NUMBER,
+    titulo            VARCHAR2(200),
+    artista           VARCHAR2(100),
+    album             VARCHAR2(200),
+    genero            VARCHAR2(100),
+    duracion_segundos NUMBER,
+    fecha_lanzamiento DATE
+);</code></pre>
+          </div>
+
+          <p class="step-instruction">Inserta dos registros asignando deliberadamente el mismo identificador (<code>id_cancion = 1</code>):</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">INSERT INTO cancion VALUES (1, 'Anti-Hero', 'Taylor Swift', 'Midnights', 'Pop', 200, DATE '2022-10-21');
+INSERT INTO cancion VALUES (1, 'Shake It Off', 'Taylor Swift', '1989', 'Pop', 219, DATE '2014-08-18');
+COMMIT;</code></pre>
+          </div>
+
+          <p class="step-instruction">Intenta eliminar exclusivamente el registro de la canción 'Anti-Hero' utilizando su identificador:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">DELETE FROM cancion WHERE id_cancion = 1;</code></pre>
+          </div>
+
+          <div class="callout callout-rosa">
+            <span class="callout-title">Diagnóstico del fallo</span>
+            Ambas filas fueron eliminadas simultáneamente. Al carecer de un identificador unívoco garantizado por el motor, resulta imposible direccionar operaciones DML a un registro específico sin afectar a otros duplicados.
+          </div>
+
+          <div class="callout callout-lavanda">
+            <span class="callout-title">Concepto: PRIMARY KEY (Clave Primaria)</span>
+            Una clave primaria es una columna (o conjunto de columnas) que identifica de forma unívoca cada tupla dentro de una relación. El motor de base de datos impone automáticamente dos restricciones: unicidad (no duplicados) y obligatoriedad (no nulos).
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Escribe a mano en tu editor <strong>3 canciones adicionales</strong> inventadas por ti con sus sentencias <code>INSERT INTO</code> completas. Asigna a una de ellas deliberadamente <code>id_cancion = 1</code> y comprueba qué sucede al ejecutar un <code>DELETE WHERE id_cancion = 1;</code>.
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 2: PK MANUAL -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">02</span>
+            <span class="step-title">Incorporación de Clave Primaria con asignación manual</span>
+            <span class="step-badge badge-defecto">Prueba de fallo</span>
+          </div>
+          <p class="step-instruction">Elimina la tabla anterior e impleméntala con una restricción de clave primaria:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DDL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">DROP TABLE cancion;
+
+CREATE TABLE cancion (
+    id_cancion        NUMBER,
+    titulo            VARCHAR2(200),
+    artista           VARCHAR2(100),
+    album             VARCHAR2(200),
+    genero            VARCHAR2(100),
+    duracion_segundos NUMBER,
+    fecha_lanzamiento DATE,
+    CONSTRAINT pk_cancion PRIMARY KEY (id_cancion)
+);</code></pre>
+          </div>
+
+          <p class="step-instruction">Inserta registros asignando identificadores de forma manual:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">INSERT INTO cancion VALUES (1, 'Anti-Hero', 'Taylor Swift', 'Midnights', 'Pop', 200, DATE '2022-10-21');
+INSERT INTO cancion VALUES (2, 'Tití Me Preguntó', 'Bad Bunny', 'Un Verano Sin Ti', 'Reggaeton', 245, DATE '2022-05-06');
+INSERT INTO cancion VALUES (3, 'Blinding Lights', 'The Weeknd', 'After Hours', 'Pop', 200, DATE '2020-03-20');
+COMMIT;</code></pre>
+          </div>
+
+          <p class="step-instruction">Intenta insertar un registro con un identificador ya existente (<code>id_cancion = 1</code>):</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">INSERT INTO cancion VALUES (1, 'Ella Baila Sola', 'Peso Pluma', 'Génesis', 'Regional Mexicano', 234, DATE '2023-03-16');</code></pre>
+          </div>
+
+          <div class="oracle-error">ORA-00001: unique constraint (PK_CANCION) violated</div>
+
+          <div class="callout callout-menta">
+            <span class="callout-title">Validación de la restricción PRIMARY KEY</span>
+            Oracle rechaza la inserción duplicada. No obstante, la gestión manual de identificadores en sistemas con alta concurrencia resulta inviable: provoca colisiones de claves cuando múltiples clientes intentan insertar simultáneamente.
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Inserta <strong>2 canciones más</strong> asignando identificadores manuales consecutivos que no existan (ej. ID 4 e ID 5). Luego, intenta forzar una inserción con ID 2 y constata que Oracle rechace la tupla con el código <code>ORA-00001</code>.
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 3: IDENTITY -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">03</span>
+            <span class="step-title">Generación automática con GENERATED ALWAYS AS IDENTITY</span>
+            <span class="step-badge badge-solucion">Implementación</span>
+          </div>
+          <p class="step-instruction">Recrea la tabla delegando la generación secuencial de identificadores en el motor Oracle:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DDL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">DROP TABLE cancion;
+
+CREATE TABLE cancion (
+    id_cancion        NUMBER GENERATED ALWAYS AS IDENTITY,
+    titulo            VARCHAR2(200),
+    artista           VARCHAR2(100),
+    album             VARCHAR2(200),
+    genero            VARCHAR2(100),
+    duracion_segundos NUMBER,
+    fecha_lanzamiento DATE,
+    CONSTRAINT pk_cancion PRIMARY KEY (id_cancion)
+);</code></pre>
+          </div>
+
+          <p class="step-instruction">Inserta registros omitiendo la columna <code>id_cancion</code> en la cláusula de inserción:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">INSERT INTO cancion (titulo, artista, album, genero, duracion_segundos, fecha_lanzamiento)
+VALUES ('Anti-Hero', 'Taylor Swift', 'Midnights', 'Pop', 200, DATE '2022-10-21');
+
+INSERT INTO cancion (titulo, artista, album, genero, duracion_segundos, fecha_lanzamiento)
+VALUES ('Tití Me Preguntó', 'Bad Bunny', 'Un Verano Sin Ti', 'Reggaeton', 245, DATE '2022-05-06');
+
+COMMIT;</code></pre>
+          </div>
+
+          <p class="step-instruction">Ejecuta <code>SELECT * FROM cancion;</code> para verificar que los identificadores fueron asignados de manera consecutiva por el motor.</p>
+
+          <div class="callout callout-lavanda">
+            <span class="callout-title">Concepto: GENERATED ALWAYS AS IDENTITY</span>
+            Esta cláusula instruye a Oracle a gestionar internamente una secuencia para la columna. La opción <code>ALWAYS</code> impide que aplicaciones cliente fuercen valores arbitrarios, garantizando secuencias íntegras e irrepetibles.
+          </div>
+
+          <details class="engine-tip">
+            <summary>¿Cómo se hace esto en PostgreSQL o MySQL?</summary>
+            <div class="engine-tip-content">
+              <p>En <strong>PostgreSQL</strong> se utiliza la sintaxis estándar SQL o el pseudotipo <code>SERIAL</code>:</p>
+              <pre class="code-block"><code class="language-sql">id_cancion INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY
+-- o bien en versiones tradicionales:
+id_cancion SERIAL PRIMARY KEY</code></pre>
+              <p>En <strong>MySQL</strong> se implementa mediante la propiedad <code>AUTO_INCREMENT</code>:</p>
+              <pre class="code-block"><code class="language-sql">id_cancion INT AUTO_INCREMENT PRIMARY KEY</code></pre>
+            </div>
+          </details>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Tipea e inserta <strong>2 canciones más</strong> omitiendo por completo la columna <code>id_cancion</code> en la lista de campos. Ejecuta una consulta <code>SELECT</code> y verifica qué identificadores correlativos asignó el motor automáticamente.
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 4: NULL en titulo -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">04</span>
+            <span class="step-title">Evaluación de atributos obligatorios y restricción NOT NULL</span>
+            <span class="step-badge badge-defecto">Prueba de fallo</span>
+          </div>
+          <p class="step-instruction">Intenta insertar un registro sin proporcionar un valor para la columna <code>titulo</code>:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">INSERT INTO cancion (titulo, artista, album, genero, duracion_segundos, fecha_lanzamiento)
+VALUES (NULL, 'Bad Bunny', 'YHLQMDLG', 'Reggaeton', 206, DATE '2020-02-29');</code></pre>
+          </div>
+
+          <div class="callout callout-rosa">
+            <span class="callout-title">Diagnóstico del fallo</span>
+            La fila fue insertada con éxito. Por defecto, toda columna en Oracle admite valores nulos a menos que se restrinja explícitamente. Permitir registros sin título deteriora la calidad del dato en el dominio del negocio.
+          </div>
+
+          <div class="callout callout-lavanda">
+            <span class="callout-title">Concepto: Restricción NOT NULL</span>
+            La restricción <code>NOT NULL</code> establece obligatoriedad sobre la columna. Cualquier sentencia DML que intente omitir o asignar <code>NULL</code> a dicho atributo será abortada por el motor.
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Intenta insertar una canción omitiendo el valor de <code>duracion_segundos</code> o enviando <code>NULL</code> explícito. Observa cómo responde la tabla en su estado actual y reflexiona por qué la duración debe ser de carácter mandatorio.
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 5: VERSIÓN FINAL v3 -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">05</span>
+            <span class="step-title">Implementación de la tabla cancion con restricciones de obligatoriedad</span>
+            <span class="step-badge badge-solucion">Implementación</span>
+          </div>
+          <p class="step-instruction">Recrea la tabla aplicando <code>NOT NULL</code> a los atributos esenciales y puebla los 12 registros de prueba:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DDL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">DROP TABLE cancion;
+
+CREATE TABLE cancion (
+    id_cancion        NUMBER GENERATED ALWAYS AS IDENTITY,
+    titulo            VARCHAR2(200) NOT NULL,
+    artista           VARCHAR2(100) NOT NULL,
+    album             VARCHAR2(200),
+    genero            VARCHAR2(100),
+    duracion_segundos NUMBER        NOT NULL,
+    fecha_lanzamiento DATE,
+    CONSTRAINT pk_cancion PRIMARY KEY (id_cancion)
+);</code></pre>
+          </div>
+
+          <div class="callout callout-celeste">
+            <span class="callout-title">Criterio de diseño: Atributos opcionales</span>
+            Las columnas <code>album</code> y <code>genero</code> no poseen <code>NOT NULL</code> para permitir la existencia de lanzamientos sencillos (singles) sin álbum asociado, o canciones cuyo género aún no ha sido clasificado.
+          </div>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML (Poblado de 12 registros)</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">INSERT INTO cancion (titulo, artista, album, genero, duracion_segundos, fecha_lanzamiento)
+VALUES ('Tití Me Preguntó', 'Bad Bunny', 'Un Verano Sin Ti', 'Reggaeton', 245, DATE '2022-05-06');
+
+INSERT INTO cancion (titulo, artista, album, genero, duracion_segundos, fecha_lanzamiento)
+VALUES ('Dakiti', 'Bad Bunny', 'YHLQMDLG', 'Reggaeton, Trap Latino', 206, DATE '2020-10-30');
+
+INSERT INTO cancion (titulo, artista, album, genero, duracion_segundos, fecha_lanzamiento)
+VALUES ('Ojitos Lindos', 'Bad Bunny', 'Un Verano Sin Ti', 'Reggaeton, R&B', 286, DATE '2022-05-06');
+
+INSERT INTO cancion (titulo, artista, album, genero, duracion_segundos, fecha_lanzamiento)
+VALUES ('Moscow Mule', 'Bad Bunny', 'Un Verano Sin Ti', 'Reggaeton', 248, DATE '2022-05-06');
+
+INSERT INTO cancion (titulo, artista, album, genero, duracion_segundos, fecha_lanzamiento)
+VALUES ('Anti-Hero', 'Taylor Swift', 'Midnights', 'Pop', 200, DATE '2022-10-21');
+
+INSERT INTO cancion (titulo, artista, album, genero, duracion_segundos, fecha_lanzamiento)
+VALUES ('Shake It Off', 'Taylor Swift', '1989', 'Pop', 219, DATE '2014-08-18');
+
+INSERT INTO cancion (titulo, artista, album, genero, duracion_segundos, fecha_lanzamiento)
+VALUES ('Cruel Summer', 'Taylor Swift', '1989', 'Pop', 178, DATE '2019-08-23');
+
+INSERT INTO cancion (titulo, artista, album, genero, duracion_segundos, fecha_lanzamiento)
+VALUES ('Blinding Lights', 'The Weeknd', 'After Hours', 'Pop, Synthwave', 200, DATE '2020-03-20');
+
+INSERT INTO cancion (titulo, artista, album, genero, duracion_segundos, fecha_lanzamiento)
+VALUES ('Save Your Tears', 'The Weeknd', 'After Hours', 'R&B', 215, DATE '2020-03-20');
+
+INSERT INTO cancion (titulo, artista, album, genero, duracion_segundos, fecha_lanzamiento)
+VALUES ('Ella Baila Sola', 'Peso Pluma', 'Génesis', 'Regional Mexicano', 234, DATE '2023-03-16');
+
+INSERT INTO cancion (titulo, artista, album, genero, duracion_segundos, fecha_lanzamiento)
+VALUES ('Provenza', 'Karol G', 'Mañana Será Bonito', 'Reggaeton', 212, DATE '2022-04-21');
+
+INSERT INTO cancion (titulo, artista, album, genero, duracion_segundos, fecha_lanzamiento)
+VALUES ('TQG', 'Karol G', 'Mañana Será Bonito', 'Reggaeton, Pop', 197, DATE '2023-02-24');
+
+COMMIT;</code></pre>
+          </div>
+
+          <p class="step-instruction">
+            Ejecuta <code>SELECT * FROM cancion ORDER BY id_cancion;</code>. La tabla almacena los datos de forma consistente a nivel de fila, pero presenta anomalías de redundancia estructural que analizaremos en el siguiente bloque.
+          </p>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Agrega a mano <strong>2 canciones adicionales</strong> de tu artista o banda favorita con todos sus atributos completos. Luego, ejecuta <code>SELECT * FROM cancion ORDER BY id_cancion;</code> y confirma los cambios con <code>COMMIT;</code>.
+            </p>
+          </div>
+        </div>
+
+        <!-- CHECKLIST BLOQUE 1 -->
+        <div class="checklist-wrap">
+          <h3>Checklist de verificación · Bloque 1</h3>
+          <div v-for="(item, i) in checklists.b1" :key="'b1-'+i" class="check-item" :class="{done: item.done}" @click="toggleCheck('b1', i)">
+            <input type="checkbox" v-model="item.done">
+            <span>{{ item.text }}</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" :style="{width: progress('b1') + '%'}"></div>
+          </div>
+        </div>
+
+        <div class="tab-nav-bar">
+          <button class="tab-nav-btn" @click="switchTab('intro')">← Introducción</button>
+          <button class="tab-nav-btn primary" @click="switchTab('b2')">Continuar a Bloque 2 →</button>
+        </div>
+
+      </div>
+    </div><!-- /tab b1 -->
+
+
+    <!-- ================================================================ -->
+    <!-- TAB: BLOQUE 2 — La Redundancia Ataca                            -->
+    <!-- ================================================================ -->
+    <div class="tab-content" :class="{active: tab==='b2'}">
+      <div style="margin-top:28px;">
+
+        <h2><span class="session-badge">Sesión 1 · Bloque 2</span></h2>
+        <h2 style="margin-top:8px;">Redundancia y Descomposición Relacional</h2>
+        <p class="step-instruction">
+          Analizaremos los problemas inherentes a almacenar entidades complejas como texto plano dentro de una misma tabla: anomalías de actualización y transgresiones a la Primera (1FN) y Tercera Forma Normal (3FN).
+        </p>
+
+        <!-- PASO 1: Ver redundancia -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">01</span>
+            <span class="step-title">Detección de redundancia y anomalías de modificación</span>
+            <span class="step-badge badge-analisis">Análisis</span>
+          </div>
+          <p class="step-instruction">Ejecuta la siguiente consulta de agregación para cuantificar la repetición del nombre del artista:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DQL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">SELECT artista, COUNT(*) AS cantidad
+FROM cancion
+GROUP BY artista
+ORDER BY cantidad DESC;</code></pre>
+          </div>
+
+          <p class="step-instruction">Simulemos un error tipográfico en una nueva inserción:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">INSERT INTO cancion (titulo, artista, album, genero, duracion_segundos, fecha_lanzamiento)
+VALUES ('Un x100to', 'Bad Buny', 'Un Verano Sin Ti', 'Reggaeton', 230, DATE '2022-05-06');
+COMMIT;</code></pre>
+          </div>
+
+          <p class="step-instruction">Al consultar nuevamente mediante <code>GROUP BY</code>, el motor reporta dos artistas distintos: "Bad Bunny" y "Bad Buny".</p>
+
+          <div class="callout callout-rosa">
+            <span class="callout-title">Anomalía de modificación</span>
+            Para corregir la tipografía, se requeriría actualizar múltiples filas en la tabla. En sistemas en producción con millones de tuplas, una actualización manual incompleta fragmenta la consistencia de la información.
+          </div>
+
+          <div class="callout callout-lavanda">
+            <span class="callout-title">Concepto: <span class="fn-tag">3FN</span> Dependencia Transitiva</span>
+            El atributo <code>artista</code> no depende funcionalmente de la clave primaria <code>id_cancion</code>, sino que conforma una entidad independiente. La Tercera Forma Normal establece que ningún atributo no clave debe depender transitivamente de la clave primaria a través de otro atributo no clave.
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Inserta una canción de 'Taylor Swift' pero escribiendo intencionalmente el nombre como 'Taylor Swif'. Vuelve a ejecutar la consulta con <code>GROUP BY</code> y analiza cómo se distorsiona la reportería por falta de normalización.
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 2: 1FN - Géneros como CSV -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">02</span>
+            <span class="step-title">Violación de atomicidad: Atributos multivaluados</span>
+            <span class="step-badge badge-defecto">Prueba de fallo</span>
+          </div>
+          <p class="step-instruction">Examinemos los valores almacenados en la columna <code>genero</code>:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DQL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">SELECT titulo, genero FROM cancion ORDER BY id_cancion;</code></pre>
+          </div>
+
+          <p class="step-instruction">Al intentar filtrar las canciones correspondientes al género 'Pop':</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DQL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">SELECT titulo, genero FROM cancion WHERE genero = 'Pop';</code></pre>
+          </div>
+
+          <div class="callout callout-rosa">
+            <span class="callout-title">Diagnóstico de consulta</span>
+            Registros como 'Blinding Lights' ('Pop, Synthwave') y 'TQG' ('Reggaeton, Pop') quedan excluidos porque el motor evalúa la cadena completa. La búsqueda parcial mediante operadores como <code>LIKE '%Pop%'</code> degrada el rendimiento y genera falsos positivos.
+          </div>
+
+          <div class="callout callout-lavanda">
+            <span class="callout-title">Concepto: <span class="fn-tag">1FN</span> Atomicidad de Atributos</span>
+            La Primera Forma Normal exige que cada atributo contenga un único valor indivisible (atómico) por tupla. La presencia de listas de valores separadas por delimitadores constituye una transgresión formal a este principio.
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Formula por tu cuenta una consulta <code>SELECT</code> que intente buscar canciones pertenecientes al género 'Reggaeton'. Comprueba cuántas pistas quedan fuera de la búsqueda por haber sido registradas con múltiples géneros en una misma celda.
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 3: Extraer tablas -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">03</span>
+            <span class="step-title">Creación de tablas maestras: GENERO y ARTISTA</span>
+            <span class="step-badge badge-solucion">Implementación</span>
+          </div>
+          <p class="step-instruction">Procedemos a desacoplar las entidades maestras. Creamos primero la tabla catálogo <code>genero</code> con restricción <code>UNIQUE</code>:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DDL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">CREATE TABLE genero (
+    id_genero     NUMBER GENERATED ALWAYS AS IDENTITY,
+    nombre_genero VARCHAR2(50) NOT NULL,
+    CONSTRAINT pk_genero PRIMARY KEY (id_genero),
+    CONSTRAINT uq_nombre_genero UNIQUE (nombre_genero)
+);</code></pre>
+          </div>
+
+          <div class="callout callout-lavanda">
+            <span class="callout-title">Concepto: Restricción UNIQUE</span>
+            A diferencia de la clave primaria, una tabla puede contener múltiples restricciones <code>UNIQUE</code>. Esta regla garantiza que no existan dos registros con el mismo nombre de género en el catálogo.
+          </div>
+
+          <p class="step-instruction">Creamos la tabla maestra <code>artista</code>:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DDL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">CREATE TABLE artista (
+    id_artista     NUMBER GENERATED ALWAYS AS IDENTITY,
+    nombre_artista VARCHAR2(100) NOT NULL,
+    pais           VARCHAR2(60),
+    CONSTRAINT pk_artista PRIMARY KEY (id_artista)
+);</code></pre>
+          </div>
+
+          <p class="step-instruction">Poblamos ambas tablas con sus respectivos registros maestros:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">-- Catálogo de Géneros
+INSERT INTO genero (nombre_genero) VALUES ('Reggaeton');
+INSERT INTO genero (nombre_genero) VALUES ('Pop');
+INSERT INTO genero (nombre_genero) VALUES ('Trap Latino');
+INSERT INTO genero (nombre_genero) VALUES ('R&B');
+INSERT INTO genero (nombre_genero) VALUES ('Synthwave');
+INSERT INTO genero (nombre_genero) VALUES ('Regional Mexicano');
+
+-- Entidades de Artistas
+INSERT INTO artista (nombre_artista, pais) VALUES ('Bad Bunny', 'Puerto Rico');
+INSERT INTO artista (nombre_artista, pais) VALUES ('Taylor Swift', 'Estados Unidos');
+INSERT INTO artista (nombre_artista, pais) VALUES ('The Weeknd', 'Canadá');
+INSERT INTO artista (nombre_artista, pais) VALUES ('Peso Pluma', 'México');
+INSERT INTO artista (nombre_artista, pais) VALUES ('Karol G', 'Colombia');
+
+COMMIT;</code></pre>
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Escribe las sentencias <code>INSERT INTO</code> para agregar <strong>2 géneros nuevos</strong> al catálogo <code>genero</code> (ej. 'Rock', 'Electrónica') y <strong>1 artista nuevo</strong> a la tabla <code>artista</code> indicando su país de procedencia.
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 4: FK - Integridad referencial -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">04</span>
+            <span class="step-title">Establecimiento de Claves Foráneas (FOREIGN KEY)</span>
+            <span class="step-badge badge-defecto">Prueba de fallo</span>
+          </div>
+          <p class="step-instruction">Recreamos la tabla <code>cancion</code> vinculándola mediante claves foráneas hacia las tablas maestras:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DDL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">DROP TABLE cancion;
+
+CREATE TABLE cancion (
+    id_cancion        NUMBER GENERATED ALWAYS AS IDENTITY,
+    titulo            VARCHAR2(200) NOT NULL,
+    duracion_segundos NUMBER        NOT NULL,
+    album             VARCHAR2(200),
+    fecha_lanzamiento DATE,
+    id_artista        NUMBER        NOT NULL,
+    id_genero         NUMBER        NOT NULL,
+    CONSTRAINT pk_cancion PRIMARY KEY (id_cancion),
+    CONSTRAINT fk_cancion_artista FOREIGN KEY (id_artista) REFERENCES artista(id_artista),
+    CONSTRAINT fk_cancion_genero FOREIGN KEY (id_genero) REFERENCES genero(id_genero)
+);</code></pre>
+          </div>
+
+          <p class="step-instruction">Intentemos insertar una canción asociada a un identificador de artista inexistente (<code>id_artista = 999</code>):</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">INSERT INTO cancion (titulo, duracion_segundos, album, fecha_lanzamiento, id_artista, id_genero)
+VALUES ('Canción Fantasma', 180, 'Álbum Falso', DATE '2024-01-01', 999, 1);</code></pre>
+          </div>
+
+          <div class="oracle-error">ORA-02291: integrity constraint (FK_CANCION_ARTISTA) violated - parent key not found</div>
+
+          <div class="callout callout-lavanda">
+            <span class="callout-title">Concepto: Integridad Referencial</span>
+            Una clave foránea (FK) garantiza que el valor referenciado exista previamente en la clave primaria de la tabla padre. Esto impide la creación de registros huérfanos y asegura la coherencia estructural de la base de datos.
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Intenta insertar una canción vinculada a un <code>id_genero</code> inexistente en la tabla <code>genero</code> (ej. id 99). Comprueba que Oracle active la restricción <code>FK_CANCION_GENERO</code> bloqueando la operación.
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 5: Insertar datos correctos -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">05</span>
+            <span class="step-title">Poblado relacional y verificación con INNER JOIN</span>
+            <span class="step-badge badge-solucion">Implementación</span>
+          </div>
+          <p class="step-instruction">Verifica los identificadores generados mediante <code>SELECT * FROM artista;</code> y <code>SELECT * FROM genero;</code>, luego ejecuta el poblado:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">-- Bad Bunny (1), Reggaeton (1)
+INSERT INTO cancion (titulo, duracion_segundos, album, fecha_lanzamiento, id_artista, id_genero)
+VALUES ('Tití Me Preguntó', 245, 'Un Verano Sin Ti', DATE '2022-05-06', 1, 1);
+
+INSERT INTO cancion (titulo, duracion_segundos, album, fecha_lanzamiento, id_artista, id_genero)
+VALUES ('Dakiti', 206, 'YHLQMDLG', DATE '2020-10-30', 1, 1);
+
+INSERT INTO cancion (titulo, duracion_segundos, album, fecha_lanzamiento, id_artista, id_genero)
+VALUES ('Ojitos Lindos', 286, 'Un Verano Sin Ti', DATE '2022-05-06', 1, 1);
+
+INSERT INTO cancion (titulo, duracion_segundos, album, fecha_lanzamiento, id_artista, id_genero)
+VALUES ('Moscow Mule', 248, 'Un Verano Sin Ti', DATE '2022-05-06', 1, 1);
+
+-- Taylor Swift (2), Pop (2)
+INSERT INTO cancion (titulo, duracion_segundos, album, fecha_lanzamiento, id_artista, id_genero)
+VALUES ('Anti-Hero', 200, 'Midnights', DATE '2022-10-21', 2, 2);
+
+INSERT INTO cancion (titulo, duracion_segundos, album, fecha_lanzamiento, id_artista, id_genero)
+VALUES ('Shake It Off', 219, '1989', DATE '2014-08-18', 2, 2);
+
+INSERT INTO cancion (titulo, duracion_segundos, album, fecha_lanzamiento, id_artista, id_genero)
+VALUES ('Cruel Summer', 178, '1989', DATE '2019-08-23', 2, 2);
+
+-- The Weeknd (3), Pop (2), R&B (4)
+INSERT INTO cancion (titulo, duracion_segundos, album, fecha_lanzamiento, id_artista, id_genero)
+VALUES ('Blinding Lights', 200, 'After Hours', DATE '2020-03-20', 3, 2);
+
+INSERT INTO cancion (titulo, duracion_segundos, album, fecha_lanzamiento, id_artista, id_genero)
+VALUES ('Save Your Tears', 215, 'After Hours', DATE '2020-03-20', 3, 4);
+
+-- Peso Pluma (4), Regional Mexicano (6)
+INSERT INTO cancion (titulo, duracion_segundos, album, fecha_lanzamiento, id_artista, id_genero)
+VALUES ('Ella Baila Sola', 234, 'Génesis', DATE '2023-03-16', 4, 6);
+
+-- Karol G (5), Reggaeton (1)
+INSERT INTO cancion (titulo, duracion_segundos, album, fecha_lanzamiento, id_artista, id_genero)
+VALUES ('Provenza', 212, 'Mañana Será Bonito', DATE '2022-04-21', 5, 1);
+
+INSERT INTO cancion (titulo, duracion_segundos, album, fecha_lanzamiento, id_artista, id_genero)
+VALUES ('TQG', 197, 'Mañana Será Bonito', DATE '2023-02-24', 5, 1);
+
+COMMIT;</code></pre>
+          </div>
+
+          <p class="step-instruction">Ejecutamos una primera consulta relacional para vincular la canción con su artista correspondiente:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DQL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">SELECT c.titulo, a.nombre_artista
+FROM cancion c
+INNER JOIN artista a ON c.id_artista = a.id_artista;</code></pre>
+          </div>
+
+          <div class="callout callout-menta">
+            <span class="callout-title">Evaluación del estado del esquema</span>
+            La consulta recupera la información de forma consistente. Sin embargo, persisten dos limitaciones: la cardinalidad impone un único género por canción (impidiendo asignar Pop y Synthwave simultáneamente) y la columna <code>album</code> permanece como texto desnormalizado.
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Formula por tu cuenta una consulta <code>SELECT</code> que retorne el título de la canción y el país de origen de su artista utilizando <code>INNER JOIN ... ON</code> entre <code>cancion</code> y <code>artista</code>.
+            </p>
+          </div>
+        </div>
+
+        <!-- CHECKLIST BLOQUE 2 -->
+        <div class="checklist-wrap">
+          <h3>Checklist de verificación · Bloque 2</h3>
+          <div v-for="(item, i) in checklists.b2" :key="'b2-'+i" class="check-item" :class="{done: item.done}" @click="toggleCheck('b2', i)">
+            <input type="checkbox" v-model="item.done">
+            <span>{{ item.text }}</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" :style="{width: progress('b2') + '%'}"></div>
+          </div>
+        </div>
+
+        <div class="tab-nav-bar">
+          <button class="tab-nav-btn" @click="switchTab('b1')">← Bloque 1</button>
+          <button class="tab-nav-btn primary" @click="switchTab('b3')">Continuar a Bloque 3 →</button>
+        </div>
+
+      </div>
+    </div><!-- /tab b2 -->
+
+
+    <!-- ================================================================ -->
+    <!-- TAB: BLOQUE 3 — De 1:N a N:M                                    -->
+    <!-- ================================================================ -->
+    <div class="tab-content" :class="{active: tab==='b3'}">
+      <div style="margin-top:28px;">
+
+        <h2><span class="session-badge">Sesión 1 · Bloque 3</span></h2>
+        <h2 style="margin-top:8px;">Relaciones Muchos a Muchos y Normalización 2FN</h2>
+        <p class="step-instruction">
+          El esquema actual cuenta con tres tablas: <code>genero</code>, <code>artista</code> y <code>cancion</code>. En esta etapa resolveremos la relación de muchos a muchos (N:M) entre canciones y géneros mediante una tabla asociativa, y extraeremos la entidad <code>album</code> para satisfacer la Segunda Forma Normal (2FN).
+        </p>
+
+        <!-- PASO 1: N:M descubierto -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">01</span>
+            <span class="step-title">Limitación de cardinalidad: Asociación de múltiples géneros</span>
+            <span class="step-badge badge-defecto">Prueba de fallo</span>
+          </div>
+          <p class="step-instruction">
+            La pista 'Blinding Lights' corresponde simultáneamente a los géneros <strong>Pop</strong> y <strong>Synthwave</strong>. En la estructura actual, solo puede registrar una única clave foránea <code>id_genero</code>.
+          </p>
+          <p class="step-instruction">Intentemos duplicar el registro de la canción para asociar el segundo género:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">INSERT INTO cancion (titulo, duracion_segundos, album, fecha_lanzamiento, id_artista, id_genero)
+VALUES ('Blinding Lights', 200, 'After Hours', DATE '2020-03-20', 3, 5);</code></pre>
+          </div>
+
+          <div class="callout callout-rosa">
+            <span class="callout-title">Diagnóstico de redundancia</span>
+            Esta aproximación introduce filas duplicadas para una misma entidad lógica. Una relación de muchos a muchos no puede resolverse alojando una clave foránea en ninguna de las dos entidades base sin inducir inconsistencias.
+          </div>
+
+          <p class="step-instruction">Eliminamos el registro duplicado antes de continuar:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">DELETE FROM cancion WHERE titulo = 'Blinding Lights' AND id_genero = 5;
+COMMIT;</code></pre>
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Revisa los registros de tu catálogo e identifica qué otra canción podría clasificarse bajo más de un género musical. Plantea qué anomalías surgirían si intentaras modelarlo agregando columnas <code>genero_1</code>, <code>genero_2</code>.
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 2: Tabla pivote -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">02</span>
+            <span class="step-title">Implementación de Tabla Asociativa (cancion_genero)</span>
+            <span class="step-badge badge-solucion">Implementación</span>
+          </div>
+          <p class="step-instruction">
+            Recreamos <code>cancion</code> removiendo la columna <code>id_genero</code> y construimos la tabla asociativa <code>cancion_genero</code>:
+          </p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DDL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">DROP TABLE cancion;
+
+CREATE TABLE cancion (
+    id_cancion        NUMBER GENERATED ALWAYS AS IDENTITY,
+    titulo            VARCHAR2(200) NOT NULL,
+    duracion_segundos NUMBER        NOT NULL,
+    album             VARCHAR2(200),
+    fecha_lanzamiento DATE,
+    id_artista        NUMBER        NOT NULL,
+    CONSTRAINT pk_cancion PRIMARY KEY (id_cancion),
+    CONSTRAINT fk_cancion_artista FOREIGN KEY (id_artista) REFERENCES artista(id_artista)
+);
+
+CREATE TABLE cancion_genero (
+    id_cancion NUMBER NOT NULL,
+    id_genero  NUMBER NOT NULL,
+    CONSTRAINT pk_cancion_genero PRIMARY KEY (id_cancion, id_genero),
+    CONSTRAINT fk_cg_cancion FOREIGN KEY (id_cancion) REFERENCES cancion(id_cancion),
+    CONSTRAINT fk_cg_genero FOREIGN KEY (id_genero) REFERENCES genero(id_genero)
+);</code></pre>
+          </div>
+
+          <div class="callout callout-lavanda">
+            <span class="callout-title">Concepto: Clave Primaria Compuesta en Tablas Asociativas</span>
+            La tabla asociativa define una clave primaria compuesta formada por (<code>id_cancion</code>, <code>id_genero</code>). Esta combinación asegura que una canción pueda asociarse a múltiples géneros y viceversa, impidiendo la asignación duplicada de una misma combinación.
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Asocia un segundo género musical a la pista 'Dakiti' o 'Ojitos Lindos' escribiendo e insertando una nueva tupla en la tabla asociativa <code>cancion_genero</code> con sus claves correspondientes.
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 3: Extraer ALBUM -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">03</span>
+            <span class="step-title">Normalización 2FN: Extracción de la entidad ALBUM</span>
+            <span class="step-badge badge-solucion">Implementación</span>
+          </div>
+          <p class="step-instruction">
+            El nombre del álbum y su fecha de lanzamiento constituyen una entidad propia con ciclo de vida independiente. En <code>cancion</code>, estos datos generaban redundancia por dependencia parcial.
+          </p>
+          <p class="step-instruction">
+            Eliminamos las tablas hijas y recreamos la jerarquía normalizada:
+          </p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DDL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">-- Eliminación en orden inverso (hijas primero)
+DROP TABLE cancion_genero;
+DROP TABLE cancion;
+
+-- 1. Tabla ALBUM (depende de artista)
+CREATE TABLE album (
+    id_album          NUMBER GENERATED ALWAYS AS IDENTITY,
+    titulo            VARCHAR2(200) NOT NULL,
+    fecha_lanzamiento DATE,
+    id_artista        NUMBER NOT NULL,
+    CONSTRAINT pk_album PRIMARY KEY (id_album),
+    CONSTRAINT fk_album_artista FOREIGN KEY (id_artista) REFERENCES artista(id_artista)
+);
+
+-- 2. Tabla CANCION (depende de album)
+CREATE TABLE cancion (
+    id_cancion        NUMBER GENERATED ALWAYS AS IDENTITY,
+    titulo            VARCHAR2(200) NOT NULL,
+    duracion_segundos NUMBER        NOT NULL,
+    id_album          NUMBER        NOT NULL,
+    CONSTRAINT pk_cancion PRIMARY KEY (id_cancion),
+    CONSTRAINT fk_cancion_album FOREIGN KEY (id_album) REFERENCES album(id_album)
+);
+
+-- 3. Tabla asociativa CANCION_GENERO
+CREATE TABLE cancion_genero (
+    id_cancion NUMBER NOT NULL,
+    id_genero  NUMBER NOT NULL,
+    CONSTRAINT pk_cancion_genero PRIMARY KEY (id_cancion, id_genero),
+    CONSTRAINT fk_cg_cancion FOREIGN KEY (id_cancion) REFERENCES cancion(id_cancion),
+    CONSTRAINT fk_cg_genero FOREIGN KEY (id_genero) REFERENCES genero(id_genero)
+);</code></pre>
+          </div>
+
+          <div class="callout callout-lavanda">
+            <span class="callout-title">Concepto: <span class="fn-tag">2FN</span> Dependencia Parcial</span>
+            Al trasladar los datos del álbum a su propia tabla, la canción ya no contiene información dependiente del álbum. La relación entre artista y canción ahora se resuelve de forma transitiva a través del álbum.
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Registra un <strong>nuevo álbum</strong> para uno de los artistas existentes en tu base de datos y luego inserta una <strong>nueva canción</strong> asociada al <code>id_album</code> que acabas de crear.
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 4: Orden de INSERT -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">04</span>
+            <span class="step-title">Secuencia de inserción según dependencia referencial</span>
+            <span class="step-badge badge-defecto">Prueba de fallo</span>
+          </div>
+          <p class="step-instruction">Intentemos insertar una canción antes de haber insertado su álbum correspondiente:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">INSERT INTO cancion (titulo, duracion_segundos, id_album)
+VALUES ('Tití Me Preguntó', 245, 1);</code></pre>
+          </div>
+
+          <div class="oracle-error">ORA-02291: integrity constraint (FK_CANCION_ALBUM) violated - parent key not found</div>
+
+          <div class="callout callout-amarillo">
+            <span class="callout-title">Regla de inserción: Jerarquía de dependencias</span>
+            La carga de datos debe respetar el grafo de dependencias del esquema: tablas maestras independientes primero, tablas subordinadas después. Secuencia obligatoria: <code>artista</code> → <code>album</code> → <code>cancion</code> → <code>cancion_genero</code>.
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Intenta insertar un registro en <code>cancion_genero</code> asociando un <code>id_cancion = 999</code> que no exista en la tabla madre. Anota cuál de las dos claves foráneas detiene la transacción.
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 5: Insertar todo en orden -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">05</span>
+            <span class="step-title">Carga completa y validación de asociación múltiple</span>
+            <span class="step-badge badge-solucion">Implementación</span>
+          </div>
+          <p class="step-instruction">Ejecutamos la carga ordenada de álbumes, canciones y asociaciones de género:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">-- 1. Álbumes
+INSERT INTO album (titulo, fecha_lanzamiento, id_artista) VALUES ('Un Verano Sin Ti', DATE '2022-05-06', 1);
+INSERT INTO album (titulo, fecha_lanzamiento, id_artista) VALUES ('YHLQMDLG', DATE '2020-02-29', 1);
+INSERT INTO album (titulo, fecha_lanzamiento, id_artista) VALUES ('Midnights', DATE '2022-10-21', 2);
+INSERT INTO album (titulo, fecha_lanzamiento, id_artista) VALUES ('1989', DATE '2014-10-27', 2);
+INSERT INTO album (titulo, fecha_lanzamiento, id_artista) VALUES ('After Hours', DATE '2020-03-20', 3);
+INSERT INTO album (titulo, fecha_lanzamiento, id_artista) VALUES ('Génesis', DATE '2023-03-10', 4);
+INSERT INTO album (titulo, fecha_lanzamiento, id_artista) VALUES ('Mañana Será Bonito', DATE '2023-02-24', 5);
+
+-- 2. Canciones
+INSERT INTO cancion (titulo, duracion_segundos, id_album) VALUES ('Tití Me Preguntó', 245, 1);
+INSERT INTO cancion (titulo, duracion_segundos, id_album) VALUES ('Ojitos Lindos', 286, 1);
+INSERT INTO cancion (titulo, duracion_segundos, id_album) VALUES ('Moscow Mule', 248, 1);
+INSERT INTO cancion (titulo, duracion_segundos, id_album) VALUES ('Un x100to', 230, 1);
+INSERT INTO cancion (titulo, duracion_segundos, id_album) VALUES ('Dakiti', 206, 2);
+INSERT INTO cancion (titulo, duracion_segundos, id_album) VALUES ('Anti-Hero', 200, 3);
+INSERT INTO cancion (titulo, duracion_segundos, id_album) VALUES ('Shake It Off', 219, 4);
+INSERT INTO cancion (titulo, duracion_segundos, id_album) VALUES ('Cruel Summer', 178, 4);
+INSERT INTO cancion (titulo, duracion_segundos, id_album) VALUES ('Blinding Lights', 200, 5);
+INSERT INTO cancion (titulo, duracion_segundos, id_album) VALUES ('Save Your Tears', 215, 5);
+INSERT INTO cancion (titulo, duracion_segundos, id_album) VALUES ('Ella Baila Sola', 234, 6);
+INSERT INTO cancion (titulo, duracion_segundos, id_album) VALUES ('Provenza', 212, 7);
+INSERT INTO cancion (titulo, duracion_segundos, id_album) VALUES ('TQG', 197, 7);
+
+-- 3. Tabla asociativa (cancion_genero)
+INSERT INTO cancion_genero VALUES (1, 1);
+INSERT INTO cancion_genero VALUES (2, 1);
+INSERT INTO cancion_genero VALUES (2, 4); -- Ojitos Lindos: Reggaeton + R&B
+INSERT INTO cancion_genero VALUES (3, 1);
+INSERT INTO cancion_genero VALUES (4, 1);
+INSERT INTO cancion_genero VALUES (4, 4);
+INSERT INTO cancion_genero VALUES (5, 1);
+INSERT INTO cancion_genero VALUES (5, 3);
+INSERT INTO cancion_genero VALUES (6, 2);
+INSERT INTO cancion_genero VALUES (7, 2);
+INSERT INTO cancion_genero VALUES (8, 2);
+INSERT INTO cancion_genero VALUES (9, 2);
+INSERT INTO cancion_genero VALUES (9, 5); -- Blinding Lights: Pop + Synthwave
+INSERT INTO cancion_genero VALUES (10, 4);
+INSERT INTO cancion_genero VALUES (11, 6);
+INSERT INTO cancion_genero VALUES (12, 1);
+INSERT INTO cancion_genero VALUES (13, 1);
+INSERT INTO cancion_genero VALUES (13, 2);
+
+COMMIT;</code></pre>
+          </div>
+
+          <p class="step-instruction">Verificamos los géneros asignados a 'Blinding Lights' mediante la tabla asociativa:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DQL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">SELECT c.titulo, g.nombre_genero
+FROM cancion c
+INNER JOIN cancion_genero cg ON c.id_cancion = cg.id_cancion
+INNER JOIN genero g ON cg.id_genero = g.id_genero
+WHERE c.titulo = 'Blinding Lights';</code></pre>
+          </div>
+
+          <div class="callout callout-menta">
+            <span class="callout-title">Hito de diseño: 5 tablas normalizadas</span>
+            El esquema cuenta con 5 tablas en 3FN: <code>genero</code>, <code>artista</code>, <code>album</code>, <code>cancion</code> y <code>cancion_genero</code>. No existen campos multivaluados ni redundancias por atributos no clave.
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Formula por tu cuenta una consulta que liste todas las canciones que pertenecen al género 'Reggaeton' utilizando <code>INNER JOIN</code> con la tabla asociativa <code>cancion_genero</code> y la tabla <code>genero</code>.
+            </p>
+          </div>
+        </div>
+
+        <!-- CHECKLIST BLOQUE 3 -->
+        <div class="checklist-wrap">
+          <h3>Checklist de verificación · Bloque 3</h3>
+          <div v-for="(item, i) in checklists.b3" :key="'b3-'+i" class="check-item" :class="{done: item.done}" @click="toggleCheck('b3', i)">
+            <input type="checkbox" v-model="item.done">
+            <span>{{ item.text }}</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" :style="{width: progress('b3') + '%'}"></div>
+          </div>
+        </div>
+
+        <div class="tab-nav-bar">
+          <button class="tab-nav-btn" @click="switchTab('b2')">← Bloque 2</button>
+          <button class="tab-nav-btn primary" @click="switchTab('b4')">Continuar a Bloque 4 →</button>
+        </div>
+
+      </div>
+    </div><!-- /tab b3 -->
+
+
+    <!-- ================================================================ -->
+    <!-- TAB: BLOQUE 4 — Los Usuarios de Spotify                         -->
+    <!-- ================================================================ -->
+    <div class="tab-content" :class="{active: tab==='b4'}">
+      <div style="margin-top:28px;">
+
+        <h2><span class="session-badge s2">Sesión 2 · Bloque 4</span></h2>
+        <h2 style="margin-top:8px;">Entidades de Negocio y Control Transaccional ACID</h2>
+        <p class="step-instruction">
+          Expandiremos el esquema relacional incorporando planes de suscripción, usuarios y listas de reproducción. Analizaremos restricciones de dominio con <code>CHECK</code> y las garantías transaccionales con <code>COMMIT</code> y <code>ROLLBACK</code> bajo el estándar ACID.
+        </p>
+
+        <!-- PASO 1: CHECK -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">01</span>
+            <span class="step-title">Restricción de dominio: Validación de precios</span>
+            <span class="step-badge badge-defecto">Prueba de fallo</span>
+          </div>
+          <p class="step-instruction">Creamos la tabla <code>plan_suscripcion</code> sin restricción de validación numérica:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DDL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">CREATE TABLE plan_suscripcion (
+    id_plan        NUMBER GENERATED ALWAYS AS IDENTITY,
+    nombre_plan    VARCHAR2(50)   NOT NULL,
+    precio_mensual NUMBER(10, 2)  NOT NULL,
+    CONSTRAINT pk_plan PRIMARY KEY (id_plan),
+    CONSTRAINT uq_nombre_plan UNIQUE (nombre_plan)
+);</code></pre>
+          </div>
+
+          <p class="step-instruction">Insertemos planes válidos y luego un registro con precio negativo:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">INSERT INTO plan_suscripcion (nombre_plan, precio_mensual) VALUES ('Free', 0);
+INSERT INTO plan_suscripcion (nombre_plan, precio_mensual) VALUES ('Individual', 5990);
+INSERT INTO plan_suscripcion (nombre_plan, precio_mensual) VALUES ('Familiar', 8990);
+
+-- Inserción de valor no admisible en el dominio
+INSERT INTO plan_suscripcion (nombre_plan, precio_mensual) VALUES ('Inválido', -5000);
+COMMIT;</code></pre>
+          </div>
+
+          <div class="callout callout-rosa">
+            <span class="callout-title">Diagnóstico de dominio</span>
+            El tipo de dato <code>NUMBER</code> admite valores negativos por defecto. Para imponer reglas de negocio sobre el rango admisible de valores, se debe definir una restricción de comprobación en el esquema.
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Inserta un nuevo plan de suscripción llamado 'Estudiantes' con un precio mensual de <code>2990</code>. Verifica con <code>SELECT * FROM plan_suscripcion;</code> que la tupla se guardó correctamente.
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 2: Corregir con CHECK -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">02</span>
+            <span class="step-title">Implementación de restricción CHECK</span>
+            <span class="step-badge badge-solucion">Implementación</span>
+          </div>
+          <p class="step-instruction">Recreamos la tabla aplicando una restricción <code>CHECK</code>:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DDL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">DROP TABLE plan_suscripcion;
+
+CREATE TABLE plan_suscripcion (
+    id_plan        NUMBER GENERATED ALWAYS AS IDENTITY,
+    nombre_plan    VARCHAR2(50)   NOT NULL,
+    precio_mensual NUMBER(10, 2)  NOT NULL,
+    CONSTRAINT pk_plan PRIMARY KEY (id_plan),
+    CONSTRAINT uq_nombre_plan UNIQUE (nombre_plan),
+    CONSTRAINT chk_precio CHECK (precio_mensual >= 0)
+);</code></pre>
+          </div>
+
+          <p class="step-instruction">Cargamos los planes legítimos y reintentamos la inserción inválida:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">INSERT INTO plan_suscripcion (nombre_plan, precio_mensual) VALUES ('Free', 0);
+INSERT INTO plan_suscripcion (nombre_plan, precio_mensual) VALUES ('Individual', 5990);
+INSERT INTO plan_suscripcion (nombre_plan, precio_mensual) VALUES ('Familiar', 8990);
+COMMIT;
+
+INSERT INTO plan_suscripcion (nombre_plan, precio_mensual) VALUES ('Inválido', -5000);</code></pre>
+          </div>
+
+          <div class="oracle-error">ORA-02290: check constraint (CHK_PRECIO) violated</div>
+
+          <div class="callout callout-lavanda">
+            <span class="callout-title">Concepto: Restricción CHECK</span>
+            La cláusula <code>CHECK (condición)</code> evalúa cada operación de inserción y actualización frente a una expresión booleana. Si la expresión resulta falsa, la transacción es rechazada por el motor.
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Intenta registrar un plan con un precio de <code>-1</code>. Verifica que Oracle impida la operación activando la restricción de comprobación <code>CHK_PRECIO</code> con el código de error <code>ORA-02290</code>.
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 3: UNIQUE en email -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">03</span>
+            <span class="step-title">Unicidad en cuentas de usuario y valor por defecto</span>
+            <span class="step-badge badge-solucion">Implementación</span>
+          </div>
+          <p class="step-instruction">Creamos la tabla <code>usuario</code> con restricción <code>UNIQUE</code> en el correo y fecha automática con <code>DEFAULT SYSDATE</code>:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DDL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">CREATE TABLE usuario (
+    id_usuario     NUMBER GENERATED ALWAYS AS IDENTITY,
+    nombre_usuario VARCHAR2(100) NOT NULL,
+    email          VARCHAR2(150) NOT NULL,
+    fecha_registro DATE DEFAULT SYSDATE NOT NULL,
+    id_plan        NUMBER NOT NULL,
+    CONSTRAINT pk_usuario PRIMARY KEY (id_usuario),
+    CONSTRAINT uq_email UNIQUE (email),
+    CONSTRAINT fk_usuario_plan FOREIGN KEY (id_plan) REFERENCES plan_suscripcion(id_plan)
+);</code></pre>
+          </div>
+
+          <div class="callout callout-celeste">
+            <span class="callout-title">Uso de DEFAULT SYSDATE</span>
+            La función <code>SYSDATE</code> retorna la fecha y hora del sistema en el servidor de base de datos. Al declararla como valor <code>DEFAULT</code>, el atributo se completa automáticamente si la sentencia <code>INSERT</code> no lo especifica.
+          </div>
+
+          <p class="step-instruction">Creamos las tablas para listas de reproducción y su asociación con canciones (segunda relación N:M):</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DDL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">CREATE TABLE playlist (
+    id_playlist     NUMBER GENERATED ALWAYS AS IDENTITY,
+    nombre_playlist VARCHAR2(200) NOT NULL,
+    fecha_creacion  DATE DEFAULT SYSDATE NOT NULL,
+    id_usuario      NUMBER NOT NULL,
+    CONSTRAINT pk_playlist PRIMARY KEY (id_playlist),
+    CONSTRAINT fk_playlist_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+);
+
+CREATE TABLE playlist_cancion (
+    id_playlist NUMBER NOT NULL,
+    id_cancion  NUMBER NOT NULL,
+    orden       NUMBER,
+    CONSTRAINT pk_playlist_cancion PRIMARY KEY (id_playlist, id_cancion),
+    CONSTRAINT fk_pc_playlist FOREIGN KEY (id_playlist) REFERENCES playlist(id_playlist),
+    CONSTRAINT fk_pc_cancion FOREIGN KEY (id_cancion) REFERENCES cancion(id_cancion)
+);</code></pre>
+          </div>
+
+          <p class="step-instruction">Cargamos registros de usuarios, playlists y contenido de playlists:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">-- Usuarios
+INSERT INTO usuario (nombre_usuario, email, id_plan) VALUES ('Carlos Muñoz', 'carlos@mail.com', 2);
+INSERT INTO usuario (nombre_usuario, email, id_plan) VALUES ('María López', 'maria@mail.com', 3);
+INSERT INTO usuario (nombre_usuario, email, id_plan) VALUES ('Pedro Soto', 'pedro@mail.com', 1);
+INSERT INTO usuario (nombre_usuario, email, id_plan) VALUES ('Ana Torres', 'ana@mail.com', 2);
+INSERT INTO usuario (nombre_usuario, email, id_plan) VALUES ('Diego Ríos', 'diego@mail.com', 1);
+INSERT INTO usuario (nombre_usuario, email, id_plan) VALUES ('Valentina Cruz', 'vale@mail.com', 3);
+
+-- Playlists
+INSERT INTO playlist (nombre_playlist, id_usuario) VALUES ('Reggaeton Hits', 1);
+INSERT INTO playlist (nombre_playlist, id_usuario) VALUES ('Chill Vibes', 2);
+INSERT INTO playlist (nombre_playlist, id_usuario) VALUES ('Workout Mix', 3);
+INSERT INTO playlist (nombre_playlist, id_usuario) VALUES ('Road Trip', 4);
+
+-- Canciones en Playlists
+INSERT INTO playlist_cancion VALUES (1, 1, 1);
+INSERT INTO playlist_cancion VALUES (1, 3, 2);
+INSERT INTO playlist_cancion VALUES (1, 12, 3);
+INSERT INTO playlist_cancion VALUES (1, 13, 4);
+INSERT INTO playlist_cancion VALUES (1, 5, 5);
+
+INSERT INTO playlist_cancion VALUES (2, 2, 1);
+INSERT INTO playlist_cancion VALUES (2, 10, 2);
+INSERT INTO playlist_cancion VALUES (2, 6, 3);
+
+INSERT INTO playlist_cancion VALUES (3, 9, 1);
+INSERT INTO playlist_cancion VALUES (3, 7, 2);
+INSERT INTO playlist_cancion VALUES (3, 11, 3);
+
+INSERT INTO playlist_cancion VALUES (4, 8, 1);
+INSERT INTO playlist_cancion VALUES (4, 9, 2);
+INSERT INTO playlist_cancion VALUES (4, 13, 3);
+INSERT INTO playlist_cancion VALUES (4, 3, 4);
+
+COMMIT;</code></pre>
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Inserta una cuenta para ti mismo en la tabla <code>usuario</code>. Luego, crea una lista de reproducción llamada 'Mis Favoritas' asociada a tu <code>id_usuario</code> y agrégale al menos 2 canciones en <code>playlist_cancion</code>.
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 4: ACID y COMMIT/ROLLBACK -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">04</span>
+            <span class="step-title">Control transaccional: COMMIT, ROLLBACK y propiedades ACID</span>
+            <span class="step-badge badge-concepto">Concepto</span>
+          </div>
+          <p class="step-instruction">Insertemos un registro temporal sin confirmar mediante <code>COMMIT</code>:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">INSERT INTO usuario (nombre_usuario, email, id_plan)
+VALUES ('Usuario Temporal', 'temporal@mail.com', 1);
+
+-- Consulta dentro de la misma sesión: el registro es visible
+SELECT * FROM usuario WHERE email = 'temporal@mail.com';</code></pre>
+          </div>
+
+          <p class="step-instruction">Ejecutamos <code>ROLLBACK;</code> para revertir la transacción:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · TCL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">ROLLBACK;
+
+-- Consulta tras reversión: el registro no existe
+SELECT * FROM usuario WHERE email = 'temporal@mail.com';</code></pre>
+          </div>
+
+          <div class="callout callout-rosa">
+            <span class="callout-title">Comportamiento de ROLLBACK</span>
+            La sentencia <code>ROLLBACK</code> revierte todas las operaciones DML ejecutadas en la sesión actual desde el último <code>COMMIT</code> o desde el inicio de la transacción, restaurando el estado previo de la base de datos.
+          </div>
+
+          <div class="callout callout-lavanda">
+            <span class="callout-title">Estándar ACID en Sistemas Relacionales</span>
+            Las cuatro propiedades fundamentales de las transacciones relacionales:
+            <br><br>
+            <strong>Atomicidad (A):</strong> La transacción se ejecuta como una unidad indivisible: todas sus operaciones se aplican con éxito o ninguna surte efecto.
+            <br><br>
+            <strong>Consistencia (C):</strong> Una transacción solo puede llevar la base de datos de un estado válido a otro, preservando todas las restricciones de integridad.
+            <br><br>
+            <strong>Aislamiento (I):</strong> Las operaciones de transacciones simultáneas no interfieren entre sí. Los cambios no confirmados no son visibles para otras sesiones.
+            <br><br>
+            <strong>Durabilidad (D):</strong> Una vez ejecutado <code>COMMIT</code>, los cambios persisten de manera definitiva incluso ante fallos del hardware o caída del servidor.
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Inserta una playlist de prueba sin ejecutar <code>COMMIT</code>. Abre una segunda ventana de consulta o ejecuta un <code>SELECT</code> para verla, luego escribe <code>ROLLBACK;</code> y confirma que la playlist fue revertida exitosamente.
+            </p>
+          </div>
+        </div>
+
+        <!-- CHECKLIST BLOQUE 4 -->
+        <div class="checklist-wrap">
+          <h3>Checklist de verificación · Bloque 4</h3>
+          <div v-for="(item, i) in checklists.b4" :key="'b4-'+i" class="check-item" :class="{done: item.done}" @click="toggleCheck('b4', i)">
+            <input type="checkbox" v-model="item.done">
+            <span>{{ item.text }}</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" :style="{width: progress('b4') + '%'}"></div>
+          </div>
+        </div>
+
+        <div class="tab-nav-bar">
+          <button class="tab-nav-btn" @click="switchTab('b3')">← Bloque 3</button>
+          <button class="tab-nav-btn primary" @click="switchTab('b5')">Continuar a Bloque 5 →</button>
+        </div>
+
+      </div>
+    </div><!-- /tab b4 -->
+
+
+    <!-- ================================================================ -->
+    <!-- TAB: BLOQUE 5 — Consultando Spotify                             -->
+    <!-- ================================================================ -->
+    <div class="tab-content" :class="{active: tab==='b5'}">
+      <div style="margin-top:28px;">
+
+        <h2><span class="session-badge s2">Sesión 2 · Bloque 5</span></h2>
+        <h2 style="margin-top:8px;">Consultas Relacionales con INNER JOIN y Agregación</h2>
+        <p class="step-instruction">
+          Implementaremos la tabla de hechos <code>reproduccion</code> completando las 10 tablas del modelo Spotify, y formularemos consultas relacionales mediante <code>INNER JOIN</code> y agregaciones con <code>GROUP BY</code>.
+        </p>
+
+        <!-- PASO 1: Tabla reproducción -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">01</span>
+            <span class="step-title">Implementación de la tabla de hechos REPRODUCCION</span>
+            <span class="step-badge badge-solucion">Implementación</span>
+          </div>
+          <p class="step-instruction">Creamos la tabla <code>reproduccion</code> vinculada a <code>usuario</code> y <code>cancion</code>:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DDL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">CREATE TABLE reproduccion (
+    id_reproduccion NUMBER GENERATED ALWAYS AS IDENTITY,
+    id_usuario      NUMBER NOT NULL,
+    id_cancion      NUMBER NOT NULL,
+    fecha_hora      DATE DEFAULT SYSDATE NOT NULL,
+    CONSTRAINT pk_reproduccion PRIMARY KEY (id_reproduccion),
+    CONSTRAINT fk_repro_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
+    CONSTRAINT fk_repro_cancion FOREIGN KEY (id_cancion) REFERENCES cancion(id_cancion)
+);</code></pre>
+          </div>
+
+          <p class="step-instruction">Cargamos registros representativos de reproducciones:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DML</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">-- Usuario 1 (Carlos)
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (1, 1, DATE '2025-09-01');
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (1, 3, DATE '2025-09-01');
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (1, 5, DATE '2025-09-02');
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (1, 1, DATE '2025-09-03');
+
+-- Usuario 2 (María)
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (2, 6, DATE '2025-09-01');
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (2, 9, DATE '2025-09-01');
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (2, 2, DATE '2025-09-02');
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (2, 10, DATE '2025-09-02');
+
+-- Usuario 3 (Pedro)
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (3, 7, DATE '2025-09-01');
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (3, 8, DATE '2025-09-01');
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (3, 9, DATE '2025-09-02');
+
+-- Usuario 4 (Ana)
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (4, 11, DATE '2025-09-01');
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (4, 13, DATE '2025-09-01');
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (4, 1, DATE '2025-09-02');
+
+-- Usuario 5 (Diego)
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (5, 9, DATE '2025-09-01');
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (5, 9, DATE '2025-09-02');
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (5, 9, DATE '2025-09-03');
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (5, 12, DATE '2025-09-03');
+
+-- Usuario 6 (Valentina)
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (6, 6, DATE '2025-09-01');
+INSERT INTO reproduccion (id_usuario, id_cancion, fecha_hora) VALUES (6, 7, DATE '2025-09-02');
+
+COMMIT;</code></pre>
+          </div>
+
+          <div class="callout callout-menta">
+            <span class="callout-title">Esquema relacional completo (10 tablas)</span>
+            El modelo relacional definitivo de Spotify queda implementado: <code>genero</code>, <code>artista</code>, <code>album</code>, <code>cancion</code>, <code>cancion_genero</code>, <code>plan_suscripcion</code>, <code>usuario</code>, <code>playlist</code>, <code>playlist_cancion</code> y <code>reproduccion</code>.
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Inserta <strong>3 reproducciones adicionales</strong> en la tabla <code>reproduccion</code> simulando que tu usuario escuchó canciones en fechas recientes.
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 2: INNER JOIN 2 tablas -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">02</span>
+            <span class="step-title">Consultas relacionales: INNER JOIN entre 2 tablas</span>
+            <span class="step-badge badge-consulta">Consulta</span>
+          </div>
+          <p class="step-instruction">
+            <code>INNER JOIN</code> combina filas de dos relaciones donde se satisface la condición de igualdad referencial (<code>FK = PK</code>). Solo se retornan las tuplas que poseen coincidencia exacta en ambas tablas.
+          </p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DQL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">-- Álbum con el nombre de su artista
+SELECT al.titulo AS album, ar.nombre_artista AS artista
+FROM album al
+INNER JOIN artista ar ON al.id_artista = ar.id_artista;
+
+-- Canción con el título de su álbum
+SELECT c.titulo AS cancion, al.titulo AS album
+FROM cancion c
+INNER JOIN album al ON c.id_album = al.id_album;
+
+-- Usuario con el nombre y tarifa de su plan
+SELECT u.nombre_usuario, p.nombre_plan, p.precio_mensual
+FROM usuario u
+INNER JOIN plan_suscripcion p ON u.id_plan = p.id_plan;</code></pre>
+          </div>
+
+          <div class="callout callout-celeste">
+            <span class="callout-title">Uso de alias en sentencias JOIN</span>
+            Los identificadores breves (<code>c</code>, <code>al</code>, <code>ar</code>) definidos tras el nombre de la tabla simplifican la cualificación de columnas (<code>c.titulo</code> en vez de <code>cancion.titulo</code>) y previenen ambigüedades en columnas homónimas.
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Formula una consulta con <code>INNER JOIN</code> entre <code>usuario</code> y <code>plan_suscripcion</code> que muestre exclusivamente los usuarios adscritos a planes de pago (donde <code>precio_mensual > 0</code>).
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 3: INNER JOIN 3 tablas -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">03</span>
+            <span class="step-title">Encadenamiento referencial: INNER JOIN entre 3 tablas</span>
+            <span class="step-badge badge-consulta">Consulta</span>
+          </div>
+          <p class="step-instruction">
+            Para obtener el artista de cada canción, se debe transitar por la cadena relacional: <code>cancion</code> → <code>album</code> → <code>artista</code>:
+          </p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DQL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">SELECT c.titulo AS cancion, al.titulo AS album, ar.nombre_artista AS artista
+FROM cancion c
+INNER JOIN album al ON c.id_album = al.id_album
+INNER JOIN artista ar ON al.id_artista = ar.id_artista;</code></pre>
+          </div>
+
+          <p class="step-instruction">Consulta de canciones y géneros a través de la tabla asociativa:</p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DQL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">SELECT c.titulo AS cancion, g.nombre_genero AS genero
+FROM cancion c
+INNER JOIN cancion_genero cg ON c.id_cancion = cg.id_cancion
+INNER JOIN genero g ON cg.id_genero = g.id_genero
+ORDER BY c.titulo;</code></pre>
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Formula por tu cuenta una consulta que encadene 3 tablas: <code>playlist</code> → <code>playlist_cancion</code> → <code>cancion</code> para mostrar el nombre de la playlist, el título de cada pista y el orden en que se reproducen.
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 4: GROUP BY -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">04</span>
+            <span class="step-title">Agrupaciones y funciones de cálculo con GROUP BY</span>
+            <span class="step-badge badge-consulta">Consulta</span>
+          </div>
+          <p class="step-instruction">
+            La cláusula <code>GROUP BY</code> agrupa filas que comparten valores idénticos en las columnas indicadas, permitiendo calcular agregaciones como <code>COUNT()</code>, <code>SUM()</code> o <code>AVG()</code>:
+          </p>
+
+          <div class="code-wrapper">
+            <div class="code-toolbar">
+              <span>Oracle SQL · DQL</span>
+              <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+            </div>
+            <pre><code class="language-sql">-- Cantidad de canciones por álbum
+SELECT al.titulo AS album, COUNT(*) AS total_canciones
+FROM cancion c
+INNER JOIN album al ON c.id_album = al.id_album
+GROUP BY al.titulo
+ORDER BY total_canciones DESC;
+
+-- Total de reproducciones por canción
+SELECT c.titulo, COUNT(*) AS total_reproducciones
+FROM reproduccion r
+INNER JOIN cancion c ON r.id_cancion = c.id_cancion
+GROUP BY c.titulo
+ORDER BY total_reproducciones DESC;</code></pre>
+          </div>
+
+          <div class="callout callout-lavanda">
+            <span class="callout-title">Regla estructural de GROUP BY</span>
+            Toda columna presente en la cláusula <code>SELECT</code> que no esté contenida dentro de una función de agregación (<code>COUNT</code>, <code>SUM</code>, <code>MAX</code>, etc.) debe figurar obligatoriamente en la cláusula <code>GROUP BY</code>.
+          </div>
+          <div class="your-turn-box">
+            <div class="your-turn-header">
+              <span class="your-turn-badge">Tu turno</span>
+              <span class="your-turn-title">Práctica autónoma</span>
+            </div>
+            <p class="your-turn-desc">
+              Escribe una consulta con <code>GROUP BY</code> que calcule el número total de reproducciones acumuladas por cada usuario, mostrando el nombre del usuario y la cantidad total de escuchas ordenada de mayor a menor.
+            </p>
+          </div>
+        </div>
+
+        <!-- CHECKLIST BLOQUE 5 -->
+        <div class="checklist-wrap">
+          <h3>Checklist de verificación · Bloque 5</h3>
+          <div v-for="(item, i) in checklists.b5" :key="'b5-'+i" class="check-item" :class="{done: item.done}" @click="toggleCheck('b5', i)">
+            <input type="checkbox" v-model="item.done">
+            <span>{{ item.text }}</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" :style="{width: progress('b5') + '%'}"></div>
+          </div>
+        </div>
+
+        <div class="callout callout-celeste" style="margin-top:24px;">
+          <span class="callout-title">Proyección curricular</span>
+          En las unidades posteriores se profundizarán consultas con <code>LEFT JOIN</code> (preservación de tuplas no coincidentes), filtrado de agregaciones con <code>HAVING</code>, modificación estructural con <code>ALTER TABLE</code> y relaciones reflexivas.
+        </div>
+
+        <div class="tab-nav-bar">
+          <button class="tab-nav-btn" @click="switchTab('b4')">← Bloque 4</button>
+          <button class="tab-nav-btn primary" @click="switchTab('ejercicios')">Ir al Banco de Ejercicios →</button>
+        </div>
+
+      </div>
+    </div><!-- /tab b5 -->
+
+
+    <!-- ================================================================ -->
+    <!-- TAB: EJERCICIOS                                                  -->
+    <!-- ================================================================ -->
+    <div class="tab-content" :class="{active: tab==='ejercicios'}">
+      <div style="margin-top:28px;">
+
+        <h2>Banco de Ejercicios Prácticos</h2>
+        <p class="step-instruction">
+          Resuelve las siguientes consultas SQL sobre el esquema de Spotify implementado. Cada enunciado modela un requerimiento operativo o analítico de la plataforma.
+        </p>
+
+        <div class="callout callout-amarillo">
+          <span class="callout-title">Instrucciones de ejecución</span>
+          Todas las consultas deben formularse utilizando la sintaxis estándar <code>INNER JOIN ... ON</code>. Evita la notación obsoleta con productos cartesianos en la cláusula <code>FROM</code>.
+        </div>
+
+        <!-- GRUPO 1: SELECT simple -->
+        <div class="exercise-group">
+          <h3><span class="level-tag base">Nivel Base</span> Proyección y filtrado en una sola tabla</h3>
+
+          <div class="exercise-card">
+            <span class="exercise-number">1</span>
+            Listar todas las canciones mostrando su título y duración en segundos.
+          </div>
+          <div class="exercise-card">
+            <span class="exercise-number">2</span>
+            Listar todos los artistas ordenados alfabéticamente por nombre, indicando su país de origen.
+          </div>
+          <div class="exercise-card">
+            <span class="exercise-number">3</span>
+            Consultar las canciones cuya duración sea superior a 240 segundos (4 minutos).
+          </div>
+          <div class="exercise-card">
+            <span class="exercise-number">4</span>
+            Listar los usuarios registrados indicando su nombre de usuario y correo electrónico.
+          </div>
+          <div class="exercise-card">
+            <span class="exercise-number">5</span>
+            Mostrar los planes de suscripción disponibles junto con su precio mensual.
+          </div>
+        </div>
+
+        <!-- GRUPO 2: INNER JOIN 2 tablas -->
+        <div class="exercise-group">
+          <h3><span class="level-tag base">Nivel Base</span> INNER JOIN entre 2 tablas</h3>
+
+          <div class="exercise-card">
+            <span class="exercise-number">6</span>
+            Mostrar cada álbum junto al nombre de su artista correspondiente. Columnas: título del álbum, nombre del artista.
+          </div>
+          <div class="exercise-card">
+            <span class="exercise-number">7</span>
+            Mostrar cada canción con el título de su álbum. Columnas: título de la canción, título del álbum.
+          </div>
+          <div class="exercise-card">
+            <span class="exercise-number">8</span>
+            Mostrar cada usuario con el nombre de su plan de suscripción asociado. Columnas: nombre del usuario, nombre del plan.
+          </div>
+          <div class="exercise-card">
+            <span class="exercise-number">9</span>
+            Mostrar cada lista de reproducción junto al nombre del usuario creador. Columnas: nombre de la playlist, nombre del usuario.
+          </div>
+          <div class="exercise-card">
+            <span class="exercise-number">10</span>
+            Mostrar cada registro de reproducción junto al título de la pista escuchada. Columnas: título de la canción, fecha de reproducción.
+          </div>
+        </div>
+
+        <!-- GRUPO 3: INNER JOIN multi-tabla -->
+        <div class="exercise-group">
+          <h3><span class="level-tag inter">Nivel Intermedio</span> INNER JOIN multi-tabla</h3>
+
+          <div class="exercise-card">
+            <span class="exercise-number">11</span>
+            Mostrar cada canción con el nombre de su artista original. Ruta relacional: <code>cancion</code> → <code>album</code> → <code>artista</code>. Columnas: título de la canción, nombre del artista.
+          </div>
+          <div class="exercise-card">
+            <span class="exercise-number">12</span>
+            Mostrar los géneros asignados a cada canción. Ruta relacional: <code>cancion</code> → <code>cancion_genero</code> → <code>genero</code>. Columnas: título de la canción, nombre del género.
+          </div>
+          <div class="exercise-card">
+            <span class="exercise-number">13</span>
+            Mostrar el contenido de cada playlist. Ruta relacional: <code>playlist</code> → <code>playlist_cancion</code> → <code>cancion</code>. Columnas: nombre de la playlist, título de la canción, orden.
+          </div>
+          <div class="exercise-card">
+            <span class="exercise-number">14</span>
+            Mostrar el historial de canciones reproducidas por cada usuario. Columnas: nombre del usuario, título de la canción, fecha de reproducción.
+          </div>
+          <div class="exercise-card">
+            <span class="exercise-number">15</span>
+            Consultar las canciones de 'Bad Bunny' junto a sus géneros musicales correspondientes. Requiere vincular la canción con su artista y con la tabla asociativa de géneros.
+          </div>
+        </div>
+
+        <!-- GRUPO 4: GROUP BY -->
+        <div class="exercise-group">
+          <h3><span class="level-tag inter">Nivel Intermedio</span> Agrupaciones y funciones agregadas (GROUP BY)</h3>
+
+          <div class="exercise-card">
+            <span class="exercise-number">16</span>
+            Calcular cuántas canciones contiene cada álbum. Mostrar el título del álbum y la cantidad de pistas, ordenado de mayor a menor.
+          </div>
+          <div class="exercise-card">
+            <span class="exercise-number">17</span>
+            Determinar la cantidad de canciones asociadas a cada género musical. Mostrar nombre del género y total.
+          </div>
+          <div class="exercise-card">
+            <span class="exercise-number">18</span>
+            Calcular la cantidad de usuarios adscritos a cada plan de suscripción. Mostrar nombre del plan y total de usuarios.
+          </div>
+          <div class="exercise-card">
+            <span class="exercise-number">19</span>
+            Calcular el total de reproducciones acumuladas por cada canción. Mostrar título y total, ordenado descendentemente.
+          </div>
+          <div class="exercise-card">
+            <span class="exercise-number">20</span>
+            Calcular cuántas playlists ha creado cada usuario. Mostrar nombre del usuario y total de listas creadas.
+          </div>
+        </div>
+
+        <!-- GRUPO 5: Desafíos -->
+        <div class="exercise-group">
+          <h3><span class="level-tag inter">Nivel Intermedio</span> Consultas de reportería analítica</h3>
+
+          <div class="exercise-card">
+            <span class="exercise-number">21</span>
+            Identificar al artista con mayor cantidad de canciones registradas en la plataforma.
+          </div>
+          <div class="exercise-card">
+            <span class="exercise-number">22</span>
+            Identificar los 3 géneros con mayor cantidad de canciones asociadas utilizando <code>FETCH FIRST 3 ROWS ONLY</code>.
+          </div>
+          <div class="exercise-card">
+            <span class="exercise-number">23</span>
+            Generar un reporte que detalle el nombre de cada usuario, su tipo de plan y el volumen total de reproducciones efectuadas.
+          </div>
+        </div>
+
+        <details class="engine-tip">
+          <summary>¿Cómo limitar resultados en PostgreSQL o MySQL?</summary>
+          <div class="engine-tip-content">
+            <p>En <strong>Oracle 12c+</strong> se emplea la cláusula estándar SQL:</p>
+            <pre class="code-block"><code class="language-sql">SELECT ... ORDER BY total DESC FETCH FIRST 3 ROWS ONLY;</code></pre>
+            <p>En <strong>PostgreSQL</strong> y <strong>MySQL</strong> se utiliza la cláusula <code>LIMIT</code>:</p>
+            <pre class="code-block"><code class="language-sql">SELECT ... ORDER BY total DESC LIMIT 3;</code></pre>
+          </div>
+        </details>
+
+        <div class="tab-nav-bar">
+          <button class="tab-nav-btn" @click="switchTab('b5')">← Bloque 5</button>
+          <button class="tab-nav-btn primary" @click="switchTab('modelo')">Ver Modelo Relacional Final →</button>
+        </div>
+
+      </div>
+    </div><!-- /tab ejercicios -->
+
+
+    <!-- ================================================================ -->
+    <!-- TAB: MODELO FINAL                                                -->
+    <!-- ================================================================ -->
+    <div class="tab-content" :class="{active: tab==='modelo'}">
+      <div style="margin-top:28px;">
+
+        <h2>Modelo Relacional Definitivo</h2>
+        <p class="step-instruction">
+          Esquema relacional consolidado a partir de los 5 bloques del taller: <strong>10 tablas</strong> normalizadas en 3FN con integridad referencial completa y restricciones de dominio.
+        </p>
+
+        <!-- Diagrama visual -->
+        <h3>Diccionario visual de tablas</h3>
+        <div class="model-grid">
+          <div class="model-table-card">
+            <div class="table-name">genero</div>
+            <ul>
+              <li>id_genero <span class="col-badge pk">PK</span></li>
+              <li>nombre_genero <span class="col-badge uq">UQ</span> <span class="col-badge nn">NN</span></li>
+            </ul>
+          </div>
+          <div class="model-table-card">
+            <div class="table-name">artista</div>
+            <ul>
+              <li>id_artista <span class="col-badge pk">PK</span></li>
+              <li>nombre_artista <span class="col-badge nn">NN</span></li>
+              <li>pais</li>
+            </ul>
+          </div>
+          <div class="model-table-card">
+            <div class="table-name">album</div>
+            <ul>
+              <li>id_album <span class="col-badge pk">PK</span></li>
+              <li>titulo <span class="col-badge nn">NN</span></li>
+              <li>fecha_lanzamiento</li>
+              <li>id_artista <span class="col-badge fk">FK</span> <span class="col-badge nn">NN</span></li>
+            </ul>
+          </div>
+          <div class="model-table-card">
+            <div class="table-name">cancion</div>
+            <ul>
+              <li>id_cancion <span class="col-badge pk">PK</span></li>
+              <li>titulo <span class="col-badge nn">NN</span></li>
+              <li>duracion_segundos <span class="col-badge nn">NN</span></li>
+              <li>id_album <span class="col-badge fk">FK</span> <span class="col-badge nn">NN</span></li>
+            </ul>
+          </div>
+          <div class="model-table-card">
+            <div class="table-name pivot">cancion_genero</div>
+            <ul>
+              <li>id_cancion <span class="col-badge pk">PK</span> <span class="col-badge fk">FK</span></li>
+              <li>id_genero <span class="col-badge pk">PK</span> <span class="col-badge fk">FK</span></li>
+            </ul>
+          </div>
+          <div class="model-table-card">
+            <div class="table-name">plan_suscripcion</div>
+            <ul>
+              <li>id_plan <span class="col-badge pk">PK</span></li>
+              <li>nombre_plan <span class="col-badge uq">UQ</span> <span class="col-badge nn">NN</span></li>
+              <li>precio_mensual <span class="col-badge chk">CHK≥0</span> <span class="col-badge nn">NN</span></li>
+            </ul>
+          </div>
+          <div class="model-table-card">
+            <div class="table-name">usuario</div>
+            <ul>
+              <li>id_usuario <span class="col-badge pk">PK</span></li>
+              <li>nombre_usuario <span class="col-badge nn">NN</span></li>
+              <li>email <span class="col-badge uq">UQ</span> <span class="col-badge nn">NN</span></li>
+              <li>fecha_registro <span class="col-badge nn">NN</span></li>
+              <li>id_plan <span class="col-badge fk">FK</span> <span class="col-badge nn">NN</span></li>
+            </ul>
+          </div>
+          <div class="model-table-card">
+            <div class="table-name">playlist</div>
+            <ul>
+              <li>id_playlist <span class="col-badge pk">PK</span></li>
+              <li>nombre_playlist <span class="col-badge nn">NN</span></li>
+              <li>fecha_creacion <span class="col-badge nn">NN</span></li>
+              <li>id_usuario <span class="col-badge fk">FK</span> <span class="col-badge nn">NN</span></li>
+            </ul>
+          </div>
+          <div class="model-table-card">
+            <div class="table-name pivot">playlist_cancion</div>
+            <ul>
+              <li>id_playlist <span class="col-badge pk">PK</span> <span class="col-badge fk">FK</span></li>
+              <li>id_cancion <span class="col-badge pk">PK</span> <span class="col-badge fk">FK</span></li>
+              <li>orden</li>
+            </ul>
+          </div>
+          <div class="model-table-card">
+            <div class="table-name">reproduccion</div>
+            <ul>
+              <li>id_reproduccion <span class="col-badge pk">PK</span></li>
+              <li>id_usuario <span class="col-badge fk">FK</span> <span class="col-badge nn">NN</span></li>
+              <li>id_cancion <span class="col-badge fk">FK</span> <span class="col-badge nn">NN</span></li>
+              <li>fecha_hora <span class="col-badge nn">NN</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <p class="step-instruction" style="font-size:12px; color:var(--ink-muted); text-align:center;">
+          <span class="col-badge pk">PK</span> Clave Primaria &nbsp;
+          <span class="col-badge fk">FK</span> Clave Foránea &nbsp;
+          <span class="col-badge uq">UQ</span> Restricción UNIQUE &nbsp;
+          <span class="col-badge nn">NN</span> Restricción NOT NULL &nbsp;
+          <span class="col-badge chk">CHK</span> Restricción CHECK
+        </p>
+
+        <hr class="section-divider">
+
+        <!-- Relaciones -->
+        <h3>Matriz de relaciones referenciales</h3>
+        <div style="overflow-x:auto; margin:16px 0;">
+          <table class="rubric-table" style="min-width:600px;">
+            <thead>
+              <tr>
+                <th>Tabla Padre (1)</th>
+                <th></th>
+                <th>Tabla Hija (N)</th>
+                <th>Cardinalidad</th>
+                <th>Columna FK</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>artista</td><td>→</td><td>album</td><td>1:N</td><td>album.id_artista</td></tr>
+              <tr><td>album</td><td>→</td><td>cancion</td><td>1:N</td><td>cancion.id_album</td></tr>
+              <tr><td>cancion ↔ genero</td><td>→</td><td>cancion_genero</td><td>N:M (asociativa)</td><td>id_cancion + id_genero</td></tr>
+              <tr><td>plan_suscripcion</td><td>→</td><td>usuario</td><td>1:N</td><td>usuario.id_plan</td></tr>
+              <tr><td>usuario</td><td>→</td><td>playlist</td><td>1:N</td><td>playlist.id_usuario</td></tr>
+              <tr><td>playlist ↔ cancion</td><td>→</td><td>playlist_cancion</td><td>N:M (asociativa)</td><td>id_playlist + id_cancion</td></tr>
+              <tr><td>usuario + cancion</td><td>→</td><td>reproduccion</td><td>1:N + 1:N</td><td>id_usuario + id_cancion</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <hr class="section-divider">
+
+        <!-- Script DDL completo -->
+        <h3>Script DDL consolidado (creación en orden de dependencias)</h3>
+        <div class="code-wrapper">
+          <div class="code-toolbar">
+            <span>Oracle SQL · DDL Completo</span>
+            <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+          </div>
+          <pre><code class="language-sql">-- ================================================
+-- SPOTIFY · Script DDL Completo (Oracle Database)
+-- Ejecutar en orden estricto: padres primero, hijas después
+-- ================================================
+
+-- 1. GENERO (tabla catálogo)
+CREATE TABLE genero (
+    id_genero     NUMBER GENERATED ALWAYS AS IDENTITY,
+    nombre_genero VARCHAR2(50) NOT NULL,
+    CONSTRAINT pk_genero PRIMARY KEY (id_genero),
+    CONSTRAINT uq_nombre_genero UNIQUE (nombre_genero)
+);
+
+-- 2. ARTISTA
+CREATE TABLE artista (
+    id_artista     NUMBER GENERATED ALWAYS AS IDENTITY,
+    nombre_artista VARCHAR2(100) NOT NULL,
+    pais           VARCHAR2(60),
+    CONSTRAINT pk_artista PRIMARY KEY (id_artista)
+);
+
+-- 3. ALBUM (depende de artista)
+CREATE TABLE album (
+    id_album          NUMBER GENERATED ALWAYS AS IDENTITY,
+    titulo            VARCHAR2(200) NOT NULL,
+    fecha_lanzamiento DATE,
+    id_artista        NUMBER NOT NULL,
+    CONSTRAINT pk_album PRIMARY KEY (id_album),
+    CONSTRAINT fk_album_artista FOREIGN KEY (id_artista) REFERENCES artista(id_artista)
+);
+
+-- 4. CANCION (depende de album)
+CREATE TABLE cancion (
+    id_cancion        NUMBER GENERATED ALWAYS AS IDENTITY,
+    titulo            VARCHAR2(200) NOT NULL,
+    duracion_segundos NUMBER        NOT NULL,
+    id_album          NUMBER        NOT NULL,
+    CONSTRAINT pk_cancion PRIMARY KEY (id_cancion),
+    CONSTRAINT fk_cancion_album FOREIGN KEY (id_album) REFERENCES album(id_album)
+);
+
+-- 5. CANCION_GENERO (asociativa N:M)
+CREATE TABLE cancion_genero (
+    id_cancion NUMBER NOT NULL,
+    id_genero  NUMBER NOT NULL,
+    CONSTRAINT pk_cancion_genero PRIMARY KEY (id_cancion, id_genero),
+    CONSTRAINT fk_cg_cancion FOREIGN KEY (id_cancion) REFERENCES cancion(id_cancion),
+    CONSTRAINT fk_cg_genero FOREIGN KEY (id_genero) REFERENCES genero(id_genero)
+);
+
+-- 6. PLAN_SUSCRIPCION (tabla catálogo)
+CREATE TABLE plan_suscripcion (
+    id_plan        NUMBER GENERATED ALWAYS AS IDENTITY,
+    nombre_plan    VARCHAR2(50)   NOT NULL,
+    precio_mensual NUMBER(10, 2)  NOT NULL,
+    CONSTRAINT pk_plan PRIMARY KEY (id_plan),
+    CONSTRAINT uq_nombre_plan UNIQUE (nombre_plan),
+    CONSTRAINT chk_precio CHECK (precio_mensual >= 0)
+);
+
+-- 7. USUARIO (depende de plan_suscripcion)
+CREATE TABLE usuario (
+    id_usuario     NUMBER GENERATED ALWAYS AS IDENTITY,
+    nombre_usuario VARCHAR2(100) NOT NULL,
+    email          VARCHAR2(150) NOT NULL,
+    fecha_registro DATE DEFAULT SYSDATE NOT NULL,
+    id_plan        NUMBER NOT NULL,
+    CONSTRAINT pk_usuario PRIMARY KEY (id_usuario),
+    CONSTRAINT uq_email UNIQUE (email),
+    CONSTRAINT fk_usuario_plan FOREIGN KEY (id_plan) REFERENCES plan_suscripcion(id_plan)
+);
+
+-- 8. PLAYLIST (depende de usuario)
+CREATE TABLE playlist (
+    id_playlist     NUMBER GENERATED ALWAYS AS IDENTITY,
+    nombre_playlist VARCHAR2(200) NOT NULL,
+    fecha_creacion  DATE DEFAULT SYSDATE NOT NULL,
+    id_usuario      NUMBER NOT NULL,
+    CONSTRAINT pk_playlist PRIMARY KEY (id_playlist),
+    CONSTRAINT fk_playlist_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+);
+
+-- 9. PLAYLIST_CANCION (asociativa N:M)
+CREATE TABLE playlist_cancion (
+    id_playlist NUMBER NOT NULL,
+    id_cancion  NUMBER NOT NULL,
+    orden       NUMBER,
+    CONSTRAINT pk_playlist_cancion PRIMARY KEY (id_playlist, id_cancion),
+    CONSTRAINT fk_pc_playlist FOREIGN KEY (id_playlist) REFERENCES playlist(id_playlist),
+    CONSTRAINT fk_pc_cancion FOREIGN KEY (id_cancion) REFERENCES cancion(id_cancion)
+);
+
+-- 10. REPRODUCCION (depende de usuario y cancion)
+CREATE TABLE reproduccion (
+    id_reproduccion NUMBER GENERATED ALWAYS AS IDENTITY,
+    id_usuario      NUMBER NOT NULL,
+    id_cancion      NUMBER NOT NULL,
+    fecha_hora      DATE DEFAULT SYSDATE NOT NULL,
+    CONSTRAINT pk_reproduccion PRIMARY KEY (id_reproduccion),
+    CONSTRAINT fk_repro_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
+    CONSTRAINT fk_repro_cancion FOREIGN KEY (id_cancion) REFERENCES cancion(id_cancion)
+);</code></pre>
+        </div>
+
+        <hr class="section-divider">
+
+        <!-- Script DROP completo -->
+        <h3>Script DROP consolidado (eliminación en orden inverso)</h3>
+        <div class="code-wrapper">
+          <div class="code-toolbar">
+            <span>Oracle SQL · DDL de Limpieza</span>
+            <button class="copy-btn" @click="copyCode($event)">Copiar</button>
+          </div>
+          <pre><code class="language-sql">-- Eliminación en orden inverso para preservar integridad referencial
+DROP TABLE reproduccion;
+DROP TABLE playlist_cancion;
+DROP TABLE playlist;
+DROP TABLE usuario;
+DROP TABLE plan_suscripcion;
+DROP TABLE cancion_genero;
+DROP TABLE cancion;
+DROP TABLE album;
+DROP TABLE artista;
+DROP TABLE genero;</code></pre>
+        </div>
+
+        <hr class="section-divider">
+
+        <!-- Conceptos resumen -->
+        <h3>Resumen de conceptos aplicados</h3>
+        <div style="overflow-x:auto; margin:16px 0;">
+          <table class="rubric-table" style="min-width:500px;">
+            <thead>
+              <tr><th>Instrucción / Concepto</th><th>Bloque</th><th>Propósito Técnico</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>CREATE TABLE</code></td><td>1</td><td>Define una relación física con sus columnas y tipos de datos en Oracle.</td></tr>
+              <tr><td><code>DROP TABLE</code></td><td>1</td><td>Elimina una tabla del esquema junto con sus datos y restricciones asociadas.</td></tr>
+              <tr><td><code>PRIMARY KEY</code></td><td>1</td><td>Garantiza la identificación unívoca y no nula de cada registro.</td></tr>
+              <tr><td><code>IDENTITY</code></td><td>1</td><td>Genera secuencias numéricas automáticas gestionadas por el motor.</td></tr>
+              <tr><td><code>NOT NULL</code></td><td>1</td><td>Impone obligatoriedad sobre atributos críticos.</td></tr>
+              <tr><td><code>FOREIGN KEY</code></td><td>2</td><td>Establece integridad referencial entre relaciones padre e hija.</td></tr>
+              <tr><td><code>UNIQUE</code></td><td>2</td><td>Garantiza que los valores de una o más columnas no se dupliquen.</td></tr>
+              <tr><td><code>CHECK</code></td><td>4</td><td>Restringe el dominio de valores admisibles mediante condiciones booleanas.</td></tr>
+              <tr><td><code>DEFAULT</code></td><td>4</td><td>Asigna un valor predeterminado cuando la columna se omite en el INSERT.</td></tr>
+              <tr><td><code>COMMIT</code></td><td>4</td><td>Confirma y hace permanentes los cambios de la transacción actual.</td></tr>
+              <tr><td><code>ROLLBACK</code></td><td>4</td><td>Revierte las operaciones no confirmadas de la transacción actual.</td></tr>
+              <tr><td><code>INSERT INTO</code></td><td>1-5</td><td>Inserta tuplas en relaciones físicas.</td></tr>
+              <tr><td><code>SELECT</code></td><td>5</td><td>Proyecta y consulta datos desde las relaciones del esquema.</td></tr>
+              <tr><td><code>INNER JOIN</code></td><td>5</td><td>Combina tuplas de dos o más relaciones según coincidencias referenciales.</td></tr>
+              <tr><td><code>GROUP BY</code></td><td>5</td><td>Agrupa tuplas con valores comunes para aplicar funciones de cálculo agregado.</td></tr>
+              <tr><td><span class="fn-tag">1FN</span></td><td>2</td><td>Atomicidad: eliminación de celdas multivaluadas y delimitadas por comas.</td></tr>
+              <tr><td><span class="fn-tag">2FN</span></td><td>3</td><td>Eliminación de dependencias parciales respecto a claves primarias compuestas.</td></tr>
+              <tr><td><span class="fn-tag">3FN</span></td><td>2</td><td>Eliminación de dependencias transitivas entre atributos no clave.</td></tr>
+              <tr><td>Tabla Asociativa</td><td>3</td><td>Resolución de relaciones N:M mediante clave primaria compuesta por ambas FKs.</td></tr>
+              <tr><td><span class="fn-tag acid">ACID</span></td><td>4</td><td>Garantías del motor: Atomicidad, Consistencia, Aislamiento y Durabilidad.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="margin-top:48px; text-align:center; padding:24px 0; border-top:2px solid var(--line);">
+          <div style="font-size:32px; margin-bottom:8px;">👽</div>
+          <p class="lead" style="margin:0 auto; font-size:14px; font-weight:600;">Bases de Datos Aplicada 1 · Escuela de Informática y Telecomunicaciones</p>
+          <p class="small" style="margin-top:4px; color:var(--ink-muted);">DuocUC Sede Puerto Montt · 2° Semestre 2026</p>
+        </div>
+
+        <div class="tab-nav-bar">
+          <button class="tab-nav-btn" @click="switchTab('ejercicios')">← Ejercicios</button>
+          <button class="tab-nav-btn" @click="switchTab('intro')">Volver al Inicio</button>
+        </div>
+
+      </div>
+    </div><!-- /tab modelo -->
+
+
+    <!-- TOAST NOTIFICATION -->
+    <transition name="toast-fade">
+      <div v-if="toast.show" class="toast-notification">
+        <div class="toast-icon">⌨️</div>
+        <div class="toast-body">
+          <strong>Aviso pedagógico</strong>
+          <p>{{ toast.message }}</p>
+        </div>
+        <button class="toast-close" @click="hideToast">&times;</button>
+      </div>
+    </transition>
+
+  </div><!-- /guide-container -->
+</div><!-- /app -->
+
+<script>
+  const { createApp } = Vue;
+
+  createApp({
+    data() {
+      return {
+        tab: 'intro',
+        toast: {
+          show: false,
+          message: '',
+          timer: null
+        },
+        checklists: {
+          b1: [
+            { text: 'Ejecución de CREATE TABLE inicial (sin clave primaria)', done: false },
+            { text: 'Comprobación de registros duplicados y borrado simultáneo', done: false },
+            { text: 'Implementación de restricción PRIMARY KEY', done: false },
+            { text: 'Verificación de rechazo ante colisión de claves manuales', done: false },
+            { text: 'Implementación de GENERATED ALWAYS AS IDENTITY', done: false },
+            { text: 'Detección de valores nulos no admisibles en columnas esenciales', done: false },
+            { text: 'Implementación de restricción NOT NULL en atributos críticos', done: false },
+            { text: 'Poblado de 12 registros de canciones en la tabla definitiva', done: false }
+          ],
+          b2: [
+            { text: 'Cuantificación de redundancia en artista mediante GROUP BY', done: false },
+            { text: 'Diagnóstico de transgresión a 1FN por géneros multivaluados', done: false },
+            { text: 'Creación de tabla catálogo GENERO con restricción UNIQUE', done: false },
+            { text: 'Creación de tabla maestra ARTISTA', done: false },
+            { text: 'Recreación de CANCION vinculada mediante FOREIGN KEYs', done: false },
+            { text: 'Comprobación de rechazo referencial ante IDs inexistentes (ORA-02291)', done: false },
+            { text: 'Carga de canciones con claves foráneas válidas', done: false },
+            { text: 'Consulta relacional con INNER JOIN entre cancion y artista', done: false }
+          ],
+          b3: [
+            { text: 'Diagnóstico de limitación 1:N para cardinalidad de géneros', done: false },
+            { text: 'Implementación de tabla asociativa CANCION_GENERO con PK compuesta', done: false },
+            { text: 'Extracción de entidad ALBUM para satisfacer 2FN', done: false },
+            { text: 'Comprobación de jerarquía de inserción (padre antes que hijo)', done: false },
+            { text: 'Carga completa de álbumes, canciones y asociaciones de género', done: false },
+            { text: 'Verificación de múltiples géneros por canción mediante INNER JOIN encadenado', done: false }
+          ],
+          b4: [
+            { text: 'Diagnóstico de precios negativos por ausencia de restricción de dominio', done: false },
+            { text: 'Implementación de CHECK (precio_mensual >= 0) en PLAN_SUSCRIPCION', done: false },
+            { text: 'Implementación de USUARIO con restricción UNIQUE en email y DEFAULT SYSDATE', done: false },
+            { text: 'Creación de PLAYLIST y tabla asociativa PLAYLIST_CANCION', done: false },
+            { text: 'Carga de usuarios, listas de reproducción y contenido de playlists', done: false },
+            { text: 'Comprobación práctica de ROLLBACK y confirmación con COMMIT', done: false },
+            { text: 'Análisis de las 4 propiedades ACID en el modelo relacional', done: false }
+          ],
+          b5: [
+            { text: 'Implementación de la tabla de hechos REPRODUCCION', done: false },
+            { text: 'Ejecución de consultas con INNER JOIN entre 2 tablas', done: false },
+            { text: 'Ejecución de consultas encadenadas entre 3 tablas', done: false },
+            { text: 'Cálculo de agregaciones con GROUP BY y COUNT(*)', done: false },
+            { text: 'Verificación de integridad del esquema consolidado de 10 tablas', done: false }
+          ]
+        }
+      };
+    },
+    methods: {
+      switchTab(t) {
+        this.tab = t;
+        window.location.hash = t;
+        localStorage.setItem('act2_tab', t);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        this.$nextTick(() => {
+          document.querySelectorAll('pre code').forEach(el => {
+            if (!el.dataset.highlighted) {
+              hljs.highlightElement(el);
+            }
+          });
+        });
+      },
+      progress(block) {
+        const items = this.checklists[block];
+        if (!items || items.length === 0) return 0;
+        const done = items.filter(i => i.done).length;
+        return Math.round((done / items.length) * 100);
+      },
+      toggleCheck(block, index) {
+        this.checklists[block][index].done = !this.checklists[block][index].done;
+        this.saveChecklists();
+      },
+      saveChecklists() {
+        localStorage.setItem('act2_checklists', JSON.stringify(this.checklists));
+      },
+      loadStoredData() {
+        const storedTab = window.location.hash.replace('#', '') || localStorage.getItem('act2_tab');
+        if (storedTab && ['intro', 'b1', 'b2', 'b3', 'b4', 'b5', 'ejercicios', 'modelo'].includes(storedTab)) {
+          this.tab = storedTab;
+        }
+        const storedChecklists = localStorage.getItem('act2_checklists');
+        if (storedChecklists) {
+          try {
+            const parsed = JSON.parse(storedChecklists);
+            Object.keys(parsed).forEach(b => {
+              if (this.checklists[b]) {
+                parsed[b].forEach((item, i) => {
+                  if (this.checklists[b][i]) {
+                    this.checklists[b][i].done = item.done;
+                  }
+                });
+              }
+            });
+          } catch (e) {
+            console.error('Error al cargar checklist guardado', e);
+          }
+        }
+      },
+      copyCode(event) {
+        const btn = event.currentTarget;
+        const wrapper = btn.closest('.code-wrapper');
+        if (!wrapper) return;
+        const codeEl = wrapper.querySelector('code');
+        if (!codeEl) return;
+        const text = codeEl.innerText;
+        navigator.clipboard.writeText(text).then(() => {
+          const orig = btn.innerText;
+          btn.innerText = 'Copiado';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.innerText = orig;
+            btn.classList.remove('copied');
+          }, 2000);
+          this.showToast('¿Seguro que quieres copiar? El profe Carlos prefiere que lo tipees a mano para ganar memoria dactilar.');
+        });
+      },
+      showToast(msg) {
+        this.toast.message = msg;
+        this.toast.show = true;
+        if (this.toast.timer) clearTimeout(this.toast.timer);
+        this.toast.timer = setTimeout(() => {
+          this.toast.show = false;
+        }, 4000);
+      },
+      hideToast() {
+        this.toast.show = false;
+        if (this.toast.timer) clearTimeout(this.toast.timer);
+      }
+    },
+    mounted() {
+      this.loadStoredData();
+      this.$nextTick(() => {
+        hljs.highlightAll();
+      });
+      window.addEventListener('hashchange', () => {
+        const h = window.location.hash.replace('#', '');
+        if (h && ['intro', 'b1', 'b2', 'b3', 'b4', 'b5', 'ejercicios', 'modelo'].includes(h)) {
+          this.tab = h;
+        }
+      });
+    }
+  }).mount('#app');
+</script>
+
+</body>
+</html>
