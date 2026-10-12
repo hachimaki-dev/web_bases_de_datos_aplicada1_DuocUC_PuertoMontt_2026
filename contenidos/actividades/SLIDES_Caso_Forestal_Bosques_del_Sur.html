@@ -1,0 +1,2253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masterclass Pedagógica Interactiva — Caso Forestal Bosques del Sur S.A. · Profe Carlitos</title>
+  <meta name="description" content="Presentación interactiva tipo diapositivas para proyectar en clases: texto íntegro del caso, técnicas de comprensión lectora, modelado conceptual en Oracle Data Modeler (Barker), normalización 1FN-3FN, quizzes y tácticas de examen.">
+  <link rel="stylesheet" href="../../shared/fonts.css">
+  <link rel="stylesheet" href="../../shared/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+
+  <style>
+    /* Reset & Viewport Fix for Classroom Slide Projection */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: var(--bg);
+      font-family: var(--font-body);
+      color: var(--ink);
+    }
+
+    #app {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      user-select: text;
+    }
+
+    /* Zoom de Proyección para Salas Grandes */
+    #app.zoom-projection .slide-wrapper {
+      font-size: 1.15em;
+    }
+    #app.zoom-projection .slide-title {
+      font-size: clamp(34px, 4.5vw, 56px);
+    }
+    #app.zoom-projection .slide-lead {
+      font-size: clamp(20px, 2.2vw, 28px);
+    }
+    #app.zoom-projection p, 
+    #app.zoom-projection li {
+      font-size: 18px;
+    }
+
+    /* Topbar de Navegación */
+    .slide-topbar {
+      height: 60px;
+      border-bottom: 2px solid var(--line);
+      background: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 50;
+      flex-shrink: 0;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-soft);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+      transition: all 0.15s ease;
+    }
+    .back-home:hover {
+      background: var(--ink);
+      color: #FFFFFF;
+      border-color: var(--ink);
+    }
+
+    .topbar-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .slide-counter-badge {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      background: var(--bg-muted);
+      padding: 4px 10px;
+      border-radius: 999px;
+      color: var(--ink-soft);
+      border: 1px solid var(--line);
+    }
+
+    /* Top Progress Bar */
+    .top-progress-container {
+      width: 100%;
+      height: 4px;
+      background: var(--line);
+      position: relative;
+    }
+    .top-progress-bar {
+      height: 100%;
+      background: var(--accent-menta);
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Canvas de Presentación */
+    .slide-canvas {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 5vw 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      background: radial-gradient(circle at 50% 0%, rgba(212, 237, 218, 0.25) 0%, #FFFFFF 70%);
+    }
+
+    .slide-wrapper {
+      width: 100%;
+      max-width: 1140px;
+      margin: auto 0;
+      animation: slideIn 0.25s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Títulos y Kickers */
+    .slide-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: var(--ink);
+      color: #FFFFFF;
+      margin-bottom: 12px;
+    }
+
+    .slide-kicker.menta   { background: var(--pastel-menta); color: var(--accent-menta); border: 1px solid var(--accent-menta); }
+    .slide-kicker.durazno { background: var(--pastel-durazno); color: var(--accent-durazno); border: 1px solid var(--accent-durazno); }
+    .slide-kicker.celeste { background: var(--pastel-celeste); color: var(--accent-celeste); border: 1px solid var(--accent-celeste); }
+    .slide-kicker.lavanda { background: var(--pastel-lavanda); color: var(--accent-lavanda); border: 1px solid var(--accent-lavanda); }
+    .slide-kicker.rosa    { background: var(--pastel-rosa); color: var(--accent-rosa); border: 1px solid var(--accent-rosa); }
+
+    .slide-title {
+      font-size: clamp(28px, 3.8vw, 46px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0 0 16px;
+      color: var(--ink);
+    }
+
+    .slide-lead {
+      font-size: clamp(17px, 1.8vw, 22px);
+      line-height: 1.5;
+      color: var(--ink-soft);
+      margin-bottom: 24px;
+      max-width: 980px;
+    }
+
+    /* Caja de Texto del Caso con Resaltado Interactivo */
+    .case-text-card {
+      background: #FFFFFF;
+      border: 2px solid var(--ink);
+      border-radius: var(--radius-md);
+      padding: 22px 26px;
+      margin: 18px 0;
+      box-shadow: 4px 4px 0px var(--line);
+      position: relative;
+    }
+    .case-text-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--line);
+    }
+    .case-text-body {
+      font-size: 17px;
+      line-height: 1.8;
+      color: #212529;
+    }
+
+    /* Resaltadores dinámicos para el texto */
+    .hl-noun {
+      background: #FFF3BF;
+      color: #7950F2;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 3px;
+      border-bottom: 2px solid #FAB005;
+    }
+    .hl-verb {
+      background: #D0EBFF;
+      color: #1864AB;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 3px;
+      border-bottom: 2px solid #339AF0;
+    }
+    .hl-rule {
+      background: #FFE3E3;
+      color: #C92A2A;
+      font-weight: 800;
+      padding: 1px 4px;
+      border-radius: 3px;
+      border-bottom: 2px solid #FA5252;
+    }
+
+    .hl-control-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+      background: var(--bg-soft);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      align-items: center;
+    }
+
+    /* Cajas Socráticas y Provocación */
+    .provocation-box {
+      background: #FFF9DB;
+      border-left: 5px solid #FAB005;
+      padding: 16px 20px;
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      margin: 20px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    .provocation-box .p-title {
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #945B00;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .provocation-box p {
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.45;
+      color: #382400;
+      margin: 0;
+    }
+
+    /* Alerta de Trampa de Examen */
+    .exam-trap-box {
+      background: #FFE3E3;
+      border: 2px solid #FA5252;
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      margin: 18px 0;
+    }
+    .exam-trap-box .trap-header {
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #C92A2A;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .exam-trap-box p {
+      font-size: 16px;
+      color: #491212;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* Cajas Notación Barker (Oracle Data Modeler) */
+    .barker-card {
+      background: #FFFFFF;
+      border: 2px solid var(--ink);
+      border-radius: var(--radius-md);
+      box-shadow: 4px 4px 0px var(--line);
+      overflow: hidden;
+      margin: 16px 0;
+    }
+    .barker-header {
+      background: #2B3A42;
+      color: #FFFFFF;
+      padding: 10px 16px;
+      font-weight: 800;
+      font-size: 15px;
+      letter-spacing: 0.04em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .barker-body {
+      padding: 12px 16px;
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      line-height: 1.75;
+      background: #FAFAFA;
+    }
+    .barker-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .barker-pk   { color: #C92A2A; font-weight: 800; }
+    .barker-req  { color: #212529; font-weight: 700; }
+    .barker-opt  { color: #868E96; font-style: italic; }
+    .barker-fk   { color: #1971C2; font-weight: 700; }
+
+    /* Diagrama Visual de Relaciones Barker */
+    .barker-rel-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 20px;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      margin: 16px 0;
+    }
+    .rel-connector {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 12px;
+      position: relative;
+    }
+    .rel-line {
+      width: 140px;
+      height: 3px;
+      background: var(--ink);
+      position: relative;
+    }
+    .rel-line.dashed {
+      background: repeating-linear-gradient(90deg, var(--ink), var(--ink) 8px, transparent 8px, transparent 14px);
+    }
+    .rel-label {
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--bg-muted);
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-top: 6px;
+      color: var(--ink-soft);
+    }
+
+    /* Quizzes Interactivos */
+    .quiz-card {
+      background: #FFFFFF;
+      border: 2px solid var(--ink);
+      border-radius: var(--radius-lg);
+      padding: 22px 26px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+      margin: 20px 0;
+    }
+    .quiz-q-title {
+      font-size: 19px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      line-height: 1.4;
+      color: var(--ink);
+    }
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .quiz-opt-btn {
+      text-align: left;
+      padding: 12px 18px;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--line);
+      background: var(--bg-soft);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.15s ease;
+      font-family: var(--font-body);
+      color: var(--ink);
+    }
+    .quiz-opt-btn:hover:not(:disabled) {
+      border-color: var(--ink);
+      background: #FFFFFF;
+      transform: translateX(4px);
+    }
+    .quiz-opt-btn.is-correct {
+      border-color: #2B8A3E !important;
+      background: #D3F9D8 !important;
+      color: #155724 !important;
+    }
+    .quiz-opt-btn.is-wrong {
+      border-color: #C92A2A !important;
+      background: #FFE3E3 !important;
+      color: #721C24 !important;
+    }
+    .quiz-feedback {
+      padding: 14px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.5;
+      animation: fadeIn 0.2s ease;
+    }
+    .quiz-feedback.success { background: #D3F9D8; color: #155724; border: 1px solid #8CE99A; }
+    .quiz-feedback.error   { background: #FFE3E3; color: #721C24; border: 1px solid #FFA8A8; }
+
+    /* Checklist Interactivo */
+    .checklist-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 12px;
+      margin: 18px 0;
+    }
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: #FFFFFF;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .check-item:hover {
+      border-color: var(--ink);
+      background: var(--bg-soft);
+    }
+    .check-item.done {
+      background: #EBFBEE;
+      border-color: #8CE99A;
+      text-decoration: line-through;
+      color: var(--ink-soft);
+    }
+    .check-box-icon {
+      font-size: 18px;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    /* Barra Inferior Fija */
+    .slide-bottombar {
+      height: 64px;
+      border-top: 2px solid var(--line);
+      background: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      flex-shrink: 0;
+      z-index: 50;
+    }
+
+    .ctrl-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ctrl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: var(--bg);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: var(--font-body);
+    }
+    .ctrl-btn:hover:not(:disabled) {
+      background: var(--bg-muted);
+      border-color: var(--ink);
+    }
+    .ctrl-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    .ctrl-btn.primary {
+      background: var(--ink);
+      color: #FFFFFF;
+      border-color: var(--ink);
+    }
+    .ctrl-btn.primary:hover:not(:disabled) {
+      background: #33334d;
+    }
+
+    /* Modal / Drawer Temario */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      display: flex;
+      justify-content: flex-end;
+      backdrop-filter: blur(2px);
+    }
+    .drawer-content {
+      width: 440px;
+      max-width: 90vw;
+      height: 100%;
+      background: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+      animation: slideInRight 0.2s ease-out;
+    }
+    @keyframes slideInRight {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+    .drawer-header {
+      padding: 18px 24px;
+      border-bottom: 2px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .drawer-header h3 { margin: 0; font-size: 18px; }
+    .drawer-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px;
+    }
+    .drawer-item {
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+      transition: background 0.12s;
+    }
+    .drawer-item:hover { background: var(--bg-muted); }
+    .drawer-item.active { background: var(--pastel-menta); color: var(--accent-menta); font-weight: 800; }
+    .drawer-item-num { font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted); min-width: 24px; }
+
+    /* Tablas y Código */
+    .code-wrapper {
+      position: relative;
+      margin: 16px 0;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: rgba(255,255,255,0.85);
+      border: 1px solid var(--line);
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--ink);
+      transition: all 0.15s;
+    }
+    .copy-btn:hover { background: #FFFFFF; }
+    .copy-btn.copied { background: var(--pastel-menta); color: var(--accent-menta); }
+
+    @media (max-width: 768px) {
+      .slide-canvas { padding: 20px 16px 36px; }
+      .slide-title { font-size: 24px; }
+      .barker-rel-diagram { flex-direction: column; }
+      .rel-line { width: 3px; height: 40px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app" :class="{ 'zoom-projection': isZoomed }">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="slide-topbar">
+    <div class="topbar-left">
+      <a href="../../index.html" class="back-home" title="Volver al Portal Docente">
+        <span>←</span> <span>Portal BD</span>
+      </a>
+      <div class="topbar-title">
+        <span>🌲</span>
+        <strong>Caso Forestal Bosques del Sur S.A.</strong>
+        <span class="small" style="display:none; @media(min-width:900px){display:inline;}">· Masterclass Profe Carlitos</span>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <span class="slide-counter-badge">{{ current + 1 }} / {{ slides.length }}</span>
+      <button class="ctrl-btn" @click="toggleZoom" :title="isZoomed ? 'Tamaño normal' : 'Modo Proyección Gigante (Salas grandes)'">
+        <span>{{ isZoomed ? '🔍 A-' : '🔎 A+ Proyección' }}</span>
+      </button>
+      <button class="ctrl-btn" @click="toggleDrawer" title="Índice de Diapositivas (M)">
+        <span>📑 Temario</span>
+      </button>
+      <button class="ctrl-btn" @click="toggleFullscreen" title="Pantalla Completa (F)">
+        <span>⛶</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- TOP PROGRESS BAR -->
+  <div class="top-progress-container">
+    <div class="top-progress-bar" :style="{ width: progressWidth }"></div>
+  </div>
+
+  <!-- SLIDE CANVAS -->
+  <main class="slide-canvas">
+    <div class="slide-wrapper" :key="current">
+
+      <!-- ========================================================
+           SLIDE 0: PORTADA
+      ======================================================== -->
+      <section v-if="current === 0">
+        <div class="slide-kicker menta">🎓 MASTERCLASS DOCENTE · BASES DE DATOS APLICADA 1</div>
+        <h1 class="slide-title">Forestal Bosques del Sur S.A.</h1>
+        <p class="slide-lead">
+          Poniendo el Caso en Escena: Técnicas de Comprensión Lectora para Analistas de Datos, Modelado Conceptual Barker en Oracle Data Modeler, Normalización Quirúrgica (3FN) y Estrategias para Aprobar la Evaluación con Nota Máxima.
+        </p>
+
+        <div class="grid grid-3" style="margin: 28px 0;">
+          <div class="card card-menta">
+            <strong>📖 El Enunciado al Desnudo</strong>
+            <p>Lectura analítica del texto de <code>caso.md</code> párrafo a párrafo con visor interactivo de sustantivos, verbos y restricciones.</p>
+          </div>
+          <div class="card card-celeste">
+            <strong>📐 Oracle Data Modeler</strong>
+            <p>Construcción visual con notación Barker Crow's Foot: entidades fuertes, débiles identificadoras, MERE y arcos exclusivos.</p>
+          </div>
+          <div class="card card-durazno">
+            <strong>⚠️ Mentalidad de Examen</strong>
+            <p>Aprende a pensar como el docente que redactó la pauta: 6 checkpoints formativos con preguntas y las 7 trampas mortales.</p>
+          </div>
+        </div>
+
+        <div class="provocation-box">
+          <div class="p-title">💡 Atajos de Teclado para la Clase</div>
+          <p>
+            Usa las <strong>Flechas [← / →]</strong> o la <strong>Barra Espaciadora</strong> para avanzar. Presiona <strong>[F]</strong> para pantalla completa y <strong>[M]</strong> para abrir el temario de las 32 diapositivas.
+          </p>
+        </div>
+
+        <div style="margin-top: 24px;">
+          <button class="ctrl-btn primary" style="font-size:16px; padding:12px 24px;" @click="next">
+            Comenzar Análisis del Caso →
+          </button>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 1: LA MISIÓN DEL ANALISTA Y LA EVALUACIÓN
+      ======================================================== -->
+      <section v-if="current === 1">
+        <div class="slide-kicker celeste">FASE 1 · MARCO DE EVALUACIÓN</div>
+        <h2 class="slide-title">¿Qué Evalúa Realmente el Docente en la Prueba?</h2>
+        <p class="slide-lead">
+          Muchos alumnos creen que la prueba mide "qué tan rápido usas el mouse en Data Modeler". ¡Falso! La rúbrica evalúa tu <strong>capacidad de razonamiento como analista de sistemas</strong>:
+        </p>
+
+        <div class="grid" style="margin: 20px 0;">
+          <div class="card" style="border-left: 4px solid var(--accent-menta);">
+            <strong>1. Rigor en la Interpretación de Requisitos</strong>
+            <p class="small">Extraer exactamente lo que el negocio pide sin inventar entidades fantasma ni amputar requerimientos obligatorios.</p>
+          </div>
+          <div class="card" style="border-left: 4px solid var(--accent-celeste);">
+            <strong>2. Dependencia de Identificación (Entidades Débiles)</strong>
+            <p class="small">Saber cuándo una entidad no tiene existencia independiente en el mundo real (el mítico caso del Rodal dentro del Predio).</p>
+          </div>
+          <div class="card" style="border-left: 4px solid var(--accent-lavanda);">
+            <strong>3. Dominio de Jerarquías MERE</strong>
+            <p class="small">Modelar especializaciones totales y disjuntas sin caer en el error de la "tabla sábana" llena de valores nulos.</p>
+          </div>
+          <div class="card" style="border-left: 4px solid var(--accent-durazno);">
+            <strong>4. Normalización sin Piedad (1FN, 2FN, 3FN)</strong>
+            <p class="small">Demostrar que ninguna columna contiene listas, ninguna depende parcialmente y cero dependencias transitivas.</p>
+          </div>
+        </div>
+
+        <div class="provocation-box">
+          <div class="p-title">❓ Pregunta Socrática para la Clase</div>
+          <p>
+            Si un cliente te entrega un documento de 1 página lleno de texto desordenado... ¿Por dónde comienzas? ¿Abres Data Modeler de inmediato o tomas lápiz y papel?
+          </p>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 2: TEXTO COMPLETO DEL CASO (PARTE 1)
+      ======================================================== -->
+      <section v-if="current === 2">
+        <div class="slide-kicker durazno">TEXTO ÍNTEGRO DEL CASO · PARTE 1</div>
+        <h2 class="slide-title">El Enunciado Original: Predios, Rodales y Personal</h2>
+        <p class="slide-lead">
+          Este es el texto exacto entregado en la evaluación. Usa los botones superiores para activar la visión de rayos X del analista:
+        </p>
+
+        <!-- Controles interactivos de capas -->
+        <div class="hl-control-bar">
+          <span style="font-size:13px; font-weight:700;">Capas del Analista:</span>
+          <button class="ctrl-btn" :class="{ primary: hlNouns }" @click="hlNouns = !hlNouns">
+            🟡 {{ hlNouns ? 'Ocultar' : 'Resaltar' }} Sustantivos (Entidades / Atributos)
+          </button>
+          <button class="ctrl-btn" :class="{ primary: hlVerbs }" @click="hlVerbs = !hlVerbs">
+            🔵 {{ hlVerbs ? 'Ocultar' : 'Resaltar' }} Verbos (Relaciones)
+          </button>
+          <button class="ctrl-btn" :class="{ primary: hlRules }" @click="hlRules = !hlRules">
+            🔴 {{ hlRules ? 'Ocultar' : 'Resaltar' }} Restricciones (Reglas de Negocio)
+          </button>
+        </div>
+
+        <div class="case-text-card">
+          <div class="case-text-header">
+            <strong>CASO 1: Forestal Bosques del Sur S.A. — Patrimonio y Cosecha</strong>
+            <span class="small" style="font-family:var(--font-mono);">Fuente: caso.md</span>
+          </div>
+          <div class="case-text-body">
+            <p>
+              "Forestal Bosques del Sur S.A." administra plantaciones de pino y eucalipto en el centro-sur del país. Las faenas de cosecha y los despachos de madera se controlan con guías de despacho impresas y planillas, y los incendios se informan por correo. La empresa requiere un Sistema de Gestión de Patrimonio Forestal que integre la cosecha, el despacho y la protección de sus predios.
+            </p>
+            <p>
+              <strong>Predios y Rodales:</strong> Cada <span :class="{'hl-noun': hlNouns}">Predio</span> <span :class="{'hl-rule': hlRules}">se identifica por su Rol_Predio</span> y <span :class="{'hl-verb': hlVerbs}">registra</span> <span :class="{'hl-noun': hlNouns}">nombre</span>, <span :class="{'hl-noun': hlNouns}">superficie total (ha)</span> y <span :class="{'hl-noun': hlNouns}">comuna</span> (<span :class="{'hl-rule': hlRules}">cada comuna pertenece a una región</span>). Un predio <span :class="{'hl-verb': hlVerbs}">se divide en</span> <span :class="{'hl-noun': hlNouns}">Rodales</span> <span :class="{'hl-rule': hlRules}">numerados desde 1 dentro del predio (el rodal 2 existe en muchos predios)</span>; de cada rodal se registra la <span :class="{'hl-noun': hlNouns}">superficie (ha)</span>, el <span :class="{'hl-noun': hlNouns}">año de plantación</span>, la <span :class="{'hl-noun': hlNouns}">densidad (árboles/ha, que no se conoce en rodales antiguos)</span> y la <span :class="{'hl-noun': hlNouns}">Especie plantada</span> (<span :class="{'hl-noun': hlNouns}">Código_Especie</span>, <span :class="{'hl-noun': hlNouns}">nombre común</span>, <span :class="{'hl-noun': hlNouns}">nombre científico</span> y <span :class="{'hl-noun': hlNouns}">turno de rotación en años</span>).
+            </p>
+            <p>
+              <strong>Contratistas y Trabajadores:</strong> Las labores las realizan empresas <span :class="{'hl-noun': hlNouns}">Contratistas</span> (<span :class="{'hl-noun': hlNouns}">RUT</span>, <span :class="{'hl-noun': hlNouns}">razón social</span>, <span :class="{'hl-noun': hlNouns}">teléfono</span>). De cada <span :class="{'hl-noun': hlNouns}">Trabajador</span> se registra <span :class="{'hl-noun': hlNouns}">RUT</span>, <span :class="{'hl-noun': hlNouns}">nombres</span>, <span :class="{'hl-noun': hlNouns}">apellidos</span>, <span :class="{'hl-noun': hlNouns}">fecha de ingreso</span> y el <span :class="{'hl-verb': hlVerbs}">contratista al que pertenece</span>. Cada trabajador <span :class="{'hl-verb': hlVerbs}">puede tener un jefe de cuadrilla</span>, <span :class="{'hl-rule': hlRules}">que también es trabajador</span>. <span :class="{'hl-rule': hlRules}">Todo trabajador es exactamente de uno de estos tipos:</span> <span :class="{'hl-noun': hlNouns}">Motosierrista</span> (número de certificación), <span :class="{'hl-noun': hlNouns}">Operador de Maquinaria</span> (clase de licencia) o <span :class="{'hl-noun': hlNouns}">Brigadista</span> (fecha del último curso de combate de incendios).
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 3: TEXTO COMPLETO DEL CASO (PARTE 2)
+      ======================================================== -->
+      <section v-if="current === 3">
+        <div class="slide-kicker durazno">TEXTO ÍNTEGRO DEL CASO · PARTE 2</div>
+        <h2 class="slide-title">Faenas, Despachos, Incendios y Restricciones</h2>
+        <p class="slide-lead">
+          Segunda parte del caso: operaciones logísticas y las reglas críticas de integridad del negocio:
+        </p>
+
+        <div class="case-text-card">
+          <div class="case-text-body">
+            <p>
+              <strong>Faenas de Cosecha:</strong> Una <span :class="{'hl-noun': hlNouns}">Faena de Cosecha</span> (ID_Faena) <span :class="{'hl-verb': hlVerbs}">se realiza sobre un rodal</span> y es <span :class="{'hl-verb': hlVerbs}">ejecutada por un contratista</span>; registra <span :class="{'hl-noun': hlNouns}">fecha de inicio</span>, <span :class="{'hl-noun': hlNouns}">fecha de término (se completa al cerrar la faena)</span> y <span :class="{'hl-noun': hlNouns}">método (Tala rasa o Raleo)</span>. <span :class="{'hl-rule': hlRules}">Un rodal puede tener varias faenas a lo largo del tiempo.</span>
+            </p>
+            <p>
+              <strong>Despachos:</strong> La madera de una faena se despacha mediante <span :class="{'hl-noun': hlNouns}">Guías de Despacho</span> (N°_Guía) que registran <span :class="{'hl-noun': hlNouns}">fecha y hora</span>, el <span :class="{'hl-noun': hlNouns}">Camión</span> (Patente, capacidad en m³, contratista dueño) y el <span :class="{'hl-noun': hlNouns}">conductor (trabajador)</span>. <span :class="{'hl-rule': hlRules}">Cada guía se destina a un Aserradero (Código_Aserradero, nombre, comuna) o a una Planta de Celulosa (Código_Planta, nombre, capacidad en ton/día), nunca a ambos.</span> Una guía <span :class="{'hl-verb': hlVerbs}">transporta varios Productos</span> (Código_Producto, descripción: Troza aserrable, Troza pulpable, etc.) y <span :class="{'hl-rule': hlRules}">por cada producto de la guía se registra el largo (m), el número de trozas y el volumen (m³).</span>
+            </p>
+            <p>
+              <strong>Incendios:</strong> Cuando se detecta un <span :class="{'hl-noun': hlNouns}">Incendio</span> (ID_Incendio) en un predio se registra <span :class="{'hl-noun': hlNouns}">fecha y hora de detección</span>, <span :class="{'hl-noun': hlNouns}">fecha y hora de control (desconocida mientras está activo)</span> y <span :class="{'hl-noun': hlNouns}">superficie afectada (ha)</span>. <span :class="{'hl-rule': hlRules}">En el combate participan varios brigadistas y un brigadista combate muchos incendios;</span> por cada participación se registra la <span :class="{'hl-noun': hlNouns}">hora de llegada</span> y la <span :class="{'hl-noun': hlNouns}">hora de retiro</span>.
+            </p>
+            <div style="background:#FFF9DB; padding:12px 16px; border-radius:6px; margin-top:12px; border-left:4px solid #FAB005;">
+              <strong>Información Adicional (Reglas de Oro del Negocio):</strong>
+              <ul style="margin:6px 0 0; padding-left:20px;">
+                <li><span :class="{'hl-rule': hlRules}">• El volumen total de una GUÍA DE DESPACHO no puede superar la capacidad (m³) del CAMIÓN.</span></li>
+                <li><span :class="{'hl-rule': hlRules}">• No se puede iniciar una FAENA DE COSECHA sobre un rodal cuya edad (año actual − año de plantación) sea menor al turno de rotación de su especie.</span></li>
+                <li><span :class="{'hl-rule': hlRules}">• Solo trabajadores de tipo BRIGADISTA pueden registrarse en el combate de un INCENDIO.</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 4: TÉCNICAS DE COMPRENSIÓN LECTORA PARA ANALISTAS
+      ======================================================== -->
+      <section v-if="current === 4">
+        <div class="slide-kicker menta">METODOLOGÍA DE INGENIERÍA</div>
+        <h2 class="slide-title">Técnicas de Comprensión Lectora para Analistas</h2>
+        <p class="slide-lead">
+          Un analista de datos lee con anteojos de ingeniero. Aplica estas tres técnicas científicas de comprensión lectora:
+        </p>
+
+        <div class="grid grid-3" style="margin: 20px 0;">
+          <div class="card card-menta">
+            <strong>1. Análisis Morfosintáctico</strong>
+            <p class="small">
+              - <strong>Sustantivos</strong> = Candidatos a Entidades (Predio, Faena) o Atributos (Superficie).<br>
+              - <strong>Verbos</strong> = Candidatos a Relaciones (transporta, combate, ejecuta).<br>
+              - <strong>Cuantificadores</strong> = Cardinalidades ("varios", "cada", "exactamente uno").
+            </p>
+          </div>
+          <div class="card card-celeste">
+            <strong>2. Walkthrough Transaccional</strong>
+            <p class="small">
+              Imagina el camino de una troza de madera:<br>
+              1. Nace en un <em>Rodal</em>.<br>
+              2. Es cortada en una <em>Faena</em>.<br>
+              3. Se carga en un <em>Camión</em> con una <em>Guía</em>.<br>
+              4. Llega a un <em>Aserradero</em>.<br>
+              Si puedes trazar el ciclo de vida, ¡el modelo está vivo!
+            </p>
+          </div>
+          <div class="card card-durazno">
+            <strong>3. Matriz de Supuestos (Assumptions)</strong>
+            <p class="small">
+              ¿Qué pasa si el texto no especifica algo?<br>
+              - <em>"¿Una faena puede no tener fecha de término?"</em> Sí, mientras esté activa.<br>
+              - <em>"¿Un camión puede tener choferes rotativos?"</em> La guía registra al chofer de ese despacho específico.
+            </p>
+          </div>
+        </div>
+
+        <div class="provocation-box">
+          <div class="p-title">🎯 Regla de Oro del Analista</div>
+          <p>
+            Nunca asumas lo que el texto no dice, pero nunca ignores una restricción que el texto exige explícitamente.
+          </p>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 5: DESGLOSE PÁRRAFO 1 - PREDIOS, RODALES Y TERRITORIO
+      ======================================================== -->
+      <section v-if="current === 5">
+        <div class="slide-kicker celeste">DECONSTRUCCIÓN PÁRRAFO 1</div>
+        <h2 class="slide-title">¿Comuna es un Atributo o una Entidad?</h2>
+        <p class="slide-lead">
+          Enunciado: <em>"Cada Predio registra nombre, superficie total y comuna (cada comuna pertenece a una región)"</em>.
+        </p>
+
+        <div class="grid" style="margin: 20px 0;">
+          <div class="card" style="border-left: 4px solid #E03131;">
+            <strong>❌ El Error Infantil de Novato</strong>
+            <p>Crear la tabla: <code>PREDIO (Rol, Nombre, Superficie, Comuna_Texto, Region_Texto)</code></p>
+            <p class="small">
+              ¿Qué pasa si en 50 predios escribes "Puerto Montt" y "Los Lagos"?<br>
+              1. Ocupas 50 veces más memoria.<br>
+              2. Si alguien tipea "Pto Montt", se rompe el reporte.<br>
+              3. ¡Viola la 3FN porque Región depende de Comuna, no del Rol del Predio!
+            </p>
+          </div>
+
+          <div class="card" style="border-left: 4px solid #2B8A3E;">
+            <strong>✓ La Solución de Analista Profesional</strong>
+            <p>
+              <strong>REGION</strong> (ID_Region PK, Nombre)<br>
+              <strong>COMUNA</strong> (ID_Comuna PK, Nombre, ID_Region FK)<br>
+              <strong>PREDIO</strong> (Rol_Predio PK, Nombre, Superficie, ID_Comuna FK)
+            </p>
+            <p class="small">
+              El predio solo conoce su comuna. La comuna conoce su región. Trazabilidad limpia y 100% normalizada en 3FN.
+            </p>
+          </div>
+        </div>
+
+        <div class="provocation-box">
+          <div class="p-title">❓ Detengámonos a Pensar</div>
+          <p>
+            ¿Por qué la superficie total de un predio NO es una entidad? Porque es una medida cuantitativa simple que no tiene vida propia ni relaciones fuera del predio.
+          </p>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 6: CHECKPOINT 1 (QUIZ TERRITORIO)
+      ======================================================== -->
+      <section v-if="current === 6">
+        <div class="slide-kicker rosa">CHECKPOINT FORMATIVO #1</div>
+        <h2 class="slide-title">Comprensión Lectora: Entidad vs Atributo</h2>
+        <p class="slide-lead">
+          Evalúa este requerimiento como si estuvieras en la prueba:
+        </p>
+
+        <div class="quiz-card">
+          <div class="quiz-q-title">
+            El texto dice: <em>"de cada rodal se registra la Especie plantada: Código_Especie, nombre común, nombre científico y turno de rotación en años"</em>.<br>
+            ¿Por qué ESPECIE debe modelarse como una <strong>entidad independiente</strong> y no como 4 columnas dentro de RODAL?
+          </div>
+
+          <div class="quiz-options">
+            <button class="quiz-opt-btn" 
+                    :class="{ 'is-correct': q1_answered && q1_opt === 0, 'is-wrong': q1_answered && q1_selected === 0 && q1_opt !== 0 }"
+                    @click="answerQ1(0)">
+              <span>A)</span> Porque en Oracle Database está prohibido tener más de 3 columnas de texto en una tabla.
+            </button>
+            <button class="quiz-opt-btn" 
+                    :class="{ 'is-correct': q1_answered && q1_opt === 1, 'is-wrong': q1_answered && q1_selected === 1 && q1_opt !== 1 }"
+                    @click="answerQ1(1)">
+              <span>B)</span> Porque una especie (ej. Pino insigne) se repite en cientos de rodales; centralizarla evita actualizar 500 filas si cambia el turno de rotación y elimina redundancia (3FN).
+            </button>
+            <button class="quiz-opt-btn" 
+                    :class="{ 'is-correct': q1_answered && q1_opt === 2, 'is-wrong': q1_answered && q1_selected === 2 && q1_opt !== 2 }"
+                    @click="answerQ1(2)">
+              <span>C)</span> Porque todo sustantivo que tenga atributos entre paréntesis en el caso debe ser entidad por regla gramatical.
+            </button>
+          </div>
+
+          <div v-if="q1_answered" class="quiz-feedback" :class="q1_correct ? 'success' : 'error'">
+            {{ q1_correct ? '✓ ¡EXCELENTE RAZONAMIENTO!' : '✗ INCORRECTO.' }}
+            {{ q1_explanation }}
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 7: DESGLOSE - ENTIDADES DÉBILES: EL MISTERIO DEL RODAL
+      ======================================================== -->
+      <section v-if="current === 7">
+        <div class="slide-kicker durazno">DECONSTRUCCIÓN PÁRRAFO 1</div>
+        <h2 class="slide-title">El Misterio del Rodal: La Trampa #1 de la Rúbrica</h2>
+        <p class="slide-lead">
+          Leamos con lupa forense: <em>"Un predio se divide en Rodales numerados desde 1 dentro del predio (el rodal 2 existe en muchos predios)"</em>.
+        </p>
+
+        <div class="grid" style="margin: 20px 0;">
+          <div class="barker-card">
+            <div class="barker-header">
+              <span>PREDIO (El Roble · Rol 100-1)</span>
+              <span style="font-size:11px; background:#495057; padding:2px 6px; border-radius:4px;">Entidad Fuerte</span>
+            </div>
+            <div class="barker-body">
+              <div><span class="barker-pk"># Rol_Predio: 100-1</span></div>
+              <div style="padding-left:12px;">↳ Rodal 1 (Pino)</div>
+              <div style="padding-left:12px; background:#FFF9DB; font-weight:bold;">↳ Rodal 2 (Eucalipto) ← ¡Existe aquí!</div>
+              <div style="padding-left:12px;">↳ Rodal 3 (Pino)</div>
+            </div>
+          </div>
+
+          <div class="barker-card">
+            <div class="barker-header">
+              <span>PREDIO (Los Coihues · Rol 200-7)</span>
+              <span style="font-size:11px; background:#495057; padding:2px 6px; border-radius:4px;">Entidad Fuerte</span>
+            </div>
+            <div class="barker-body">
+              <div><span class="barker-pk"># Rol_Predio: 200-7</span></div>
+              <div style="padding-left:12px;">↳ Rodal 1 (Eucalipto)</div>
+              <div style="padding-left:12px; background:#FFF9DB; font-weight:bold;">↳ Rodal 2 (Pino) ← ¡Y también existe aquí!</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="provocation-box">
+          <div class="p-title">🚨 Si fueras el brigadista de incendios:</div>
+          <p>
+            Si la radio avisa: <em>"¡Fuego descontrolado en el Rodal 2!"</em>... ¿Hacia dónde mandas el camión cisterna? <strong>Hacia ningún lado, porque el número 2 por sí solo no identifica unívocamente nada.</strong>
+          </p>
+        </div>
+
+        <div class="callout callout-celeste">
+          <strong>Definición Técnica:</strong> RODAL es una <strong>Entidad Débil por Identificación</strong>. Requiere que la clave primaria de PREDIO forme parte obligatoria de su propia clave primaria: <code>(ROL_PREDIO, NUMERO_RODAL)</code>.
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 8: CHECKPOINT 2 (CLAVE COMPUESTA EN DATA MODELER)
+      ======================================================== -->
+      <section v-if="current === 8">
+        <div class="slide-kicker rosa">CHECKPOINT FORMATIVO #2</div>
+        <h2 class="slide-title">Pregunta de Examen: Primary Key de RODAL</h2>
+        <p class="slide-lead">
+          En la transformación al Modelo Relacional, ¿cómo se define la clave primaria de la tabla RODAL?
+        </p>
+
+        <div class="quiz-card">
+          <div class="quiz-q-title">
+            ¿Cuál es la Primary Key correcta para RODAL en Oracle Database?
+          </div>
+
+          <div class="quiz-options">
+            <button class="quiz-opt-btn" 
+                    :class="{ 'is-correct': q2_answered && q2_opt === 0, 'is-wrong': q2_answered && q2_selected === 0 && q2_opt !== 0 }"
+                    @click="answerQ2(0)">
+              <span>A)</span> <code>CONSTRAINT pk_rodal PRIMARY KEY (numero_rodal)</code>
+            </button>
+            <button class="quiz-opt-btn" 
+                    :class="{ 'is-correct': q2_answered && q2_opt === 1, 'is-wrong': q2_answered && q2_selected === 1 && q2_opt !== 1 }"
+                    @click="answerQ2(1)">
+              <span>B)</span> <code>CONSTRAINT pk_rodal PRIMARY KEY (rol_predio, numero_rodal)</code>
+            </button>
+            <button class="quiz-opt-btn" 
+                    :class="{ 'is-correct': q2_answered && q2_opt === 2, 'is-wrong': q2_answered && q2_selected === 2 && q2_opt !== 2 }"
+                    @click="answerQ2(2)">
+              <span>C)</span> No lleva Primary Key porque es una tabla débil.
+            </button>
+          </div>
+
+          <div v-if="q2_answered" class="quiz-feedback" :class="q2_correct ? 'success' : 'error'">
+            {{ q2_correct ? '✓ ¡EXCELENTE!' : '✗ CUIDADO.' }}
+            {{ q2_explanation }}
+          </div>
+        </div>
+
+        <div class="exam-trap-box">
+          <div class="trap-header">⚠️ En Oracle Data Modeler:</div>
+          <p>
+            Al conectar PREDIO con RODAL en el diagrama lógico, <strong>DEBES marcar la casilla "Identifying" (Identificadora)</strong>. Si no la marcas, Data Modeler no heredará el `Rol_Predio` a la clave primaria de Rodal y perderás el 30% del puntaje del ejercicio.
+          </p>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 9: DESGLOSE PÁRRAFO 2 - CONTRATISTAS Y TRABAJADORES (MERE)
+      ======================================================== -->
+      <section v-if="current === 9">
+        <div class="slide-kicker lavanda">DECONSTRUCCIÓN PÁRRAFO 2</div>
+        <h2 class="slide-title">Especialización MERE: Total y Disjunta</h2>
+        <p class="slide-lead">
+          Enunciado: <em>"Todo trabajador es exactamente de uno de estos tipos: Motosierrista (certificación), Operador de Maquinaria (licencia) o Brigadista (fecha del último curso)"</em>.
+        </p>
+
+        <div class="grid" style="margin: 20px 0;">
+          <div class="card" style="border-left: 4px solid #E03131;">
+            <strong>❌ El Anti-Patrón: "Tabla Sábana"</strong>
+            <p><code>TRABAJADOR (RUT, Nombre, Certificación, Licencia, Fecha_Curso)</code></p>
+            <p class="small">
+              - Si Pedro es Motosierrista, Licencia y Fecha_Curso quedan NULL.<br>
+              - ¡Peor aún! La base de datos permitiría que alguien ingrese certificación Y licencia a la vez, violando la regla <em>"exactamente de uno"</em>.
+            </p>
+          </div>
+
+          <div class="card" style="border-left: 4px solid #2B8A3E;">
+            <strong>✓ El Modelo Extendido (MERE)</strong>
+            <p><strong>Supertipo:</strong> <code>TRABAJADOR</code> (RUT, Nombres, Apellidos, Fecha_Ingreso, Rut_Contratista)</p>
+            <p><strong>Subtipos Disjuntos:</strong></p>
+            <ul class="small" style="padding-left:16px; margin:0;">
+              <li><code>MOTOSIERRISTA</code> (RUT_Trabajador PK/FK, Numero_Certificacion)</li>
+              <li><code>OPERADOR_MAQUINARIA</code> (RUT_Trabajador PK/FK, Clase_Licencia)</li>
+              <li><code>BRIGADISTA</code> (RUT_Trabajador PK/FK, Fecha_Ultimo_Curso)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout callout-lavanda">
+          <strong>Propiedades Formales que Exige la Pauta:</strong>
+          <ul>
+            <li><strong>Totalidad:</strong> No existe trabajador sin subtipo.</li>
+            <li><strong>Disyunción:</strong> Un trabajador solo puede pertenecer a un único subtipo a la vez.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 10: DESGLOSE - RELACIÓN RECURSIVA DE JEFATURA
+      ======================================================== -->
+      <section v-if="current === 10">
+        <div class="slide-kicker celeste">DECONSTRUCCIÓN PÁRRAFO 2</div>
+        <h2 class="slide-title">¿Quién Manda a Quién? El Jefe También es Trabajador</h2>
+        <p class="slide-lead">
+          Enunciado: <em>"Cada trabajador puede tener un jefe de cuadrilla, que también es trabajador"</em>.
+        </p>
+
+        <div class="grid" style="margin: 20px 0;">
+          <div class="card card-durazno">
+            <strong>❌ Error de Novato: Crear tabla "JEFE"</strong>
+            <p class="small">
+              ¿Por qué es un error fatal crear una tabla separada para el jefe?<br>
+              Porque el jefe es una persona física que tiene RUT, nombres, fecha de ingreso y pertenece a un contratista. Si creas la tabla JEFE, ¡duplicas al trabajador en dos tablas!
+            </p>
+          </div>
+
+          <div class="card card-celeste">
+            <strong>✓ Solución Relacional: Clave Foránea Reflexiva</strong>
+            <p class="small">
+              En la misma tabla <code>TRABAJADOR</code> agregamos la columna:
+            </p>
+            <div class="code-wrapper">
+              <pre class="code-block"><code class="language-sql">rut_jefe VARCHAR2(10),
+CONSTRAINT fk_trabajador_jefe 
+    FOREIGN KEY (rut_jefe) REFERENCES trabajador(rut)</code></pre>
+            </div>
+            <p class="small">Un trabajador puede tener 0 ó 1 jefe (opcional). Un jefe puede supervisar a 0..N trabajadores.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 11: CHECKPOINT 3 (QUIZ MERE Y JEFATURA)
+      ======================================================== -->
+      <section v-if="current === 11">
+        <div class="slide-kicker rosa">CHECKPOINT FORMATIVO #3</div>
+        <h2 class="slide-title">MERE: Claves en Subtipos y Recursividad</h2>
+        <p class="slide-lead">
+          Pregunta sobre la transformación de subtipos en el modelo relacional:
+        </p>
+
+        <div class="quiz-card">
+          <div class="quiz-q-title">
+            En la tabla <code>BRIGADISTA</code>, ¿cuál es la función de la columna <code>RUT_TRABAJADOR</code>?
+          </div>
+
+          <div class="quiz-options">
+            <button class="quiz-opt-btn" 
+                    :class="{ 'is-correct': q3_answered && q3_opt === 0, 'is-wrong': q3_answered && q3_selected === 0 && q3_opt !== 0 }"
+                    @click="answerQ3(0)">
+              <span>A)</span> Es solo un atributo ordinario sin ninguna restricción de clave.
+            </button>
+            <button class="quiz-opt-btn" 
+                    :class="{ 'is-correct': q3_answered && q3_opt === 1, 'is-wrong': q3_answered && q3_selected === 1 && q3_opt !== 1 }"
+                    @click="answerQ3(1)">
+              <span>B)</span> Cumple simultáneamente el rol de Primary Key de BRIGADISTA y Foreign Key referenciando a TRABAJADOR, garantizando una relación 1:1 estricta.
+            </button>
+            <button class="quiz-opt-btn" 
+                    :class="{ 'is-correct': q3_answered && q3_opt === 2, 'is-wrong': q3_answered && q3_selected === 2 && q3_opt !== 2 }"
+                    @click="answerQ3(2)">
+              <span>C)</span> Es una clave foránea referenciando a la tabla CONTRATISTA.
+            </button>
+          </div>
+
+          <div v-if="q3_answered" class="quiz-feedback" :class="q3_correct ? 'success' : 'error'">
+            {{ q3_correct ? '✓ ¡EXCELENTE COMPRENSIÓN DEL MERE!' : '✗ REVISA LA TEORÍA.' }}
+            {{ q3_explanation }}
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 12: DESGLOSE PÁRRAFO 3 Y 4 - FAENAS, GUÍAS Y PRODUCTOS (N:M)
+      ======================================================== -->
+      <section v-if="current === 12">
+        <div class="slide-kicker menta">DECONSTRUCCIÓN PÁRRAFO 3 Y 4</div>
+        <h2 class="slide-title">Despachos: Resolviendo el Muchos a Muchos (N:M)</h2>
+        <p class="slide-lead">
+          Enunciado: <em>"Una guía transporta varios Productos... y por cada producto de la guía se registra el largo (m), número de trozas y volumen (m³)"</em>.
+        </p>
+
+        <div class="grid" style="margin: 20px 0;">
+          <div class="card card-durazno">
+            <strong>¿Dónde vive el Volumen (m³)?</strong>
+            <p class="small">
+              - ¿En la <code>GUIA_DESPACHO</code>? ❌ No, porque una guía lleva distintos productos.<br>
+              - ¿En la tabla <code>PRODUCTO</code>? ❌ No, porque "Troza aserrable" no tiene un volumen fijo eterno en la naturaleza.<br>
+              - <strong>Nace una Entidad Asociativa:</strong> <code>DETALLE_GUIA</code>.
+            </p>
+          </div>
+
+          <div class="barker-card">
+            <div class="barker-header">
+              <span>DETALLE_GUIA (Asociativa)</span>
+              <span style="font-size:11px; background:#495057; padding:2px 6px; border-radius:4px;">N:M Resuelto</span>
+            </div>
+            <div class="barker-body">
+              <div><span class="barker-pk"># numero_guia (FK → GUIA)</span></div>
+              <div><span class="barker-pk"># codigo_producto (FK → PRODUCTO)</span></div>
+              <div><span class="barker-req">* largo_m NUMBER(4,2)</span></div>
+              <div><span class="barker-req">* numero_trozas NUMBER(6)</span></div>
+              <div><span class="barker-req">* volumen_m3 NUMBER(8,2)</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-menta">
+          <strong>Regla de Transformación N:M:</strong>
+          Toda relación de muchos a muchos que posea atributos propios se convierte en una <strong>tabla asociativa</strong> cuya clave primaria compuesta vincula ambas entidades fuertes.
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 13: DESGLOSE - EL ARCO DE EXCLUSIVIDAD (DESTINOS)
+      ======================================================== -->
+      <section v-if="current === 13">
+        <div class="slide-kicker celeste">DECONSTRUCCIÓN PÁRRAFO 4</div>
+        <h2 class="slide-title">"Nunca a Ambos": Modelando la Exclusividad</h2>
+        <p class="slide-lead">
+          Enunciado: <em>"Cada guía se destina a un Aserradero (código, nombre, comuna) o a una Planta de Celulosa (código, nombre, capacidad), nunca a ambos"</em>.
+        </p>
+
+        <div class="grid" style="margin: 20px 0;">
+          <div class="card card-celeste">
+            <strong>Estrategia 1: Arco Exclusivo con Constraint CHECK</strong>
+            <p class="small">En <code>GUIA_DESPACHO</code> colocamos las dos claves foráneas opcionales:</p>
+            <div class="code-wrapper">
+              <pre class="code-block"><code class="language-sql">codigo_aserradero NUMBER,
+codigo_planta     NUMBER,
+CONSTRAINT chk_destino_exclusivo CHECK (
+  (codigo_aserradero IS NOT NULL AND codigo_planta IS NULL) OR
+  (codigo_aserradero IS NULL AND codigo_planta IS NOT NULL)
+)</code></pre>
+            </div>
+          </div>
+
+          <div class="card card-durazno">
+            <strong>Estrategia 2: Supertipo DESTINO</strong>
+            <p class="small">
+              Creamos la entidad <code>DESTINO</code> y especializamos en <code>ASERRADERO</code> y <code>PLANTA_CELULOSA</code>.<br>
+              <code>GUIA_DESPACHO</code> solo tiene una clave foránea <code>codigo_destino</code>.<br>
+              <em>(Ambas soluciones son técnicamente válidas en la evaluación de Duoc UC).</em>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 14: DESGLOSE PÁRRAFO 5 - INCENDIOS Y BRIGADISTAS (BLINDAJE)
+      ======================================================== -->
+      <section v-if="current === 14">
+        <div class="slide-kicker rosa">DECONSTRUCCIÓN PÁRRAFO 5</div>
+        <h2 class="slide-title">Blindaje Arquitectónico: Solo Brigadistas al Fuego</h2>
+        <p class="slide-lead">
+          Enunciado: <em>"Solo trabajadores de tipo BRIGADISTA pueden registrarse en el combate de un INCENDIO"</em>.
+        </p>
+
+        <div class="grid" style="margin: 20px 0;">
+          <div class="card" style="border-left: 4px solid #E03131;">
+            <strong>❌ Diseño Ingenuo y Peligroso</strong>
+            <p>La tabla asociativa <code>PARTICIPACION_COMBATE</code> referencia a <code>TRABAJADOR(RUT)</code>.</p>
+            <p class="small">
+              Si un usuario en el sistema ingresa por error el RUT de un Motosierrista o un Chofer, la base de datos lo aceptaría sin pestañear.
+            </p>
+          </div>
+
+          <div class="card" style="border-left: 4px solid #2B8A3E;">
+            <strong>✓ Diseño Blindado por Integridad Referencial</strong>
+            <p>La tabla <code>PARTICIPACION_COMBATE</code> referencia a <code>BRIGADISTA(RUT_TRABAJADOR)</code>.</p>
+            <p class="small">
+              ¡La estructura misma del modelo hace físicamente imposible que un trabajador no certificado sea registrado en un incendio! Oracle rechaza la transacción con <code>ORA-02291</code>.
+            </p>
+          </div>
+        </div>
+
+        <div class="provocation-box">
+          <div class="p-title">🔥 Pensamiento de Analista Senior</div>
+          <p>
+            Las mejores reglas de negocio no son las que programa un desarrollador con 50 líneas de código en la aplicación, sino las que <strong>la propia arquitectura de base de datos garantiza por diseño</strong>.
+          </p>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 15: CHECKPOINT 4 (QUIZ INCENDIOS Y DESTINOS)
+      ======================================================== -->
+      <section v-if="current === 15">
+        <div class="slide-kicker rosa">CHECKPOINT FORMATIVO #4</div>
+        <h2 class="slide-title">Integridad Referencial en Protección Forestal</h2>
+        <p class="slide-lead">
+          Pon a prueba cómo validarías esta regla en la pauta de evaluación:
+        </p>
+
+        <div class="quiz-card">
+          <div class="quiz-q-title">
+            ¿Cuál es la Primary Key y Foreign Key correcta para <code>PARTICIPACION_COMBATE</code>?
+          </div>
+
+          <div class="quiz-options">
+            <button class="quiz-opt-btn" 
+                    :class="{ 'is-correct': q4_answered && q4_opt === 0, 'is-wrong': q4_answered && q4_selected === 0 && q4_opt !== 0 }"
+                    @click="answerQ4(0)">
+              <span>A)</span> PK: <code>ID_INCENDIO</code> únicamente.
+            </button>
+            <button class="quiz-opt-btn" 
+                    :class="{ 'is-correct': q4_answered && q4_opt === 1, 'is-wrong': q4_answered && q4_selected === 1 && q4_opt !== 1 }"
+                    @click="answerQ4(1)">
+              <span>B)</span> PK: <code>(ID_INCENDIO, RUT_BRIGADISTA)</code> compuesta, donde RUT_BRIGADISTA es FK que referencia a la tabla BRIGADISTA.
+            </button>
+            <button class="quiz-opt-btn" 
+                    :class="{ 'is-correct': q4_answered && q4_opt === 2, 'is-wrong': q4_answered && q4_selected === 2 && q4_opt !== 2 }"
+                    @click="answerQ4(2)">
+              <span>C)</span> PK: <code>HORA_LLEGADA</code> y sin claves foráneas.
+            </button>
+          </div>
+
+          <div v-if="q4_answered" class="quiz-feedback" :class="q4_correct ? 'success' : 'error'">
+            {{ q4_correct ? '✓ ¡RESPUESTA PERFECTA!' : '✗ REVISA NUEVAMENTE.' }}
+            {{ q4_explanation }}
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 16: DATA MODELER - LA NOTACIÓN BARKER (CROW'S FOOT)
+      ======================================================== -->
+      <section v-if="current === 16">
+        <div class="slide-kicker menta">HERRAMIENTA OFICIAL · ORACLE DATA MODELER</div>
+        <h2 class="slide-title">El Estándar Barker Crow's Foot en Data Modeler</h2>
+        <p class="slide-lead">
+          En Duoc UC, la herramienta oficial es <strong>Oracle SQL Developer Data Modeler</strong> con la notación de Richard Barker. ¡Aprende sus símbolos sagrados!
+        </p>
+
+        <div class="grid grid-3" style="margin: 20px 0;">
+          <div class="card card-durazno">
+            <strong>Símbolos de Atributos</strong>
+            <ul style="font-family:var(--font-mono); font-size:14px; padding-left:16px;">
+              <li><span class="barker-pk">#</span> : UID Primario (Identificador único).</li>
+              <li><span class="barker-req">*</span> : Atributo Mandatorio / Obligatorio (NOT NULL).</li>
+              <li><span class="barker-opt">o</span> : Atributo Opcional (NULL).</li>
+            </ul>
+          </div>
+
+          <div class="card card-celeste">
+            <strong>Tipos de Línea de Relación</strong>
+            <ul class="small" style="padding-left:16px;">
+              <li><strong>Línea Continua:</strong> Relación Identificadora (Entidad débil, la PK viaja al hijo).</li>
+              <li><strong>Línea Discontinua:</strong> Relación No Identificadora (Entidad independiente).</li>
+            </ul>
+          </div>
+
+          <div class="card card-menta">
+            <strong>Extremos (Crow's Foot)</strong>
+            <ul class="small" style="padding-left:16px;">
+              <li><strong>Pata de Gallo:</strong> Cardinalidad Muchos (N).</li>
+              <li><strong>Línea Simple:</strong> Cardinalidad Uno (1).</li>
+              <li><strong>Barra vertical:</strong> Participación Obligatoria (1).</li>
+              <li><strong>Círculo:</strong> Participación Opcional (0).</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="provocation-box">
+          <div class="p-title">💡 Truco de Profe</div>
+          <p>
+            Si en Data Modeler ves que una relación tiene línea punteada cuando debería ser continua, es porque se te olvidó marcar el checkbox <strong>"Identifying"</strong> en las propiedades de la relación.
+          </p>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 17: DATA MODELER - ENTIDAD DÉBIL PREDIO Y RODAL
+      ======================================================== -->
+      <section v-if="current === 17">
+        <div class="slide-kicker celeste">DATA MODELER · CASO PRÁCTICO</div>
+        <h2 class="slide-title">Diagrama Lógico Barker: PREDIO y RODAL</h2>
+        <p class="slide-lead">
+          Observa cómo se dibuja en Oracle Data Modeler la relación entre la entidad fuerte PREDIO y la débil RODAL:
+        </p>
+
+        <div class="barker-rel-diagram">
+          <!-- Entidad PREDIO -->
+          <div class="barker-card" style="width: 280px; margin:0;">
+            <div class="barker-header">
+              <span>PREDIO</span>
+              <span style="font-size:11px;">Fuerte</span>
+            </div>
+            <div class="barker-body">
+              <div><span class="barker-pk"># rol_predio</span></div>
+              <div><span class="barker-req">* nombre</span></div>
+              <div><span class="barker-req">* superficie_total_ha</span></div>
+            </div>
+          </div>
+
+          <!-- Conector de Relación -->
+          <div class="rel-connector">
+            <div class="rel-line"></div>
+            <span class="rel-label">1 : N (Identifying)</span>
+            <span class="small" style="font-weight:bold; color:var(--accent-menta);">Línea Continua</span>
+          </div>
+
+          <!-- Entidad RODAL -->
+          <div class="barker-card" style="width: 320px; margin:0;">
+            <div class="barker-header">
+              <span>RODAL</span>
+              <span style="font-size:11px; background:#E03131;">Débil</span>
+            </div>
+            <div class="barker-body">
+              <div><span class="barker-pk"># rol_predio (Heredado)</span></div>
+              <div><span class="barker-pk"># numero_rodal</span></div>
+              <div><span class="barker-req">* superficie_ha</span></div>
+              <div><span class="barker-req">* anio_plantacion</span></div>
+              <div><span class="barker-opt">o densidad</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="exam-trap-box">
+          <div class="trap-header">⚠️ La Trampa de la Faena de Cosecha</div>
+          <p>
+            Cuando conectes la entidad <code>FAENA</code> al rodal... ¡FAENA deberá recibir <strong>DOS columnas de clave foránea</strong> (`rol_predio` y `numero_rodal`)! Si en la prueba tu tabla Faena solo tiene `numero_rodal`, el modelo no compila en Oracle.
+          </p>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 18: DATA MODELER - JERARQUÍA DE TRABAJADORES (MERE)
+      ======================================================== -->
+      <section v-if="current === 18">
+        <div class="slide-kicker lavanda">DATA MODELER · CASO PRÁCTICO</div>
+        <h2 class="slide-title">Diagrama Lógico Barker: Subtipos de TRABAJADOR</h2>
+        <p class="slide-lead">
+          En Oracle Data Modeler, los subtipos se dibujan dentro de una caja contenedora que representa la jerarquía:
+        </p>
+
+        <div class="barker-card" style="max-width: 900px; margin: 18px auto;">
+          <div class="barker-header" style="background:#4A235A;">
+            <span>TRABAJADOR (Supertipo)</span>
+            <span style="font-size:11px; background:rgba(255,255,255,0.25);">Total y Disjunta</span>
+          </div>
+          <div class="barker-body">
+            <div><span class="barker-pk"># rut</span></div>
+            <div><span class="barker-req">* nombres</span></div>
+            <div><span class="barker-req">* apellidos</span></div>
+            <div><span class="barker-req">* fecha_ingreso</span></div>
+            <div><span class="barker-opt">o rut_jefe (Relación Recursiva)</span></div>
+
+            <hr style="border:0; border-top:2px dashed #ccc; margin:12px 0;">
+
+            <div class="grid grid-3" style="margin: 10px 0;">
+              <div style="background:#FFF; padding:10px; border:1px solid #ddd; border-radius:6px;">
+                <strong style="color:#6C5B8A;">MOTOSIERRISTA</strong>
+                <div style="margin-top:6px;"><span class="barker-pk"># rut</span></div>
+                <div><span class="barker-req">* numero_certificacion</span></div>
+              </div>
+
+              <div style="background:#FFF; padding:10px; border:1px solid #ddd; border-radius:6px;">
+                <strong style="color:#6C5B8A;">OPERADOR_MAQUINARIA</strong>
+                <div style="margin-top:6px;"><span class="barker-pk"># rut</span></div>
+                <div><span class="barker-req">* clase_licencia</span></div>
+              </div>
+
+              <div style="background:#FFF; padding:10px; border:1px solid #ddd; border-radius:6px;">
+                <strong style="color:#6C5B8A;">BRIGADISTA</strong>
+                <div style="margin-top:6px;"><span class="barker-pk"># rut</span></div>
+                <div><span class="barker-req">* fecha_ultimo_curso</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 19: NORMALIZACIÓN 1FN - VALORES ATÓMICOS
+      ======================================================== -->
+      <section v-if="current === 19">
+        <div class="slide-kicker menta">NORMALIZACIÓN QUIRÚRGICA</div>
+        <h2 class="slide-title">1FN: Eliminando Celdas con Listas y Repeticiones</h2>
+        <p class="slide-lead">
+          La Primera Forma Normal (1FN) exige que <strong>cada celda contenga un único valor atómico indivisible</strong> y exista una clave primaria definida.
+        </p>
+
+        <div class="grid" style="margin: 20px 0;">
+          <div class="card" style="border-left: 4px solid #E03131;">
+            <strong>❌ Estado 0FN (La Planilla Caótica)</strong>
+            <table style="width:100%; font-size:12px; border-collapse:collapse; margin-top:8px;">
+              <tr style="background:#fee2e2;"><th>N_Guia</th><th>Productos_Cargados</th></tr>
+              <tr><td>101</td><td>Pino 3m (20pz, 15m³), Eucalipto 2m (10pz, 8m³)</td></tr>
+            </table>
+            <p class="small" style="margin-top:8px;">
+              ¿Cómo calcula Oracle el total de m³ de Eucalipto? ¡Imposible! La celda está infectada con listas.
+            </p>
+          </div>
+
+          <div class="card" style="border-left: 4px solid #2B8A3E;">
+            <strong>✓ Estado 1FN Cumplido</strong>
+            <table style="width:100%; font-size:12px; border-collapse:collapse; margin-top:8px;">
+              <tr style="background:#dcfce7;"><th>N_Guia</th><th>Cod_Prod</th><th>Largo</th><th>Trozas</th><th>Vol_m3</th></tr>
+              <tr><td>101</td><td>P01</td><td>3.0</td><td>20</td><td>15.0</td></tr>
+              <tr><td>101</td><td>P02</td><td>2.0</td><td>10</td><td>8.0</td></tr>
+            </table>
+            <p class="small" style="margin-top:8px;">
+              Cada dato tiene su columna atómica. Clave primaria compuesta: <code>(N_Guia, Cod_Prod)</code>.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 20: NORMALIZACIÓN 2FN - DEPENDENCIAS PARCIALES
+      ======================================================== -->
+      <section v-if="current === 20">
+        <div class="slide-kicker durazno">NORMALIZACIÓN QUIRÚRGICA</div>
+        <h2 class="slide-title">2FN: Dependencia Funcional Completa</h2>
+        <p class="slide-lead">
+          La 2FN exige estar en 1FN y que <strong>ningún atributo no clave dependa de solo una parte de una clave compuesta</strong>.
+        </p>
+
+        <div class="card card-durazno" style="margin: 20px 0;">
+          <strong>Analicemos la tabla de despachos:</strong>
+          <p style="font-family:var(--font-mono); margin:8px 0;">
+            Clave Primaria: (<u>NUMERO_GUIA</u>, <u>CODIGO_PRODUCTO</u>)<br>
+            Columnas: largo_m, numero_trozas, volumen_m3, <strong>descripcion_producto</strong>
+          </p>
+          <hr style="border:0; border-top:1px solid #ffd8a8; margin:12px 0;">
+          <p>
+            Pregunta de examen: ¿De quién depende <strong>descripcion_producto</strong> ("Troza aserrable")?<br>
+            - ¿Depende de NUMERO_GUIA? ❌ No. La madera sigue siendo troza aserrable viaje en la guía 10 o en la 900.<br>
+            - Depende <strong>únicamente de CODIGO_PRODUCTO</strong>.<br>
+            <span style="color:#C92A2A; font-weight:800;">¡VIOLACIÓN DE 2FN (Dependencia Parcial)!</span>
+          </p>
+        </div>
+
+        <div class="callout callout-menta">
+          <strong>La Solución 2FN:</strong> Trasladar <code>descripcion_producto</code> a la tabla <code>PRODUCTO</code>.
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 21: NORMALIZACIÓN 3FN - CERO TRANSITIVIDAD
+      ======================================================== -->
+      <section v-if="current === 21">
+        <div class="slide-kicker menta">NORMALIZACIÓN QUIRÚRGICA</div>
+        <h2 class="slide-title">3FN: Desterrando Dependencias Transitivas</h2>
+        <p class="slide-lead">
+          La 3FN exige estar en 2FN y que <strong>ningún atributo dependa transitivamente de la clave primaria a través de otro atributo no clave</strong>.
+        </p>
+
+        <div class="grid" style="margin: 20px 0;">
+          <div class="card" style="border-left: 4px solid #E03131;">
+            <strong>La Trampa Territorial: PREDIO</strong>
+            <p class="small">Si en <code>PREDIO</code> guardas: <code>(Rol_Predio, Nombre, ID_Comuna, Nombre_Region)</code></p>
+            <p class="small">
+              - `Rol_Predio` determina `ID_Comuna`.<br>
+              - Y `ID_Comuna` determina `Nombre_Region`.<br>
+              Existe una dependencia transitiva.
+            </p>
+          </div>
+
+          <div class="card" style="border-left: 4px solid #2B8A3E;">
+            <strong>Las 3 Anomalías que Elimina la 3FN</strong>
+            <ul class="small" style="padding-left:16px; margin:0;">
+              <li><strong>Anomalía de Modificación:</strong> Si la Región de Los Lagos cambia de nombre, actualizas 1 fila en REGION en vez de 5.000 predios.</li>
+              <li><strong>Anomalía de Inserción:</strong> Puedes registrar una nueva Región antes de comprar predios en ella.</li>
+              <li><strong>Anomalía de Borrado:</strong> Si eliminas un predio, no borras la existencia de la región del mapa.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="provocation-box">
+          <div class="p-title">🎯 Mnemotecnia de Bill Kent</div>
+          <p>
+            <em>"Cada atributo debe depender de la clave, de toda la clave (2FN), y de nada más que de la clave (3FN), con la ayuda de Dios."</em>
+          </p>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 22: CHECKPOINT 5 (QUIZ DE NORMALIZACIÓN)
+      ======================================================== -->
+      <section v-if="current === 22">
+        <div class="slide-kicker rosa">CHECKPOINT FORMATIVO #5</div>
+        <h2 class="slide-title">Diagnóstico de Formas Normales en Examen</h2>
+        <p class="slide-lead">
+          Pregunta real extraída de pautas de evaluación:
+        </p>
+
+        <div class="quiz-card">
+          <div class="quiz-q-title">
+            En una propuesta de tabla: <code>RODAL (ROL_PREDIO, NUMERO_RODAL, CODIGO_ESPECIE, NOMBRE_CIENTIFICO_ESPECIE, TURNO_ROTACION)</code><br>
+            Clave Primaria: <code>(ROL_PREDIO, NUMERO_RODAL)</code>.<br>
+            ¿Qué forma normal se está violando aquí?
+          </div>
+
+          <div class="quiz-options">
+            <button class="quiz-opt-btn" 
+                    :class="{ 'is-correct': q5_answered && q5_opt === 0, 'is-wrong': q5_answered && q5_selected === 0 && q5_opt !== 0 }"
+                    @click="answerQ5(0)">
+              <span>A)</span> 1FN porque hay campos de texto y numéricos mezclados.
+            </button>
+            <button class="quiz-opt-btn" 
+                    :class="{ 'is-correct': q5_answered && q5_opt === 1, 'is-wrong': q5_answered && q5_selected === 1 && q5_opt !== 1 }"
+                    @click="answerQ5(1)">
+              <span>B)</span> 3FN porque nombre_cientifico y turno dependen transitivamente de CODIGO_ESPECIE (que es un atributo no primo dentro de Rodal).
+            </button>
+            <button class="quiz-opt-btn" 
+                    :class="{ 'is-correct': q5_answered && q5_opt === 2, 'is-wrong': q5_answered && q5_selected === 2 && q5_opt !== 2 }"
+                    @click="answerQ5(2)">
+              <span>C)</span> Ninguna, la tabla está en 3FN perfecta.
+            </button>
+          </div>
+
+          <div v-if="q5_answered" class="quiz-feedback" :class="q5_correct ? 'success' : 'error'">
+            {{ q5_correct ? '✓ ¡EXCELENTE DIAGNÓSTICO!' : '✗ REVISA LAS DEPENDENCIAS.' }}
+            {{ q5_explanation }}
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 23: RESTRICCIONES DE NEGOCIO COMPLEJAS
+      ======================================================== -->
+      <section v-if="current === 23">
+        <div class="slide-kicker celeste">REGLAS AVANZADAS DE INTEGRIDAD</div>
+        <h2 class="slide-title">Lo que las Foreign Keys No Pueden Resolver Solas</h2>
+        <p class="slide-lead">
+          El caso incluye 3 restricciones que exceden las capacidades de una simple clave foránea:
+        </p>
+
+        <div class="grid grid-3" style="margin: 20px 0;">
+          <div class="card card-durazno">
+            <strong>1. Volumen Total vs Camión</strong>
+            <p class="small"><em>"El volumen total de una guía no puede superar la capacidad (m³) del camión"</em></p>
+            <p class="small" style="font-family:var(--font-mono); background:#fff; padding:6px; border-radius:4px; margin-top:8px;">
+              SUM(volumen_m3) &lt;= camion.capacidad_m3
+            </p>
+            <p class="small">Requiere sumar múltiples filas de <code>DETALLE_GUIA</code>. Un <code>CHECK</code> simple no puede consultar otras filas.</p>
+          </div>
+
+          <div class="card card-menta">
+            <strong>2. Turno de Rotación</strong>
+            <p class="small"><em>"No se puede cosechar un rodal cuya edad sea menor al turno de su especie"</em></p>
+            <p class="small" style="font-family:var(--font-mono); background:#fff; padding:6px; border-radius:4px; margin-top:8px;">
+              (Año_Faena - Año_Plantacion) &gt;= Turno_Especie
+            </p>
+            <p class="small">Debe calcularse con la <strong>fecha de inicio de la faena</strong>, no con la fecha actual del sistema.</p>
+          </div>
+
+          <div class="card card-celeste">
+            <strong>3. Brigadistas Exclusivos</strong>
+            <p class="small"><em>"Solo BRIGADISTAS pueden registrarse en el combate de un INCENDIO"</em></p>
+            <p class="small">Esta restricción SÍ se resuelve arquitectónicamente haciendo que la FK apunte a <code>BRIGADISTA</code>.</p>
+          </div>
+        </div>
+
+        <div class="provocation-box">
+          <div class="p-title">🛠️ Cómo Responder en la Prueba</div>
+          <p>
+            Explícale al docente: <em>"Las restricciones agregadas entre tablas se implementan mediante <strong>Triggers en Oracle Database</strong> o <strong>Validaciones de Proceso en Oracle APEX</strong> antes del commit."</em>
+          </p>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 24: TIPOS DE DATOS OFICIALES DE ORACLE
+      ======================================================== -->
+      <section v-if="current === 24">
+        <div class="slide-kicker lavanda">ESTÁNDAR ORACLE DUOC UC</div>
+        <h2 class="slide-title">Tipos de Datos Oficiales de Oracle Database</h2>
+        <p class="slide-lead">
+          En la evaluación se descuentan puntos por usar tipos genéricos de otros motores. Usa exclusivamente el estándar Oracle:
+        </p>
+
+        <div class="grid" style="margin: 20px 0;">
+          <div class="card">
+            <strong>Tipos Oficiales de Oracle</strong>
+            <ul style="font-family:var(--font-mono); font-size:13px; padding-left:16px;">
+              <li><code>VARCHAR2(n)</code>: Cadenas de texto variables (RUT, Patente, Nombres).</li>
+              <li><code>NUMBER(p, s)</code>: Enteros (`NUMBER(6)`) y decimales (`NUMBER(10,2)`).</li>
+              <li><code>DATE</code>: Almacena fecha y hora exacta hasta el segundo.</li>
+              <li><code>TIMESTAMP</code>: Precisión temporal con fracciones de segundo (Incendios).</li>
+              <li><code>NUMBER GENERATED ALWAYS AS IDENTITY</code>: Secuencias numéricas automáticas.</li>
+            </ul>
+          </div>
+
+          <div class="card card-durazno">
+            <strong>Errores Graves de Tipado</strong>
+            <ul class="small" style="padding-left:16px;">
+              <li>❌ Usar <code>VARCHAR</code> plano (En Oracle siempre se usa <code>VARCHAR2</code>).</li>
+              <li>❌ Almacenar el RUT como <code>NUMBER</code> (Pierdes el dígito 'K' y el guión).</li>
+              <li>❌ Usar enteros para superficies o volúmenes (Las hectáreas y metros cúbicos exigen decimales).</li>
+              <li>❌ Usar <code>SERIAL</code> o <code>AUTO_INCREMENT</code> (No existen en Oracle).</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- ENGINE TIP ACCORDION -->
+        <details class="engine-tip">
+          <summary>Ver diferencias técnicas con PostgreSQL y MySQL</summary>
+          <div class="engine-tip-content">
+            <p>En <strong>Oracle</strong> utilizamos <code>VARCHAR2(50)</code> y <code>NUMBER(10, 2)</code>.</p>
+            <p>En <strong>PostgreSQL</strong> se utiliza <code>VARCHAR(50)</code>, <code>NUMERIC(10, 2)</code> y autoincrementales con <code>SERIAL</code>.</p>
+            <p>En <strong>MySQL</strong> se utiliza <code>VARCHAR(50)</code>, <code>DECIMAL(10, 2)</code> y <code>AUTO_INCREMENT</code>.</p>
+          </div>
+        </details>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 25: EL BOTÓN MÁGICO EN DATA MODELER
+      ======================================================== -->
+      <section v-if="current === 25">
+        <div class="slide-kicker celeste">DATA MODELER WORKFLOW</div>
+        <h2 class="slide-title">El Botón Mágico: "Engineer to Relational Model"</h2>
+        <p class="slide-lead">
+          Una vez terminado el Modelo Lógico conceptual, realizamos la ingeniería hacia el Modelo Relacional:
+        </p>
+
+        <div class="grid grid-3" style="margin: 20px 0;">
+          <div class="card card-celeste">
+            <strong>1. Presionar las 2 Flechas Azules</strong>
+            <p class="small">En la barra superior de Data Modeler, haz clic en el icono <em>"Engineer to Relational Model"</em> (o presiona Ctrl+F4).</p>
+          </div>
+          <div class="card card-menta">
+            <strong>2. Comprobar Claves Propagadas</strong>
+            <p class="small">Verifica que las relaciones identificadoras hayan propagado correctamente las claves primarias compuestas.</p>
+          </div>
+          <div class="card card-durazno">
+            <strong>3. Generar DDL Automático</strong>
+            <p class="small">Haz clic en <em>"Generate DDL"</em> para obtener el script SQL de creación de tablas limpio y sin errores sintácticos.</p>
+          </div>
+        </div>
+
+        <div class="provocation-box">
+          <div class="p-title">⚠️ Verificación Visual Obligatoria</div>
+          <p>
+            Revisa la tabla <code>FAENA</code> en el modelo relacional. ¿Aparecen dos columnas de Foreign Key para referenciar al rodal? Si aparecen, ¡tu modelo lógico está perfecto!
+          </p>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 26: EL MAPA COMPLETO DE LAS 18 TABLAS
+      ======================================================== -->
+      <section v-if="current === 26">
+        <div class="slide-kicker menta">ARQUITECTURA RELACIONAL FINAL</div>
+        <h2 class="slide-title">El Gran Esquema Relacional: Las 18 Tablas</h2>
+        <p class="slide-lead">
+          Inventario normalizado completo del caso Forestal Bosques del Sur S.A. organizado por subsistemas:
+        </p>
+
+        <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0;">
+          <div class="card card-celeste" style="padding:12px;">
+            <strong style="font-size:14px;">🗺️ Territorio</strong>
+            <ul class="small" style="padding-left:14px; margin:6px 0 0; font-family:var(--font-mono);">
+              <li>REGION</li>
+              <li>COMUNA</li>
+              <li>PREDIO</li>
+              <li>ESPECIE</li>
+              <li>RODAL (Débil)</li>
+            </ul>
+          </div>
+
+          <div class="card card-menta" style="padding:12px;">
+            <strong style="font-size:14px;">👷 Personal & Equipos</strong>
+            <ul class="small" style="padding-left:14px; margin:6px 0 0; font-family:var(--font-mono);">
+              <li>CONTRATISTA</li>
+              <li>TRABAJADOR</li>
+              <li>MOTOSIERRISTA</li>
+              <li>OPERADOR_MAQ</li>
+              <li>BRIGADISTA</li>
+              <li>CAMION</li>
+            </ul>
+          </div>
+
+          <div class="card card-durazno" style="padding:12px;">
+            <strong style="font-size:14px;">🪵 Cosecha & Despacho</strong>
+            <ul class="small" style="padding-left:14px; margin:6px 0 0; font-family:var(--font-mono);">
+              <li>FAENA_COSECHA</li>
+              <li>GUIA_DESPACHO</li>
+              <li>DETALLE_GUIA (N:M)</li>
+              <li>PRODUCTO</li>
+              <li>ASERRADERO</li>
+              <li>PLANTA_CELULOSA</li>
+            </ul>
+          </div>
+
+          <div class="card card-rosa" style="padding:12px;">
+            <strong style="font-size:14px;">🚒 Protección Incendios</strong>
+            <ul class="small" style="padding-left:14px; margin:6px 0 0; font-family:var(--font-mono);">
+              <li>INCENDIO</li>
+              <li>PARTICIPACION_COMBATE</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 27: DDL OFICIAL EN ORACLE DATABASE
+      ======================================================== -->
+      <section v-if="current === 27">
+        <div class="slide-kicker lavanda">CÓDIGO SQL OFICIAL</div>
+        <h2 class="slide-title">Implementación DDL: Las Tablas Críticas en Oracle</h2>
+        <p class="slide-lead">
+          Observa la sintaxis limpia de las tablas más complejas con nombres de restricciones estandarizados:
+        </p>
+
+        <div class="code-wrapper">
+          <button class="copy-btn" @click="copyCodeText">Copiar SQL</button>
+          <pre class="code-block"><code class="language-sql">-- 1. RODAL (Entidad Débil con Clave Primaria Compuesta)
+CREATE TABLE rodal (
+    rol_predio       VARCHAR2(20)  NOT NULL,
+    numero_rodal     NUMBER(5)     NOT NULL,
+    superficie_ha    NUMBER(8, 2)  NOT NULL,
+    anio_plantacion  NUMBER(4)     NOT NULL,
+    densidad         NUMBER(6),    -- Opcional (NULL) para rodales antiguos
+    codigo_especie   VARCHAR2(10)  NOT NULL,
+    CONSTRAINT pk_rodal PRIMARY KEY (rol_predio, numero_rodal),
+    CONSTRAINT fk_rodal_predio FOREIGN KEY (rol_predio) 
+        REFERENCES predio(rol_predio) ON DELETE CASCADE,
+    CONSTRAINT fk_rodal_especie FOREIGN KEY (codigo_especie) 
+        REFERENCES especie(codigo_especie)
+);
+
+-- 2. DETALLE_GUIA (Asociativa N:M con comprobaciones de integridad)
+CREATE TABLE detalle_guia (
+    numero_guia      NUMBER(10)    NOT NULL,
+    codigo_producto  VARCHAR2(10)  NOT NULL,
+    largo_m          NUMBER(4, 2)  NOT NULL,
+    numero_trozas    NUMBER(6)     NOT NULL,
+    volumen_m3       NUMBER(8, 2)  NOT NULL,
+    CONSTRAINT pk_detalle_guia PRIMARY KEY (numero_guia, codigo_producto),
+    CONSTRAINT fk_det_guia FOREIGN KEY (numero_guia) REFERENCES guia_despacho(numero_guia),
+    CONSTRAINT fk_det_producto FOREIGN KEY (codigo_producto) REFERENCES producto(codigo_producto),
+    CONSTRAINT chk_volumen_positivo CHECK (volumen_m3 > 0)
+);</code></pre>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 28: CHECKPOINT 6 (QUIZ FINAL DE DDL Y CONSTRAINTS)
+      ======================================================== -->
+      <section v-if="current === 28">
+        <div class="slide-kicker rosa">CHECKPOINT FORMATIVO #6</div>
+        <h2 class="slide-title">Verificación de Integridad en Código SQL</h2>
+        <p class="slide-lead">
+          Pregunta de evaluación final:
+        </p>
+
+        <div class="quiz-card">
+          <div class="quiz-q-title">
+            Si intentas crear la tabla <code>FAENA</code> referenciando a <code>RODAL</code> con este código:<br>
+            <code>FOREIGN KEY (numero_rodal) REFERENCES rodal(numero_rodal)</code><br>
+            ¿Qué error arrojará Oracle Database al ejecutar el script?
+          </div>
+
+          <div class="quiz-options">
+            <button class="quiz-opt-btn" 
+                    :class="{ 'is-correct': q6_answered && q6_opt === 0, 'is-wrong': q6_answered && q6_selected === 0 && q6_opt !== 0 }"
+                    @click="answerQ6(0)">
+              <span>A)</span> Ningún error, Oracle asume automáticamente el predio por proximidad geográfica.
+            </button>
+            <button class="quiz-opt-btn" 
+                    :class="{ 'is-correct': q6_answered && q6_opt === 1, 'is-wrong': q6_answered && q6_selected === 1 && q6_opt !== 1 }"
+                    @click="answerQ6(1)">
+              <span>B)</span> <code>ORA-02270: no matching unique or primary key for this column-list</code>, porque la PK de Rodal es compuesta y no existe una clave que contenga solo numero_rodal.
+            </button>
+            <button class="quiz-opt-btn" 
+                    :class="{ 'is-correct': q6_answered && q6_opt === 2, 'is-wrong': q6_answered && q6_selected === 2 && q6_opt !== 2 }"
+                    @click="answerQ6(2)">
+              <span>C)</span> El servidor de Oracle se reinicia por desbordamiento de pila.
+            </button>
+          </div>
+
+          <div v-if="q6_answered" class="quiz-feedback" :class="q6_correct ? 'success' : 'error'">
+            {{ q6_correct ? '✓ ¡EXCELENTE! HAS ENTENDIDO LA INTEGRIDAD RELACIONAL.' : '✗ REVISA EL CONCEPTO.' }}
+            {{ q6_explanation }}
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 29: LAS 7 TRAMPAS CLÁSICAS DE LA PRUEBA
+      ======================================================== -->
+      <section v-if="current === 29">
+        <div class="slide-kicker durazno">SUPERVIVENCIA EN EL EXAMEN</div>
+        <h2 class="slide-title">Las 7 Trampas Clásicas que Destruyen tu Nota</h2>
+        <p class="slide-lead">
+          El docente diseña el caso esperando que los alumnos distraídos caigan aquí. ¡Tú ya las esquivas todas!
+        </p>
+
+        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0;">
+          <div class="card" style="border-left: 4px solid #E03131; padding: 14px;">
+            <strong>1. El Rodal con Clave Simple</strong>
+            <p class="small">Poner solo `NUMERO_RODAL` como PK. El rodal 2 colisiona entre predios.</p>
+          </div>
+          <div class="card" style="border-left: 4px solid #E03131; padding: 14px;">
+            <strong>2. Crear la Tabla "JEFE"</strong>
+            <p class="small">Duplicar trabajadores. El jefe se resuelve con recursividad autorreferenciada.</p>
+          </div>
+          <div class="card" style="border-left: 4px solid #E03131; padding: 14px;">
+            <strong>3. RUT como NUMBER</strong>
+            <p class="small">Almacenar números sin considerar el dígito verificador 'K' y el guión.</p>
+          </div>
+          <div class="card" style="border-left: 4px solid #E03131; padding: 14px;">
+            <strong>4. Conectar Incendios a Trabajador</strong>
+            <p class="small">Permite que un motosierrista apague fuego. La FK debe ir a BRIGADISTA.</p>
+          </div>
+          <div class="card" style="border-left: 4px solid #E03131; padding: 14px;">
+            <strong>5. Olvidar la FK Doble en Faena</strong>
+            <p class="small">Faena referencia a Rodal; por ende, debe recibir las DOS columnas de la PK compuesta.</p>
+          </div>
+          <div class="card" style="border-left: 4px solid #E03131; padding: 14px;">
+            <strong>6. N:M con Columnas Simples</strong>
+            <p class="small">Poner `producto_cargado` en Guía. Se viola 1FN; se requiere tabla asociativa.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 30: CHECKLIST INTERACTIVO DE PRE-ENTREGA
+      ======================================================== -->
+      <section v-if="current === 30">
+        <div class="slide-kicker menta">CONTROL DE CALIDAD</div>
+        <h2 class="slide-title">Checklist de Autoevaluación para la Prueba</h2>
+        <p class="slide-lead">
+          Antes de comprimir tu archivo `.dmd` y subirlo al portal de evaluación, marca cada uno de estos 12 ítems:
+        </p>
+
+        <div class="checklist-grid">
+          <div v-for="(item, idx) in checklist" 
+               :key="idx" 
+               class="check-item" 
+               :class="{ done: item.done }"
+               @click="toggleCheck(idx)">
+            <span class="check-box-icon">{{ item.done ? '☑️' : '⬜' }}</span>
+            <span style="font-size:14px; font-weight:600;">{{ item.text }}</span>
+          </div>
+        </div>
+
+        <div class="callout callout-menta" style="margin-top:16px;">
+          <strong>Progreso de tu modelo:</strong> {{ completedChecks }} de {{ checklist.length }} criterios verificados.
+          {{ completedChecks === checklist.length ? '🎉 ¡Tu modelo está blindado para obtener nota máxima (7.0)!' : '⚠️ Revisa los puntos pendientes.' }}
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SLIDE 31: CIERRE Y CONCLUSIONES DE LA MASTERCLASS
+      ======================================================== -->
+      <section v-if="current === 31">
+        <div class="slide-kicker menta">MISIÓN CUMPLIDA</div>
+        <h2 class="slide-title">¡Misión Cumplida! Estás Listo para la Evaluación</h2>
+        <p class="slide-lead">
+          Has recorrido el ciclo completo de la ingeniería de datos: desde la narrativa confusa en papel carbón hasta una arquitectura relacional normalizada y blindada en Oracle.
+        </p>
+
+        <div class="grid" style="margin: 24px 0;">
+          <div class="card card-menta">
+            <strong>Lo que dominas ahora:</strong>
+            <ul class="small" style="padding-left:16px; margin:8px 0 0;">
+              <li>Lectura crítica y extracción morfosintáctica del enunciado.</li>
+              <li>Modelado de entidades débiles y relaciones identificadoras Barker.</li>
+              <li>Especialización MERE total y disjunta con herencia de claves.</li>
+              <li>Descomposición de relaciones N:M con entidades asociativas.</li>
+              <li>Normalización formal hasta 3FN eliminando anomalías.</li>
+              <li>Scripts DDL con constraints oficiales de Oracle Database.</li>
+            </ul>
+          </div>
+
+          <div class="card card-durazno">
+            <strong>Consejo Final para el Día de la Prueba:</strong>
+            <p class="small" style="margin-top:8px;">
+              - Tómate los primeros <strong>20 minutos en papel</strong> antes de tocar el mouse.<br>
+              - Revisa que tu archivo <code>.dmd</code> guarde también su carpeta asociada antes de comprimir.<br>
+              - Confía en tu criterio de analista. ¡Mucho éxito en la evaluación!
+            </p>
+          </div>
+        </div>
+
+        <div style="margin-top: 28px; display:flex; gap:12px; flex-wrap:wrap;">
+          <button class="ctrl-btn primary" @click="goTo(0)">
+            <span>↺</span> Reiniciar Masterclass (Slide 1)
+          </button>
+          <a href="../../index.html" class="ctrl-btn">
+            <span>🏠</span> Volver al Portal Docente
+          </a>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- FIXED BOTTOM CONTROLS BAR -->
+  <footer class="slide-bottombar">
+    <div class="ctrl-group">
+      <button class="ctrl-btn" :disabled="current === 0" @click="prev" title="Anterior (← / RePág)">
+        <span>←</span> <span>Anterior</span>
+      </button>
+      <button class="ctrl-btn primary" :disabled="current === slides.length - 1" @click="next" title="Siguiente (→ / AvPág / Espacio)">
+        <span>Siguiente</span> <span>→</span>
+      </button>
+    </div>
+
+    <!-- Quick Slide Selector Dropdown -->
+    <div class="ctrl-group" style="display:none; @media(min-width:768px){display:flex;}">
+      <select v-model="current" class="ctrl-btn" style="font-weight:600; cursor:pointer;" title="Saltar a diapositiva">
+        <option v-for="(s, idx) in slides" :key="idx" :value="idx">
+          {{ idx + 1 }}. {{ s.title }}
+        </option>
+      </select>
+    </div>
+
+    <div class="ctrl-group">
+      <span class="small" style="font-family:var(--font-mono); font-weight:700;">
+        Slide {{ current + 1 }} de {{ slides.length }}
+      </span>
+    </div>
+  </footer>
+
+  <!-- SLIDE JUMP DRAWER / MODAL -->
+  <div v-if="showDrawer" class="drawer-overlay" @click.self="showDrawer = false">
+    <div class="drawer-content">
+      <div class="drawer-header">
+        <h3>📑 Temario de la Clase</h3>
+        <button class="ctrl-btn" @click="showDrawer = false">✕</button>
+      </div>
+      <div class="drawer-list">
+        <div v-for="(s, idx) in slides" 
+             :key="idx" 
+             class="drawer-item" 
+             :class="{ active: current === idx }"
+             @click="goTo(idx)">
+          <span class="drawer-item-num">{{ idx + 1 < 10 ? '0' + (idx + 1) : idx + 1 }}</span>
+          <span>{{ s.title }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- VUE 3 APPLICATION SCRIPT -->
+<script>
+  const { createApp } = Vue;
+
+  createApp({
+    data() {
+      return {
+        current: 0,
+        isZoomed: false,
+        showDrawer: false,
+
+        // Highlighting toggles for the case text
+        hlNouns: false,
+        hlVerbs: false,
+        hlRules: false,
+
+        // Slide list for navigation
+        slides: [
+          { title: "Portada: Forestal Bosques del Sur S.A." },
+          { title: "La Misión del Analista y la Evaluación" },
+          { title: "Texto Íntegro del Caso (Parte 1)" },
+          { title: "Texto Íntegro del Caso (Parte 2)" },
+          { title: "Técnicas de Comprensión Lectora para Analistas" },
+          { title: "Desglose Párrafo 1: Predios y Territorio" },
+          { title: "Checkpoint 1: Entidad vs Atributo" },
+          { title: "Desglose: Entidades Débiles (El Rodal)" },
+          { title: "Checkpoint 2: Clave Compuesta de Rodal" },
+          { title: "Desglose Párrafo 2: MERE Trabajadores" },
+          { title: "Desglose: Relación Recursiva de Jefatura" },
+          { title: "Checkpoint 3: MERE Subtipos y Claves" },
+          { title: "Desglose Párrafo 3 y 4: Despachos y N:M" },
+          { title: "Desglose: El Arco de Exclusividad" },
+          { title: "Desglose Párrafo 5: Incendios y Brigadistas" },
+          { title: "Checkpoint 4: Integridad en Protección" },
+          { title: "Oracle Data Modeler: Notación Barker" },
+          { title: "Data Modeler: Entidad Débil Predio y Rodal" },
+          { title: "Data Modeler: Subtipos de Trabajador" },
+          { title: "Normalización 1FN: Valores Atómicos" },
+          { title: "Normalización 2FN: Dependencias Parciales" },
+          { title: "Normalización 3FN: Cero Transitividad" },
+          { title: "Checkpoint 5: Diagnóstico de Formas Normales" },
+          { title: "Restricciones de Negocio Complejas" },
+          { title: "Tipos de Datos Oficiales de Oracle" },
+          { title: "Data Modeler: Engineer to Relational Model" },
+          { title: "El Gran Mapa: Las 18 Tablas Relacionales" },
+          { title: "Script DDL Oficial en Oracle Database" },
+          { title: "Checkpoint 6: Integridad en Código SQL" },
+          { title: "Las 7 Trampas Clásicas de la Prueba" },
+          { title: "Checklist Interactivo de Pre-Entrega" },
+          { title: "Cierre, Síntesis y Conclusiones" }
+        ],
+
+        // Quiz States
+        q1_answered: false, q1_selected: null, q1_correct: false, q1_opt: 1,
+        q1_explanation: "Especie tiene atributos descriptivos propios (nombre científico, turno) y sus ocurrencias se reutilizan en múltiples rodales. Centralizarla evita redundancias y anomalías de actualización.",
+
+        q2_answered: false, q2_selected: null, q2_correct: false, q2_opt: 1,
+        q2_explanation: "El rodal 2 existe en muchos predios. Para que cada fila sea única en toda la base de datos, la Primary Key debe combinar el ROL_PREDIO con el NUMERO_RODAL.",
+
+        q3_answered: false, q3_selected: null, q3_correct: false, q3_opt: 1,
+        q3_explanation: "En la transformación de subtipos, la Primary Key de la tabla hija es exactamente la Foreign Key referenciando a TRABAJADOR, garantizando una relación 1:1 estricta.",
+
+        q4_answered: false, q4_selected: null, q4_correct: false, q4_opt: 1,
+        q4_explanation: "La tupla compuesta (ID_INCENDIO, RUT_BRIGADISTA) identifica unívocamente la intervención de una persona en un siniestro determinado y garantiza que solo brigadistas certificados combatan fuego.",
+
+        q5_answered: false, q5_selected: null, q5_correct: false, q5_opt: 1,
+        q5_explanation: "En RODAL, la clave primaria es (ROL_PREDIO, NUMERO_RODAL). Que nombre_cientifico y turno dependan de CODIGO_ESPECIE dentro de Rodal es una dependencia transitiva (3FN violada). Deben vivir en ESPECIE.",
+
+        q6_answered: false, q6_selected: null, q6_correct: false, q6_opt: 1,
+        q6_explanation: "Oracle exige que toda clave foránea referencie exactamente a una Primary Key o restricción Unique existente. Si Rodal tiene clave compuesta (rol_predio, numero_rodal), no puedes referenciar solo a numero_rodal.",
+
+        // Checklist for final exam verification
+        checklist: [
+          { text: "Identifiqué RODAL como entidad débil con clave primaria compuesta (ROL_PREDIO, NUMERO_RODAL).", done: false },
+          { text: "La relación entre PREDIO y RODAL está marcada como 'Identifying' en Data Modeler.", done: false },
+          { text: "FAENA incluye las 2 columnas de Foreign Key para referenciar correctamente a RODAL.", done: false },
+          { text: "La especialización de TRABAJADOR es Total y Disjunta hacia Motosierrista, Operador y Brigadista.", done: false },
+          { text: "La relación de jefatura es recursiva en TRABAJADOR (RUT_JEFE) sin crear una tabla 'JEFE' separada.", done: false },
+          { text: "DETALLE_GUIA resuelve la relación N:M entre GUIA y PRODUCTO con sus atributos de largo y volumen.", done: false },
+          { text: "PARTICIPACION_COMBATE tiene FK directa hacia BRIGADISTA para asegurar que solo ellos combatan incendios.", done: false },
+          { text: "El destino exclusivo de GUIA (Aserradero vs Planta de Celulosa) está modelado con restricción XOR.", done: false },
+          { text: "Comuna y Región están separadas de Predio cumpliendo 3FN estricta.", done: false },
+          { text: "Todos los tipos de datos son nativos de Oracle (VARCHAR2, NUMBER, DATE, TIMESTAMP).", done: false },
+          { text: "Todas las restricciones de clave primaria y foránea tienen nombres explícitos estandarizados.", done: false },
+          { text: "Comprimí tanto el archivo '.dmd' como su carpeta asociada para la entrega final.", done: false }
+        ]
+      };
+    },
+
+    computed: {
+      progressWidth() {
+        return (((this.current + 1) / this.slides.length) * 100) + '%';
+      },
+      completedChecks() {
+        return this.checklist.filter(i => i.done).length;
+      }
+    },
+
+    methods: {
+      next() {
+        if (this.current < this.slides.length - 1) {
+          this.current++;
+          this.onSlideChange();
+        }
+      },
+      prev() {
+        if (this.current > 0) {
+          this.current--;
+          this.onSlideChange();
+        }
+      },
+      goTo(idx) {
+        if (idx >= 0 && idx < this.slides.length) {
+          this.current = idx;
+          this.showDrawer = false;
+          this.onSlideChange();
+        }
+      },
+      toggleZoom() {
+        this.isZoomed = !this.isZoomed;
+      },
+      toggleDrawer() {
+        this.showDrawer = !this.showDrawer;
+      },
+      toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(err => {
+            console.warn("Fullscreen no permitido", err);
+          });
+        } else {
+          if (document.exitFullscreen) document.exitFullscreen();
+        }
+      },
+      onSlideChange() {
+        window.location.hash = 'slide-' + (this.current + 1);
+        this.$nextTick(() => {
+          this.highlightCode();
+          const canvas = document.querySelector('.slide-canvas');
+          if (canvas) canvas.scrollTop = 0;
+        });
+      },
+      highlightCode() {
+        if (typeof hljs !== 'undefined') {
+          document.querySelectorAll('pre code:not(.hljs)').forEach((block) => {
+            hljs.highlightElement(block);
+          });
+        }
+      },
+      copyCodeText(e) {
+        const btn = e.currentTarget;
+        const wrapper = btn.closest('.code-wrapper');
+        if (!wrapper) return;
+        const code = wrapper.querySelector('code');
+        if (!code) return;
+        navigator.clipboard.writeText(code.innerText).then(() => {
+          const orig = btn.innerText;
+          btn.innerText = "✓ Copiado";
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.innerText = orig;
+            btn.classList.remove('copied');
+          }, 2000);
+        });
+      },
+
+      // Quiz Answer Handlers
+      answerQ1(idx) { this.q1_answered = true; this.q1_selected = idx; this.q1_correct = (idx === this.q1_opt); },
+      answerQ2(idx) { this.q2_answered = true; this.q2_selected = idx; this.q2_correct = (idx === this.q2_opt); },
+      answerQ3(idx) { this.q3_answered = true; this.q3_selected = idx; this.q3_correct = (idx === this.q3_opt); },
+      answerQ4(idx) { this.q4_answered = true; this.q4_selected = idx; this.q4_correct = (idx === this.q4_opt); },
+      answerQ5(idx) { this.q5_answered = true; this.q5_selected = idx; this.q5_correct = (idx === this.q5_opt); },
+      answerQ6(idx) { this.q6_answered = true; this.q6_selected = idx; this.q6_correct = (idx === this.q6_opt); },
+
+      // Checklist Handlers
+      toggleCheck(idx) {
+        this.checklist[idx].done = !this.checklist[idx].done;
+        this.saveChecklist();
+      },
+      saveChecklist() {
+        localStorage.setItem('forestal_checklist_v2', JSON.stringify(this.checklist.map(c => c.done)));
+      },
+      loadChecklist() {
+        const saved = localStorage.getItem('forestal_checklist_v2');
+        if (saved) {
+          try {
+            const arr = JSON.parse(saved);
+            arr.forEach((done, i) => {
+              if (this.checklist[i]) this.checklist[i].done = done;
+            });
+          } catch(e){}
+        }
+      }
+    },
+
+    mounted() {
+      this.loadChecklist();
+
+      const h = window.location.hash.match(/slide-(\d+)/);
+      if (h && h[1]) {
+        const target = parseInt(h[1], 10) - 1;
+        if (target >= 0 && target < this.slides.length) {
+          this.current = target;
+        }
+      }
+
+      window.addEventListener('keydown', (e) => {
+        if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+        if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+          e.preventDefault();
+          this.next();
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+          e.preventDefault();
+          this.prev();
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          this.goTo(0);
+        } else if (e.key === 'End') {
+          e.preventDefault();
+          this.goTo(this.slides.length - 1);
+        } else if (e.key === 'f' || e.key === 'F') {
+          this.toggleFullscreen();
+        } else if (e.key === 'm' || e.key === 'M') {
+          this.toggleDrawer();
+        }
+      });
+
+      this.$nextTick(() => {
+        this.highlightCode();
+      });
+    }
+  }).mount('#app');
+</script>
+
+</body>
+</html>
