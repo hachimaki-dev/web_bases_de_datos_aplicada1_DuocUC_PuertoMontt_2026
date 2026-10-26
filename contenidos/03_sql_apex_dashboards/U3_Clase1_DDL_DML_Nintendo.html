@@ -1,0 +1,2566 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unidad 3 · Clase 1: Fundamentos de DDL y DML + Caso Nintendo eShop · Bases de Datos Aplicada 1</title>
+  <meta name="description" content="Presentación interactiva para proyectar sobre fundamentos de DDL (CREATE, ALTER, DROP, Constraints, CHECK, PK, FK) y DML (INSERT, UPDATE, DELETE, SELECT) en Oracle SQL, seguida del Caso Práctico Nintendo eShop con 50 ejercicios progresivos.">
+  <link rel="stylesheet" href="../../shared/fonts.css">
+  <link rel="stylesheet" href="../../shared/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+
+  <style>
+    /* ==========================================================
+       VARIABLES & VIEWPORT ESTRUCTURAL (ALTO CONTRASTE PROYECTOR)
+       ========================================================== */
+    :root {
+      /* Sobrescribimos tokens base para máximo contraste en proyector */
+      --bg:        #FFFFFF;
+      --bg-soft:   #F1F5F9;
+      --bg-muted:  #E2E8F0;
+      --ink:       #0F172A;
+      --ink-soft:  #1E293B;
+      --ink-muted: #334155;
+      --line:      #94A3B8;
+
+      --stage-a: #1E3A8A; --stage-a-bg: #DBEAFE; /* Fundamentos SQL & Tipos */
+      --stage-b: #065F46; --stage-b-bg: #D1FAE5; /* DDL & Constraints */
+      --stage-c: #92400E; --stage-c-bg: #FEF3C7; /* DML: INSERT, UPDATE, DELETE */
+      --stage-d: #4C1D95; --stage-d-bg: #EDE9FE; /* Consultas SELECT */
+      --stage-e: #B91C1C; --stage-e-bg: #FEE2E2; /* Caso Nintendo eShop */
+      --nintendo-red: #D90429;
+      --nintendo-dark: #0F172A;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #FFFFFF;
+      font-family: var(--font-body);
+      color: var(--ink);
+    }
+
+    /* Inline code de alto contraste para proyección */
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.92em;
+      font-weight: 700;
+      background: #E2E8F0;
+      color: #0F172A;
+      padding: 2px 7px;
+      border-radius: 5px;
+      border: 1px solid #94A3B8;
+    }
+
+    /* BLOQUES DE CÓDIGO SQL DE ALTO CONTRASTE PARA PROYECTOR (FONDO CLARO NÍTIDO) */
+    pre.code-block,
+    .code-block,
+    .engine-tip pre.code-block {
+      background: #F8FAFC !important;
+      color: #0F172A !important;
+      border: 2px solid #0F172A !important;
+      border-left: 7px solid #1E3A8A !important;
+      border-radius: var(--radius-md) !important;
+      padding: 18px 22px !important;
+      font-family: var(--font-mono) !important;
+      font-size: 15.5px !important;
+      font-weight: 600 !important;
+      line-height: 1.65 !important;
+      margin: 14px 0 !important;
+      box-shadow: 3px 3px 0 #CBD5E1 !important;
+      max-width: 100% !important;
+    }
+    pre.code-block code,
+    .code-block code,
+    .code-block code.hljs {
+      background: transparent !important;
+      color: #0F172A !important;
+      border: none !important;
+      padding: 0 !important;
+      font-weight: 600 !important;
+      font-size: inherit !important;
+    }
+    .code-block .lang-label {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      font-size: 11px;
+      background: #0F172A;
+      color: #FFFFFF !important;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 4px;
+      letter-spacing: 0.06em;
+    }
+
+    /* Colores de sintaxis SQL de máximo contraste sobre fondo claro (WCAG AAA) */
+    .code-block .hljs-keyword,
+    .code-block .hljs-selector-tag {
+      color: #1D4ED8 !important; /* Azul rey intenso */
+      font-weight: 800 !important;
+    }
+    .code-block .hljs-type,
+    .code-block .hljs-built_in {
+      color: #6D28D9 !important; /* Violeta profundo */
+      font-weight: 800 !important;
+    }
+    .code-block .hljs-string {
+      color: #15803D !important; /* Verde bosque oscuro */
+      font-weight: 700 !important;
+    }
+    .code-block .hljs-number,
+    .code-block .hljs-literal {
+      color: #B91C1C !important; /* Rojo carmesí fuerte */
+      font-weight: 800 !important;
+    }
+    .code-block .hljs-comment {
+      color: #475569 !important; /* Gris pizarra oscuro legible */
+      font-style: italic !important;
+      font-weight: 600 !important;
+    }
+    .code-block .hljs-title,
+    .code-block .hljs-attr,
+    .code-block .hljs-params {
+      color: #0F172A !important;
+      font-weight: 700 !important;
+    }
+
+    #app {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      user-select: text;
+    }
+
+    /* Zoom de Proyección para Salas Grandes */
+    #app.zoom-projection .slide-wrapper,
+    #app.zoom-projection .lab-container {
+      font-size: 1.14em;
+    }
+    #app.zoom-projection .slide-title {
+      font-size: clamp(28px, 3.8vw, 44px);
+    }
+    #app.zoom-projection .exercise-card {
+      font-size: 16px;
+    }
+
+    /* TOPBAR */
+    .slide-topbar {
+      height: 62px;
+      border-bottom: 2px solid var(--line);
+      background: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 50;
+      flex-shrink: 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      gap: 12px;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .back-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-soft);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .back-home:hover {
+      background: var(--ink);
+      color: #FFFFFF;
+      border-color: var(--ink);
+    }
+
+    .topbar-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Mode Switcher in Topbar */
+    .mode-switcher {
+      display: inline-flex;
+      background: var(--bg-muted);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .mode-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 14px;
+      border-radius: 7px;
+      font-family: var(--font-body);
+      font-size: 12.5px;
+      font-weight: 800;
+      color: var(--ink-soft);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .mode-btn:hover {
+      color: var(--ink);
+    }
+    .mode-btn.active {
+      background: var(--ink);
+      color: #FFFFFF;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    }
+    .mode-btn.nintendo.active {
+      background: var(--nintendo-red);
+      color: #FFFFFF;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .slide-counter-badge {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 700;
+      background: var(--bg-muted);
+      padding: 4px 10px;
+      border-radius: 999px;
+      color: var(--ink-soft);
+      border: 1px solid var(--line);
+      white-space: nowrap;
+    }
+
+    .tool-btn {
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 11px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .tool-btn:hover {
+      background: var(--bg-muted);
+      border-color: var(--ink-soft);
+    }
+    .tool-btn.active {
+      background: var(--ink);
+      color: #FFFFFF;
+      border-color: var(--ink);
+    }
+
+    /* BARRA DE PROGRESO */
+    .top-progress-container {
+      width: 100%;
+      height: 4px;
+      background: var(--line);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .top-progress-bar {
+      height: 100%;
+      background: var(--accent-menta);
+      transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .top-progress-bar.nintendo-bar {
+      background: var(--nintendo-red);
+    }
+
+    /* CANVAS DE PRESENTACIÓN */
+    .slide-canvas {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 4vw 36px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      background: radial-gradient(circle at 50% 0%, rgba(226, 232, 240, 0.4) 0%, #FFFFFF 70%);
+    }
+
+    .slide-wrapper {
+      width: 100%;
+      max-width: 1120px;
+      margin: auto 0;
+      animation: slideIn 0.2s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* HEADER UNIFICADO DE SLIDE */
+    .slide-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .stage-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 999px;
+      border: 2px solid currentColor;
+    }
+    .stage-pill.stage-a { color: var(--stage-a); background: var(--stage-a-bg); }
+    .stage-pill.stage-b { color: var(--stage-b); background: var(--stage-b-bg); }
+    .stage-pill.stage-c { color: var(--stage-c); background: var(--stage-c-bg); }
+    .stage-pill.stage-d { color: var(--stage-d); background: var(--stage-d-bg); }
+    .stage-pill.stage-e { color: var(--stage-e); background: var(--stage-e-bg); }
+
+    .objective-chip {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0F172A;
+      background: #F1F5F9;
+      border: 1.5px solid #475569;
+      padding: 5px 12px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .obj-tag {
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #FFFFFF;
+      background: #0F172A;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .slide-title {
+      font-size: clamp(26px, 3.2vw, 38px);
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.025em;
+      margin: 0 0 14px;
+      color: #0F172A;
+    }
+
+    /* PREGUNTA PEDAGÓGICA AL CURSO */
+    .pedagogical-question {
+      background: #FEF3C7;
+      border: 2px solid #B45309;
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      margin: 14px 0 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .pedagogical-question .q-badge {
+      align-self: flex-start;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      background: #92400E;
+      color: #FFFFFF;
+      border-radius: 4px;
+    }
+    .pedagogical-question .q-content {
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.45;
+      color: #0F172A;
+      margin-top: 2px;
+    }
+    .pedagogical-question .q-guide {
+      font-size: 14px;
+      font-weight: 600;
+      color: #451A03;
+      margin-top: 2px;
+    }
+
+    /* INFO CARDS & GRIDS */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 14px;
+      margin: 14px 0;
+    }
+    .concept-card {
+      background: #FFFFFF;
+      border: 2px solid #334155;
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 2px 2px 0 #CBD5E1;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .concept-card:hover {
+      border-color: #0F172A;
+      transform: translateY(-2px);
+    }
+    .concept-card .cc-badge {
+      align-self: flex-start;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 4px;
+      background: #0F172A;
+      color: #FFFFFF;
+    }
+    .concept-card h4 {
+      font-size: 17px;
+      font-weight: 800;
+      margin: 4px 0 2px;
+      color: #0F172A;
+    }
+    .concept-card p {
+      font-size: 14.5px;
+      font-weight: 500;
+      color: #1E293B;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .card {
+      border: 2px solid #334155;
+      box-shadow: 2px 2px 0 #CBD5E1;
+    }
+    .card p, .card li {
+      color: #0F172A !important;
+      font-weight: 500;
+    }
+
+    .callout {
+      border: 2px solid #1E293B;
+      font-weight: 600;
+      color: #0F172A !important;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: start;
+      margin: 12px 0;
+    }
+
+    /* SQL TABLE PREVIEW */
+    .sql-table-wrap {
+      overflow-x: auto;
+      margin: 12px 0;
+      border: 2px solid #0F172A;
+      border-radius: var(--radius-md);
+      background: #FFFFFF;
+    }
+    .sql-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .sql-table th {
+      background: #0F172A;
+      color: #FFFFFF;
+      text-align: left;
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .sql-table td {
+      padding: 10px 14px;
+      border-bottom: 1.5px solid #94A3B8;
+      color: #0F172A;
+      font-weight: 500;
+    }
+    .sql-table tr:last-child td {
+      border-bottom: none;
+    }
+    .sql-table code {
+      font-size: 12px;
+    }
+
+    /* BOTTOM BAR DE PRESENTACIÓN */
+    .slide-bottombar {
+      height: 58px;
+      border-top: 2px solid var(--line);
+      background: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      flex-shrink: 0;
+      z-index: 40;
+    }
+    .nav-btn {
+      background: var(--bg);
+      border: 1.5px solid var(--ink);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 800;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav-btn.primary {
+      background: var(--ink);
+      color: #FFFFFF;
+    }
+    .nav-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .nav-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      border-color: var(--line);
+    }
+
+    /* DRAWER DE ÍNDICE Y NOTAS DOCENTE */
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      z-index: 90;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .drawer-panel {
+      width: min(420px, 90vw);
+      background: #FFFFFF;
+      height: 100%;
+      padding: 24px;
+      overflow-y: auto;
+      box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .drawer-item {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.15s ease;
+    }
+    .drawer-item:hover {
+      background: var(--bg-soft);
+      border-color: var(--ink-soft);
+    }
+    .drawer-item.active {
+      background: var(--ink);
+      color: #FFFFFF;
+      border-color: var(--ink);
+      font-weight: 700;
+    }
+
+    .teacher-notes-bar {
+      background: #1E293B;
+      color: #F8FAFC;
+      padding: 12px 24px;
+      font-size: 13px;
+      border-top: 2px solid #334155;
+      display: grid;
+      grid-template-columns: auto 1fr 1fr;
+      gap: 18px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .tn-badge {
+      background: #F59E0B;
+      color: #1E293B;
+      font-weight: 800;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    /* ==========================================================
+       MODO LABORATORIO NINTENDO (CASO + 50 EJERCICIOS)
+       ========================================================== */
+    .lab-scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--bg-soft);
+      padding: 0 0 80px;
+    }
+    .lab-container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 28px 24px;
+    }
+
+    .nintendo-hero {
+      background: linear-gradient(135deg, #E60012 0%, #B8000E 100%);
+      color: #FFFFFF;
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 24px rgba(230, 0, 18, 0.18);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .nintendo-hero h2 {
+      color: #FFFFFF;
+      font-size: clamp(24px, 3vw, 34px);
+      margin: 6px 0 8px;
+    }
+    .nintendo-hero p {
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 15px;
+      margin: 0;
+      max-width: 680px;
+    }
+    .nintendo-pill {
+      display: inline-block;
+      background: #FFFFFF;
+      color: #E60012;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+    .hero-progress-box {
+      background: rgba(0, 0, 0, 0.22);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      min-width: 230px;
+      text-align: center;
+    }
+    .hero-progress-num {
+      font-family: var(--font-mono);
+      font-size: 28px;
+      font-weight: 900;
+      color: #FFFFFF;
+      line-height: 1.1;
+    }
+    .hero-progress-label {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.85);
+      margin-top: 4px;
+    }
+
+    /* Sticky Mission Tabs */
+    .mission-tabs {
+      display: flex;
+      gap: 6px;
+      background: #FFFFFF;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      border: 1.5px solid var(--line);
+      position: sticky;
+      top: 10px;
+      z-index: 30;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      overflow-x: auto;
+    }
+    .mission-tab {
+      border: 1px solid transparent;
+      background: var(--bg-soft);
+      color: var(--ink-soft);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 800;
+      padding: 9px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .mission-tab:hover {
+      background: var(--bg-muted);
+      color: var(--ink);
+    }
+    .mission-tab.active {
+      background: var(--ink);
+      color: #FFFFFF;
+    }
+    .mission-tab .m-count {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.08);
+    }
+    .mission-tab.active .m-count {
+      background: rgba(255,255,255,0.2);
+      color: #FFFFFF;
+    }
+
+    /* Model Table Cards for Nintendo Schema */
+    .schema-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin: 18px 0 28px;
+    }
+    .schema-card {
+      background: #FFFFFF;
+      border: 2px solid var(--ink);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: 3px 3px 0 var(--line);
+    }
+    .schema-header {
+      background: var(--ink);
+      color: #FFFFFF;
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .schema-header.child-table {
+      background: #991B1B;
+    }
+    .schema-cols {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .schema-cols li {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 12.5px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .schema-cols li:last-child {
+      border-bottom: none;
+    }
+    .col-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .col-type {
+      color: var(--ink-muted);
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .col-rule {
+      font-size: 11.5px;
+      color: var(--ink-soft);
+      line-height: 1.35;
+    }
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 2px;
+    }
+    .c-badge {
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .c-badge.pk  { background: #FEE2E2; color: #991B1B; }
+    .c-badge.fk  { background: #DBEAFE; color: #1E40AF; }
+    .c-badge.nn  { background: #DCFCE7; color: #166534; }
+    .c-badge.uq  { background: #F3E8FF; color: #6B21A8; }
+    .c-badge.chk { background: #FEF3C7; color: #92400E; }
+    .c-badge.def { background: #E2E8F0; color: #334155; }
+
+    /* Exercise Cards */
+    .exercise-card {
+      background: #FFFFFF;
+      border: 2px solid #334155;
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      box-shadow: 2px 2px 0 #CBD5E1;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .exercise-card:hover {
+      border-color: #0F172A;
+      box-shadow: 3px 3px 0 #94A3B8;
+    }
+    .exercise-card.completed {
+      border-color: #15803D;
+      background: #F0FDF4;
+    }
+    .ex-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .ex-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .ex-num-badge {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 800;
+      background: #0F172A;
+      color: #FFFFFF;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+    .ex-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: #0F172A;
+      margin: 0;
+    }
+    .ex-check-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #0F172A;
+      cursor: pointer;
+      user-select: none;
+      padding: 5px 12px;
+      border-radius: 6px;
+      background: #F1F5F9;
+      border: 1.5px solid #475569;
+    }
+    .ex-check-label input {
+      width: 16px;
+      height: 16px;
+      accent-color: #15803D;
+      cursor: pointer;
+    }
+    .ex-body {
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1.6;
+      color: #0F172A;
+      margin-bottom: 10px;
+    }
+    .ex-data-box {
+      background: #F8FAFC;
+      border: 1.5px solid #475569;
+      border-left: 5px solid #0F172A;
+      padding: 12px 16px;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #0F172A;
+      margin: 10px 0;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    /* Hint Accordion (sin mostrar código resuelto) */
+    details.hint-box {
+      margin-top: 12px;
+      border: 1.5px solid #B45309;
+      background: #FEF3C7;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    details.hint-box summary {
+      padding: 9px 14px;
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #78350F;
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    details.hint-box summary::-webkit-details-marker {
+      display: none;
+    }
+    details.hint-box summary::after {
+      content: '▾';
+      margin-left: auto;
+    }
+    details.hint-box[open] summary::after {
+      transform: rotate(180deg);
+    }
+    .hint-box-content {
+      padding: 10px 14px;
+      border-top: 1px solid #FDE68A;
+      font-size: 13.5px;
+      color: #78350F;
+      background: #FFFFFF;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 820px) {
+      .two-col { grid-template-columns: 1fr; }
+      .topbar-title { display: none; }
+      .teacher-notes-bar { grid-template-columns: 1fr; gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app" :class="{ 'zoom-projection': isZoomed }">
+
+  <!-- TOPBAR UNIFICADA -->
+  <header class="slide-topbar">
+    <div class="topbar-left">
+      <a href="../../index.html" class="back-home" title="Volver al Portal Principal">← Portal</a>
+      <div class="topbar-title">U3 · DDL, Constraints y DML + Caso Nintendo eShop</div>
+    </div>
+
+    <!-- CONMUTADOR DE MODO: PRESENTACIÓN SLIDES vs LABORATORIO NINTENDO -->
+    <div class="mode-switcher" role="tablist" aria-label="Modo de visualización">
+      <button
+        class="mode-btn"
+        :class="{ active: viewMode === 'slides' }"
+        @click="setMode('slides')">
+        🖥️ Presentación ({{ current + 1 }}/{{ slides.length }})
+      </button>
+      <button
+        class="mode-btn nintendo"
+        :class="{ active: viewMode === 'lab' }"
+        @click="setMode('lab')">
+        🎮 Caso Nintendo ({{ completedTotal }}/50)
+      </button>
+    </div>
+
+    <div class="topbar-right">
+      <button class="tool-btn" :class="{ active: isZoomed }" @click="toggleZoom" title="Zoom para proyectar en sala (Tecla Z)">
+        🔍 Zoom Sala
+      </button>
+      <button v-if="viewMode === 'slides'" class="tool-btn" :class="{ active: showNotes }" @click="toggleNotes" title="Mostrar/Ocultar Notas Docente (Tecla N)">
+        📋 Notas
+      </button>
+      <button v-if="viewMode === 'slides'" class="tool-btn" @click="toggleDrawer" title="Índice de Diapositivas (Tecla M)">
+        📑 Índice
+      </button>
+      <button class="tool-btn" @click="toggleFullscreen" title="Pantalla Completa (Tecla F)">
+        ⛶
+      </button>
+    </div>
+  </header>
+
+  <!-- BARRA DE PROGRESO SUPERIOR -->
+  <div class="top-progress-container">
+    <div
+      class="top-progress-bar"
+      :class="{ 'nintendo-bar': viewMode === 'lab' }"
+      :style="{ width: viewMode === 'slides' ? progressWidth : labProgressWidth }">
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODO 1: PRESENTACIÓN INTERACTIVA POR DIAPOSITIVAS (TEORÍA GENÉRICA + CASO)
+       ========================================================================= -->
+  <main v-if="viewMode === 'slides'" class="slide-canvas">
+
+    <!-- SLIDE 0: PORTADA -->
+    <div v-if="current === 0" class="slide-wrapper">
+      <div class="slide-meta-row">
+        <span class="stage-pill stage-a">Unidad 3 · Clase 1 · SQL en Oracle Database</span>
+        <span class="objective-chip"><span class="obj-tag">Meta</span> Del Modelo Relacional al Código SQL Físico</span>
+      </div>
+      <h1 style="font-size: clamp(32px, 4.5vw, 54px); margin: 12px 0 16px;">Fundamentos de DDL y DML en SQL</h1>
+      <p class="lead">Cómo construir tablas blindadas con restricciones de integridad (<code>CHECK</code>, <code>PK</code>, <code>FK</code>, <code>UNIQUE</code>) y manipular datos con precisión mediante <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code> y <code>SELECT</code>.</p>
+
+      <div class="concept-grid" style="margin-top: 28px;">
+        <div class="concept-card" style="border-top: 4px solid var(--stage-a);">
+          <span class="cc-badge">BLOQUE 1</span>
+          <h4>Arquitectura SQL y Tipos</h4>
+          <p>Sublenguajes DDL vs DML y tipos de datos nativos en Oracle (<code>VARCHAR2</code>, <code>NUMBER</code>, <code>DATE</code>).</p>
+        </div>
+        <div class="concept-card" style="border-top: 4px solid var(--stage-b);">
+          <span class="cc-badge">BLOQUE 2</span>
+          <h4>DDL y Constraints</h4>
+          <p><code>CREATE TABLE</code>, <code>ALTER</code>, <code>DROP</code> y las 6 restricciones fundamentales con foco en <code>CHECK</code>.</p>
+        </div>
+        <div class="concept-card" style="border-top: 4px solid var(--stage-c);">
+          <span class="cc-badge">BLOQUE 3</span>
+          <h4>DML Transaccional</h4>
+          <p>Poblamiento con <code>INSERT INTO</code>, modificación con <code>UPDATE</code> y borrado seguro con <code>DELETE</code>.</p>
+        </div>
+        <div class="concept-card" style="border-top: 4px solid var(--stage-d);">
+          <span class="cc-badge">BLOQUE 4</span>
+          <h4>Consultas con SELECT</h4>
+          <p>Proyecciones, filtros <code>WHERE</code>, operadores, ordenamiento, agrupaciones y <code>INNER JOIN</code>.</p>
+        </div>
+      </div>
+
+      <div class="callout callout-menta" style="margin-top: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <strong>🎮 Práctica de Hoy: Caso Nintendo eShop Latinoamérica</strong><br>
+          <span>Al finalizar la presentación, resolveremos la creación de 4 tablas con restricciones y 50 desafíos progresivos.</span>
+        </div>
+        <button class="nav-btn primary" @click="setMode('lab')">Ir directo al Caso Nintendo →</button>
+      </div>
+    </div>
+
+    <!-- SLIDE 1: SUBLENGUAJES DE SQL -->
+    <div v-if="current === 1" class="slide-wrapper">
+      <div class="slide-meta-row">
+        <span class="stage-pill stage-a">Etapa 1 · Arquitectura del Lenguaje</span>
+        <span class="objective-chip"><span class="obj-tag">Concepto</span> Distinguir estructura (DDL) vs datos (DML)</span>
+      </div>
+      <h2 class="slide-title">¿Cómo se organiza el lenguaje SQL?</h2>
+      <p><strong>SQL (Structured Query Language)</strong> no es un bloque único: se divide en sublenguajes especializados según si estamos diseñando los cimientos de la base de datos o trabajando con las filas que viven dentro de ella.</p>
+
+      <div class="two-col">
+        <div class="card" style="border-top: 4px solid var(--stage-b);">
+          <span class="tag tag-base">1. DDL — Data Definition Language</span>
+          <h3 style="margin-top: 8px;">Lenguaje de Definición de Datos</h3>
+          <p style="font-size: 14.5px;">Construye, modifica o destruye la <strong>estructura (el esqueleto)</strong> de las tablas y sus reglas de integridad. No manipula filas individuales.</p>
+          <ul style="font-size: 14px; color: var(--ink-soft); padding-left: 20px; margin-top: 10px;">
+            <li><code>CREATE TABLE</code>: Crea una nueva tabla y sus restricciones.</li>
+            <li><code>ALTER TABLE</code>: Modifica columnas o agrega reglas a una tabla existente.</li>
+            <li><code>DROP TABLE</code>: Elimina la tabla completa (estructura y datos).</li>
+          </ul>
+        </div>
+
+        <div class="card" style="border-top: 4px solid var(--stage-c);">
+          <span class="tag tag-inter">2. DML — Data Manipulation Language</span>
+          <h3 style="margin-top: 8px;">Lenguaje de Manipulación de Datos</h3>
+          <p style="font-size: 14.5px;">Opera directamente sobre las <strong>filas (registros)</strong> almacenadas dentro de las tablas que ya fueron creadas con DDL.</p>
+          <ul style="font-size: 14px; color: var(--ink-soft); padding-left: 20px; margin-top: 10px;">
+            <li><code>INSERT INTO</code>: Agrega nuevas filas de datos a una tabla.</li>
+            <li><code>UPDATE</code>: Modifica valores de filas que ya existen.</li>
+            <li><code>DELETE FROM</code>: Borra filas específicas sin destruir la tabla.</li>
+            <li><code>SELECT</code>: Consulta, filtra y recupera información de las tablas.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pedagogical-question">
+        <span class="q-badge">Analogía de Ingeniería</span>
+        <div class="q-content">El DDL equivale a construir el edificio de un banco, instalar las bóvedas y programar las cerraduras de seguridad. El DML equivale a los clientes que entran a depositar, actualizar su saldo, retirar dinero o consultar su cartola.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: TIPOS DE DATOS EN ORACLE -->
+    <div v-if="current === 2" class="slide-wrapper">
+      <div class="slide-meta-row">
+        <span class="stage-pill stage-a">Etapa 1 · Tipos de Datos</span>
+        <span class="objective-chip"><span class="obj-tag">Oracle SQL</span> Tipos nativos para columnas</span>
+      </div>
+      <h2 class="slide-title">Tipos de Datos Fundamentales en Oracle</h2>
+      <p>Al definir una tabla, cada columna exige un <strong>tipo de dato</strong> estricto que determina qué valores acepta y cuánto espacio reserva:</p>
+
+      <div class="sql-table-wrap">
+        <table class="sql-table">
+          <thead>
+            <tr>
+              <th>Tipo en Oracle</th>
+              <th>Qué almacena</th>
+              <th>Ejemplo de Declaración</th>
+              <th>Uso típico en modelos de negocio</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>VARCHAR2(n)</code></td>
+              <td>Texto de longitud variable (hasta <code>n</code> caracteres). Solo ocupa el espacio real del texto ingresado.</td>
+              <td><code>nombre VARCHAR2(80)</code></td>
+              <td>Nombres, correos, direcciones, títulos, estados variables.</td>
+            </tr>
+            <tr>
+              <td><code>CHAR(n)</code></td>
+              <td>Texto de longitud fija exacta. Si ingresas menos letras, rellena con espacios a la derecha.</td>
+              <td><code>codigo_pais CHAR(2)</code></td>
+              <td>Códigos ISO fijos (<code>'CL'</code>, <code>'AR'</code>), siglas de largo exacto.</td>
+            </tr>
+            <tr>
+              <td><code>NUMBER(p)</code></td>
+              <td>Número entero de hasta <code>p</code> dígitos de precisión.</td>
+              <td><code>stock NUMBER(5)</code></td>
+              <td>IDs, cantidades en inventario, años (<code>NUMBER(4)</code>), puntajes.</td>
+            </tr>
+            <tr>
+              <td><code>NUMBER(p, s)</code></td>
+              <td>Número decimal con <code>p</code> dígitos en total, de los cuales <code>s</code> son decimales luego de la coma.</td>
+              <td><code>precio_usd NUMBER(8, 2)</code></td>
+              <td>Montos en dólares, porcentajes, pesos o medidas con decimales.</td>
+            </tr>
+            <tr>
+              <td><code>DATE</code></td>
+              <td>Fecha y hora (siglo, año, mes, día, hora, minuto, segundo).</td>
+              <td><code>fecha_ingreso DATE</code></td>
+              <td>Fechas de nacimiento, fechas de contratación, fechas de venta.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <details class="engine-tip">
+        <summary>¿Cómo se declaran estos tipos en PostgreSQL, MySQL o SQL Server?</summary>
+        <div class="engine-tip-content">
+          <p>En <strong>Oracle</strong> el estándar industrial para texto es <code>VARCHAR2(n)</code> y para números es <code>NUMBER(p, s)</code>.</p>
+          <p>En <strong>PostgreSQL, MySQL y SQL Server</strong> se utiliza <code>VARCHAR(n)</code> para texto, <code>INT</code> o <code>INTEGER</code> para enteros, y <code>NUMERIC(p, s)</code> o <code>DECIMAL(p, s)</code> para decimales.</p>
+        </div>
+      </details>
+    </div>
+
+    <!-- SLIDE 3: CREATE TABLE ANATOMÍA -->
+    <div v-if="current === 3" class="slide-wrapper">
+      <div class="slide-meta-row">
+        <span class="stage-pill stage-b">Etapa 2 · DDL Estructural</span>
+        <span class="objective-chip"><span class="obj-tag">Sintaxis</span> Construcción de tablas con restricciones en línea</span>
+      </div>
+      <h2 class="slide-title">Anatomía de <code>CREATE TABLE</code> (Restricciones en Línea)</h2>
+      <p>La sentencia <code>CREATE TABLE</code> transforma una entidad en una tabla física real. En esta primera etapa escribiremos <strong>todas las restricciones directamente en la misma línea de cada columna</strong>:</p>
+
+      <pre class="code-block"><span class="lang-label">Oracle SQL · DDL</span><code class="language-sql">CREATE TABLE nombre_tabla (
+    columna_1   TIPO_DATO   PRIMARY KEY,
+    columna_2   TIPO_DATO   NOT NULL UNIQUE,
+    columna_3   TIPO_DATO   DEFAULT valor NOT NULL CHECK (condicion_logica),
+    columna_4   TIPO_DATO   NOT NULL REFERENCES tabla_padre(columna_pk)
+);</code></pre>
+
+      <div class="concept-grid">
+        <div class="concept-card">
+          <span class="cc-badge">REGLA 1</span>
+          <h4>Nombres en Singular y <code>snake_case</code></h4>
+          <p>Usamos <code>empleado</code> o <code>orden_compra</code> (sin espacios, sin tildes ni letra ñ). Todo en la misma línea de la columna: nombre, tipo y sus reglas.</p>
+        </div>
+        <div class="concept-card">
+          <span class="cc-badge">REGLA 2</span>
+          <h4>Comas Separadoras</h4>
+          <p>Cada definición de columna se separa con una coma <code>,</code> al final de su línea, <strong>excepto la última columna</strong> antes de cerrar el paréntesis <code>);</code>.</p>
+        </div>
+        <div class="concept-card">
+          <span class="cc-badge">REGLA 3</span>
+          <h4>Orden de Creación</h4>
+          <p>Siempre se crean primero las <strong>tablas Padre (Maestras)</strong> que no dependen de nadie, y luego las <strong>tablas Hija</strong> que usan <code>REFERENCES</code>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: LAS 6 CONSTRAINTS FUNDAMENTALES -->
+    <div v-if="current === 4" class="slide-wrapper">
+      <div class="slide-meta-row">
+        <span class="stage-pill stage-b">Etapa 2 · Integridad de Datos</span>
+        <span class="objective-chip"><span class="obj-tag">Constraints</span> Las 6 reglas guardianas en la línea de la columna</span>
+      </div>
+      <h2 class="slide-title">Las 6 Restricciones (Constraints) en Línea</h2>
+      <p>¿Por qué no basta con validar los datos en el formulario web? Porque <strong>la base de datos es la última línea de defensa</strong>. Cada restricción se declara en la misma línea de la columna para impedir que entren datos inválidos:</p>
+
+      <div class="concept-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="concept-card" style="border-left: 4px solid #DC2626;">
+          <span class="cc-badge" style="background:#FEE2E2; color:#991B1B;">1. PRIMARY KEY</span>
+          <h4>Clave Primaria</h4>
+          <p>Identifica de forma única a cada fila: <code>id NUMBER(4) PRIMARY KEY</code>. Equivale a <code>NOT NULL</code> + <code>UNIQUE</code> automáticamente.</p>
+        </div>
+
+        <div class="concept-card" style="border-left: 4px solid #2563EB;">
+          <span class="cc-badge" style="background:#DBEAFE; color:#1E40AF;">2. REFERENCES (FK)</span>
+          <h4>Clave Foránea en Línea</h4>
+          <p>Conecta con la tabla padre directamente en la línea: <code>id_depto NUMBER(4) NOT NULL REFERENCES departamento(id_depto)</code>.</p>
+        </div>
+
+        <div class="concept-card" style="border-left: 4px solid #16A34A;">
+          <span class="cc-badge" style="background:#DCFCE7; color:#166534;">3. NOT NULL</span>
+          <h4>Obligatoriedad</h4>
+          <p>Prohíbe dejar la celda vacía (<code>NULL</code>): <code>nombre VARCHAR2(80) NOT NULL</code>. Equivale al asterisco <code>*</code> del modelo conceptual.</p>
+        </div>
+
+        <div class="concept-card" style="border-left: 4px solid #7C3AED;">
+          <span class="cc-badge" style="background:#F3E8FF; color:#6B21A8;">4. UNIQUE</span>
+          <h4>Unicidad Alternativa</h4>
+          <p>Impide que dos filas repitan el mismo valor en esa columna: <code>email VARCHAR2(100) NOT NULL UNIQUE</code>.</p>
+        </div>
+
+        <div class="concept-card" style="border-left: 4px solid #D97706;">
+          <span class="cc-badge" style="background:#FEF3C7; color:#92400E;">5. CHECK (...)</span>
+          <h4>Regla de Dominio</h4>
+          <p>Evalúa una condición lógica en la misma línea: <code>sueldo NUMBER(8) NOT NULL CHECK (sueldo &gt; 0)</code>.</p>
+        </div>
+
+        <div class="concept-card" style="border-left: 4px solid #475569;">
+          <span class="cc-badge" style="background:#E2E8F0; color:#334155;">6. DEFAULT</span>
+          <h4>Valor por Defecto</h4>
+          <p>Asigna un valor automático si el <code>INSERT</code> omite esa columna. Se escribe antes de <code>NOT NULL</code>: <code>stock NUMBER(5) DEFAULT 0 NOT NULL</code>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: FOCO ESPECIAL EN CHECK -->
+    <div v-if="current === 5" class="slide-wrapper">
+      <div class="slide-meta-row">
+        <span class="stage-pill stage-b">Etapa 2 · Foco en CHECK</span>
+        <span class="objective-chip"><span class="obj-tag">Reglas de Negocio</span> Blindando cada columna con CHECK en línea</span>
+      </div>
+      <h2 class="slide-title">Dominando la Restricción <code>CHECK</code> en la Misma Línea</h2>
+      <p>Un <code>CHECK</code> se escribe al final de la definición de la columna y evalúa una condición lógica por cada fila que intenta entrar o actualizarse. Si la condición es falsa, Oracle rechaza el registro de inmediato:</p>
+
+      <div class="two-col">
+        <div>
+          <h4 style="margin-bottom: 6px;">Patrón 1: Valores Positivos y Rangos (<code>BETWEEN</code>)</h4>
+          <pre class="code-block" style="margin-top: 4px; padding: 14px;"><code class="language-sql">-- Impide precios negativos o cero en la misma línea:
+precio NUMBER(8, 2) NOT NULL CHECK (precio > 0),
+
+-- Exige que la nota esté entre 1.0 y 7.0 inclusive:
+nota   NUMBER(2, 1) NOT NULL CHECK (nota BETWEEN 1.0 AND 7.0),</code></pre>
+
+          <h4 style="margin-bottom: 6px;">Patrón 2: Lista Cerrada de Valores (<code>IN</code>)</h4>
+          <pre class="code-block" style="margin-top: 4px; padding: 14px;"><code class="language-sql">-- Solo acepta exactamente uno de estos 3 textos:
+tipo_jornada VARCHAR2(15) NOT NULL CHECK (tipo_jornada IN ('COMPLETA', 'PARCIAL', 'REMOTA')),</code></pre>
+        </div>
+
+        <div>
+          <h4 style="margin-bottom: 6px;">Patrón 3: Combinando Condiciones con <code>DEFAULT</code></h4>
+          <pre class="code-block" style="margin-top: 4px; padding: 14px;"><code class="language-sql">-- Valor por defecto + obligatorio + validación de rango:
+descuento NUMBER(3) DEFAULT 0 NOT NULL CHECK (descuento BETWEEN 0 AND 75),
+
+-- Estado con valor inicial por defecto y lista válida:
+estado    VARCHAR2(10) DEFAULT 'ACTIVO' NOT NULL CHECK (estado IN ('ACTIVO', 'INACTIVO')),</code></pre>
+
+          <h4 style="margin-bottom: 6px;">Patrón 4: Largo Mínimo de Texto (<code>LENGTH</code>)</h4>
+          <pre class="code-block" style="margin-top: 4px; padding: 14px;"><code class="language-sql">-- El código SKU debe tener al menos 6 caracteres:
+codigo_sku VARCHAR2(10) NOT NULL UNIQUE CHECK (LENGTH(codigo_sku) >= 6)</code></pre>
+        </div>
+      </div>
+
+      <div class="callout callout-amarillo" style="margin-top: 8px;">
+        <strong>⚠️ Ojo con las mayúsculas dentro de las comillas simples:</strong> Si defines <code>CHECK (estado IN ('ACTIVO', 'INACTIVO'))</code> e intentas insertar <code>'activo'</code> en minúsculas, ¡Oracle lo rechazará! Los textos entre comillas simples <code>' '</code> son sensibles a mayúsculas y minúsculas.
+      </div>
+    </div>
+
+    <!-- SLIDE 6: EJEMPLO INTEGRAL GENÉRICO DDL (PADRE E HIJA) -->
+    <div v-if="current === 6" class="slide-wrapper">
+      <div class="slide-meta-row">
+        <span class="stage-pill stage-b">Etapa 2 · DDL en Acción</span>
+        <span class="objective-chip"><span class="obj-tag">Ejemplo Genérico</span> Tablas Padre e Hija 100% en línea</span>
+      </div>
+      <h2 class="slide-title">Ejemplo Integral DDL: <code>DEPARTAMENTO</code> y <code>EMPLEADO</code></h2>
+      <p>Observa qué limpio y directo queda el código cuando todas las restricciones (<code>PRIMARY KEY</code>, <code>UNIQUE</code>, <code>DEFAULT</code>, <code>CHECK</code> y <code>REFERENCES</code>) se declaran dentro de la línea de cada columna:</p>
+
+      <div class="two-col">
+        <div>
+          <span class="tag tag-base">Paso 1: Crear Tabla Padre (Maestra)</span>
+          <pre class="code-block" style="font-size: 13px; padding: 14px;"><code class="language-sql">CREATE TABLE departamento (
+    id_depto      NUMBER(4)     PRIMARY KEY,
+    nombre_depto  VARCHAR2(60)  NOT NULL UNIQUE,
+    presupuesto   NUMBER(12, 2) DEFAULT 1000000 NOT NULL CHECK (presupuesto >= 0)
+);</code></pre>
+        </div>
+
+        <div>
+          <span class="tag tag-inter">Paso 2: Crear Tabla Hija (con FK y CHECKs en línea)</span>
+          <pre class="code-block" style="font-size: 13px; padding: 14px;"><code class="language-sql">CREATE TABLE empleado (
+    id_empleado   NUMBER(6)    PRIMARY KEY,
+    rut           VARCHAR2(12) NOT NULL UNIQUE,
+    nombre        VARCHAR2(80) NOT NULL,
+    sueldo_base   NUMBER(10)   NOT NULL CHECK (sueldo_base >= 500000),
+    modalidad     VARCHAR2(15) DEFAULT 'PRESENCIAL' NOT NULL CHECK (modalidad IN ('PRESENCIAL', 'HIBRIDO', 'REMOTO')),
+    id_depto      NUMBER(4)    NOT NULL REFERENCES departamento(id_depto)
+);</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: ALTER TABLE Y DROP TABLE -->
+    <div v-if="current === 7" class="slide-wrapper">
+      <div class="slide-meta-row">
+        <span class="stage-pill stage-b">Etapa 2 · Evolución del Esquema</span>
+        <span class="objective-chip"><span class="obj-tag">DDL</span> Modificar y eliminar tablas</span>
+      </div>
+      <h2 class="slide-title">Modificando y Destruyendo Estructuras: <code>ALTER</code> y <code>DROP</code></h2>
+      <p>En proyectos reales los requerimientos cambian: necesitamos agregar una columna nueva con sus propias reglas en línea, ampliar una columna o eliminar una tabla experimental.</p>
+
+      <div class="two-col">
+        <div>
+          <h4>1. <code>ALTER TABLE</code> — Modificar sin perder datos</h4>
+          <pre class="code-block" style="font-size: 13px; padding: 14px;"><code class="language-sql">-- A) Agregar columna con DEFAULT y NOT NULL en línea:
+ALTER TABLE empleado
+    ADD fecha_contrato DATE DEFAULT SYSDATE NOT NULL;
+
+-- B) Agregar columna con su CHECK en la misma línea:
+ALTER TABLE empleado
+    ADD bono_mensual NUMBER(8) DEFAULT 0 NOT NULL CHECK (bono_mensual >= 0);
+
+-- C) Modificar el largo o tipo de una columna:
+ALTER TABLE empleado
+    MODIFY nombre VARCHAR2(120);
+
+-- D) Eliminar una columna que ya no se usa:
+ALTER TABLE empleado
+    DROP COLUMN bono_mensual;</code></pre>
+        </div>
+
+        <div>
+          <h4>2. <code>DROP TABLE</code> — Destrucción total</h4>
+          <pre class="code-block" style="font-size: 13px; padding: 14px;"><code class="language-sql">-- Elimina la estructura y TODOS sus datos:
+DROP TABLE empleado;
+DROP TABLE departamento;
+
+-- Si deseas borrar una tabla padre rompiendo sus FKs hijas:
+DROP TABLE departamento CASCADE CONSTRAINTS;</code></pre>
+          <div class="callout callout-rosa" style="margin-top: 12px;">
+            <strong>🛑 Regla del Orden Inverso al Borrar:</strong><br>
+            Así como creamos <em>Padre → Hija</em>, al eliminar con <code>DROP TABLE</code> debemos borrar primero la <strong>tabla Hija</strong> (<code>empleado</code>) y luego la <strong>tabla Padre</strong> (<code>departamento</code>).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8: CHECKPOINT INTERACTIVO 1 (DDL) -->
+    <div v-if="current === 8" class="slide-wrapper">
+      <div class="slide-meta-row">
+        <span class="stage-pill stage-b">Checkpoint Formativo #1</span>
+        <span class="objective-chip"><span class="obj-tag">Participación</span> Diagnóstico de Restricciones DDL</span>
+      </div>
+      <h2 class="slide-title">🧠 Desafío en Vivo: ¿Qué dirá el motor Oracle?</h2>
+      <p>Observa la tabla <code>EMPLEADO</code> de la diapositiva anterior (donde en la línea de cada columna definimos <code>CHECK (sueldo_base >= 500000)</code>, <code>CHECK (modalidad IN ('PRESENCIAL', 'HIBRIDO', 'REMOTO'))</code> e <code>id_depto REFERENCES departamento(id_depto)</code>).</p>
+
+      <div class="question-block" :class="{ correct: q1_done && q1_ok, incorrect: q1_done && !q1_ok }">
+        <span class="q-label">Pregunta al Curso</span>
+        <p><strong>Si intentamos insertar un empleado con <code>sueldo_base = 650000</code>, <code>modalidad = 'MIXTO'</code> e <code>id_depto = 10</code>, ¿qué ocurre exactamente?</strong></p>
+        <ul class="option-list">
+          <li class="option-item" :class="{ 'correct-answer': q1_done && idx === 1, 'wrong-answer': q1_done && q1_sel === idx && idx !== 1 }" v-for="(opt, idx) in [
+            'A) Se inserta normalmente y Oracle reemplaza MIXTO por el valor DEFAULT PRESENCIAL.',
+            'B) Oracle rechaza la fila completa lanzando error de restricción CHECK (ORA-02290).',
+            'C) Se inserta la fila pero la columna modalidad queda guardada como NULL.',
+            'D) Falla por violación de clave foránea (REFERENCES departamento).'
+          ]" :key="idx" @click="ansQ1(idx)">
+            {{ opt }}
+          </li>
+        </ul>
+        <div v-if="q1_done" class="feedback show" :class="q1_ok ? 'correct' : 'incorrect'">
+          <strong>{{ q1_ok ? '¡Exacto!' : 'Revisa la regla de CHECK:' }}</strong>
+          El valor <code>'MIXTO'</code> no está dentro de la lista <code>('PRESENCIAL', 'HIBRIDO', 'REMOTO')</code> definida en el <code>CHECK</code> de la columna. Además, <code>DEFAULT</code> solo actúa cuando <em>no mencionas la columna</em> en el <code>INSERT</code>, nunca para corregir un dato inválido.
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 9: DML - INSERT INTO -->
+    <div v-if="current === 9" class="slide-wrapper">
+      <div class="slide-meta-row">
+        <span class="stage-pill stage-c">Etapa 3 · DML: Poblamiento</span>
+        <span class="objective-chip"><span class="obj-tag">INSERT</span> Agregando registros a las tablas</span>
+      </div>
+      <h2 class="slide-title">Poblando Tablas con <code>INSERT INTO</code></h2>
+      <p>Una vez creadas las tablas con DDL, usamos <code>INSERT INTO</code> para insertar filas respetando los tipos de datos y todas las restricciones activas.</p>
+
+      <pre class="code-block" style="font-size: 13.5px;"><span class="lang-label">Oracle SQL · DML</span><code class="language-sql">-- 1. Inserción explícita completa (¡Buena práctica profesional!):
+INSERT INTO departamento (id_depto, nombre_depto, presupuesto)
+VALUES (10, 'Informatica', 25000000);
+
+-- 2. Aprovechando el valor DEFAULT (omitimos la columna 'presupuesto'):
+INSERT INTO departamento (id_depto, nombre_depto)
+VALUES (20, 'Recursos Humanos'); -- Oracle le asigna 1000000 automáticamente
+
+-- 3. Insertando en tabla hija con fechas (TO_DATE) y valores NULL:
+INSERT INTO empleado (id_empleado, rut, nombre, sueldo_base, modalidad, id_depto)
+VALUES (101, '21.345.678-9', 'Ana Gomez', 950000, 'REMOTO', 10);</code></pre>
+
+      <div class="concept-grid">
+        <div class="concept-card">
+          <span class="cc-badge">TEXTOS</span>
+          <h4>Comillas Simples <code>' '</code></h4>
+          <p>En SQL los textos van SIEMPRE entre comillas simples: <code>'Ana Gomez'</code>. Nunca uses comillas dobles <code>" "</code> para valores.</p>
+        </div>
+        <div class="concept-card">
+          <span class="cc-badge">FECHAS ORACLE</span>
+          <h4>Función <code>TO_DATE</code> y <code>SYSDATE</code></h4>
+          <p>Para fechas exactas usa <code>TO_DATE('2026-03-15', 'YYYY-MM-DD')</code>. Para la fecha actual del servidor usa <code>SYSDATE</code>.</p>
+        </div>
+        <div class="concept-card">
+          <span class="cc-badge">AUSENCIA DE DATO</span>
+          <h4>Palabra clave <code>NULL</code></h4>
+          <p>Si una columna es opcional (no tiene <code>NOT NULL</code>), puedes pasar <code>NULL</code> sin comillas: <code>VALUES (..., NULL)</code>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 10: DML - UPDATE -->
+    <div v-if="current === 10" class="slide-wrapper">
+      <div class="slide-meta-row">
+        <span class="stage-pill stage-c">Etapa 3 · DML: Actualización</span>
+        <span class="objective-chip"><span class="obj-tag">UPDATE</span> Modificando registros existentes</span>
+      </div>
+      <h2 class="slide-title">Actualizando Datos con <code>UPDATE</code></h2>
+      <p>La sentencia <code>UPDATE</code> modifica una o más columnas de las filas que cumplan la condición indicada en la cláusula <code>WHERE</code>.</p>
+
+      <pre class="code-block" style="font-size: 13.5px;"><span class="lang-label">Oracle SQL · DML</span><code class="language-sql">-- 1. Actualizar un registro específico usando su Clave Primaria (PK):
+UPDATE empleado
+SET sueldo_base = 1100000,
+    modalidad   = 'HIBRIDO'
+WHERE id_empleado = 101;
+
+-- 2. Actualización masiva con cálculo matemático (+10% de reajuste al depto 10):
+UPDATE empleado
+SET sueldo_base = sueldo_base * 1.10
+WHERE id_depto = 10;</code></pre>
+
+      <div class="callout callout-rosa" style="border-left: 5px solid #DC2626;">
+        <strong>🚨 LA REGLA DE ORO DEL <code>UPDATE</code>: ¡Nunca olvides el <code>WHERE</code>!</strong><br>
+        Si ejecutas <code>UPDATE empleado SET sueldo_base = 500000;</code> sin cláusula <code>WHERE</code>, el motor actualizará <strong>ABSOLUTAMENTE TODAS LAS FILAS DE LA TABLA</strong> (desde el practicante hasta el gerente general). Además, todo <code>UPDATE</code> también pasa por la revisión de los <code>CHECK</code> y <code>FOREIGN KEY</code>.
+      </div>
+    </div>
+
+    <!-- SLIDE 11: DML - DELETE Y TRANSACCIONES -->
+    <div v-if="current === 11" class="slide-wrapper">
+      <div class="slide-meta-row">
+        <span class="stage-pill stage-c">Etapa 3 · DML: Eliminación</span>
+        <span class="objective-chip"><span class="obj-tag">DELETE</span> Borrado de filas e integridad referencial</span>
+      </div>
+      <h2 class="slide-title">Eliminando Filas con <code>DELETE FROM</code></h2>
+      <p><code>DELETE</code> elimina filas completas de una tabla según el filtro <code>WHERE</code>, manteniendo intacta la estructura de la tabla y sus restricciones.</p>
+
+      <div class="two-col">
+        <div>
+          <pre class="code-block" style="font-size: 13px; padding: 14px;"><code class="language-sql">-- 1. Borrar un registro puntual por su PK:
+DELETE FROM empleado
+WHERE id_empleado = 101;
+
+-- 2. Borrar con condición compuesta (AND):
+DELETE FROM empleado
+WHERE modalidad = 'REMOTO'
+  AND sueldo_base < 600000;
+
+-- 3. ¡PELIGRO! Sin WHERE vacía toda la tabla:
+DELETE FROM empleado;</code></pre>
+        </div>
+
+        <div>
+          <div class="card card-amarillo" style="margin-bottom: 12px;">
+            <strong>🔒 Protección de Clave Foránea al Borrar</strong>
+            <p style="font-size: 13.5px; margin-top: 6px;">Si intentas borrar el departamento <code>10</code> (<code>DELETE FROM departamento WHERE id_depto = 10;</code>) mientras aún tiene empleados trabajando en él, Oracle bloqueará la orden con el error <code>ORA-02292: child record found</code>. Primero debes reasignar o borrar a los hijos.</p>
+          </div>
+          <div class="card" style="background: var(--bg-soft);">
+            <strong>💾 <code>COMMIT</code> y <code>ROLLBACK</code></strong>
+            <p style="font-size: 13.5px; margin-top: 6px;">En Oracle, tus cambios de <code>INSERT</code>, <code>UPDATE</code> y <code>DELETE</code> se confirman permanentemente con <code>COMMIT;</code> o se deshacen en caso de accidente con <code>ROLLBACK;</code>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 12: SELECT FUNDAMENTAL -->
+    <div v-if="current === 12" class="slide-wrapper">
+      <div class="slide-meta-row">
+        <span class="stage-pill stage-d">Etapa 4 · Consultas SQL</span>
+        <span class="objective-chip"><span class="obj-tag">SELECT</span> Proyección, cálculos y alias</span>
+      </div>
+      <h2 class="slide-title">Consultando Datos: <code>SELECT</code>, Cálculos y Alias</h2>
+      <p>La sentencia <code>SELECT</code> permite leer y transformar los datos en información útil sin alterar lo que está guardado en el disco.</p>
+
+      <pre class="code-block" style="font-size: 13.5px;"><span class="lang-label">Oracle SQL · SELECT</span><code class="language-sql">-- 1. Consultar todas las columnas de una tabla:
+SELECT * FROM empleado;
+
+-- 2. Seleccionar columnas específicas, calcular expresiones y renombrar con AS:
+SELECT nombre                     AS nombre_trabajador,
+       sueldo_base                AS sueldo_mensual,
+       sueldo_base * 12           AS sueldo_anual,
+       ROUND(sueldo_base * 0.20)  AS bono_estimado
+FROM empleado;</code></pre>
+
+      <div class="concept-grid">
+        <div class="concept-card">
+          <span class="cc-badge">PROYECCIÓN</span>
+          <h4>Elegir Columnas</h4>
+          <p>En lugar de traer todo con <code>*</code>, indica solo las columnas que necesita tu reporte separadas por coma.</p>
+        </div>
+        <div class="concept-card">
+          <span class="cc-badge">ARITMÉTICA</span>
+          <h4>Cálculos al Vuelo</h4>
+          <p>Puedes sumar <code>+</code>, restar <code>-</code>, multiplicar <code>*</code>, dividir <code>/</code> y redondear con <code>ROUND(valor, decimales)</code>.</p>
+        </div>
+        <div class="concept-card">
+          <span class="cc-badge">ALIAS (<code>AS</code>)</span>
+          <h4>Títulos Legibles</h4>
+          <p><code>AS nuevo_nombre</code> cambia el encabezado de la columna en el resultado visual sin cambiar la tabla real.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 13: SELECT CON WHERE Y OPERADORES -->
+    <div v-if="current === 13" class="slide-wrapper">
+      <div class="slide-meta-row">
+        <span class="stage-pill stage-d">Etapa 4 · Filtrado de Filas</span>
+        <span class="objective-chip"><span class="obj-tag">WHERE</span> Operadores lógicos y especiales</span>
+      </div>
+      <h2 class="slide-title">Filtrando Filas con <code>WHERE</code> y sus Operadores</h2>
+      <p>La cláusula <code>WHERE</code> filtra qué filas aparecen en el resultado. Más allá de <code>=</code>, <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code> y <code>&lt;&gt;</code> (distinto), SQL ofrece 4 operadores clave:</p>
+
+      <div class="two-col">
+        <div>
+          <pre class="code-block" style="font-size: 13px; padding: 14px;"><code class="language-sql">-- 1. Rango inclusivo con BETWEEN:
+SELECT nombre, sueldo_base
+FROM empleado
+WHERE sueldo_base BETWEEN 700000 AND 1200000;
+
+-- 2. Lista de valores con IN:
+SELECT nombre, modalidad
+FROM empleado
+WHERE modalidad IN ('REMOTO', 'HIBRIDO');</code></pre>
+        </div>
+
+        <div>
+          <pre class="code-block" style="font-size: 13px; padding: 14px;"><code class="language-sql">-- 3. Búsqueda de patrones de texto con LIKE:
+-- '%' representa cualquier secuencia de caracteres
+SELECT nombre FROM empleado
+WHERE nombre LIKE 'Ana%'; -- Empieza con 'Ana'
+
+-- 4. Evaluar valores nulos (¡NUNCA uses = NULL!):
+SELECT nombre FROM empleado
+WHERE id_jefe IS NULL;     -- No tiene jefe
+-- O bien: WHERE id_jefe IS NOT NULL;</code></pre>
+        </div>
+      </div>
+
+      <div class="callout callout-celeste">
+        <strong>💡 Combinando condiciones:</strong> Usa <code>AND</code> cuando <em>ambas</em> condiciones deben cumplirse al mismo tiempo, y <code>OR</code> cuando basta con que se cumpla <em>al menos una</em> (usa paréntesis si mezclas <code>AND</code> y <code>OR</code>).
+      </div>
+    </div>
+
+    <!-- SLIDE 14: ORDER BY, AGREGACIÓN, GROUP BY E INNER JOIN -->
+    <div v-if="current === 14" class="slide-wrapper">
+      <div class="slide-meta-row">
+        <span class="stage-pill stage-d">Etapa 4 · Nivel Intermedio-Avanzado</span>
+        <span class="objective-chip"><span class="obj-tag">Reportería</span> ORDER BY, GROUP BY e INNER JOIN</span>
+      </div>
+      <h2 class="slide-title">Ordenamiento, Agrupación y Cruce de Tablas (<code>JOIN</code>)</h2>
+      <p>Para resolver los últimos ejercicios del desafío de hoy, combinaremos estas tres herramientas de análisis:</p>
+
+      <div class="two-col">
+        <div>
+          <h4>1. Ordenar (<code>ORDER BY</code>) y Resumir (<code>GROUP BY</code>)</h4>
+          <pre class="code-block" style="font-size: 12.5px; padding: 14px;"><code class="language-sql">-- Funciones de agregación:
+-- COUNT(*), SUM(col), AVG(col), MIN(col), MAX(col)
+SELECT modalidad,
+       COUNT(*)               AS total_empleados,
+       ROUND(AVG(sueldo_base)) AS sueldo_promedio
+FROM empleado
+GROUP BY modalidad
+ORDER BY total_empleados DESC; -- ASC o DESC</code></pre>
+        </div>
+
+        <div>
+          <h4>2. Unir Tablas Normalizadas (<code>INNER JOIN</code>)</h4>
+          <pre class="code-block" style="font-size: 12.5px; padding: 14px;"><code class="language-sql">-- Conecta la FK de la tabla hija con la PK de la padre:
+SELECT e.nombre        AS empleado,
+       e.sueldo_base,
+       d.nombre_depto  AS departamento
+FROM empleado e
+INNER JOIN departamento d
+    ON e.id_depto = d.id_depto
+ORDER BY d.nombre_depto ASC;</code></pre>
+        </div>
+      </div>
+
+      <div class="pedagogical-question">
+        <span class="q-badge">Orden Sagrado de Escritura en un SELECT</span>
+        <div class="q-content"><code>SELECT</code> (columnas) → <code>FROM</code> (tabla base) → <code>INNER JOIN ... ON</code> (cruces) → <code>WHERE</code> (filtros de fila) → <code>GROUP BY</code> (agrupación) → <code>ORDER BY</code> (orden final).</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 15: INTRODUCCIÓN AL CASO NINTENDO ESHOP -->
+    <div v-if="current === 15" class="slide-wrapper">
+      <div class="slide-meta-row">
+        <span class="stage-pill stage-e">Etapa 5 · Caso Práctico de Laboratorio</span>
+        <span class="objective-chip"><span class="obj-tag">Misión</span> Construir y operar Nintendo eShop en Oracle SQL</span>
+      </div>
+      <h2 class="slide-title">🎮 Caso de Estudio: Nintendo eShop Latinoamérica</h2>
+      <p>Nintendo está desplegando el motor relacional de su catálogo oficial y programa de recompensas <strong>My Nintendo</strong> en Latinoamérica. Tu misión como ingeniero de datos en tu primera sesión SQL es construir las 4 tablas del modelo con todas sus restricciones y superar las <strong>5 misiones de 10 ejercicios progresivos cada una (50 desafíos en total)</strong>.</p>
+
+      <div class="concept-grid" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="concept-card" style="border-top: 4px solid #1E293B;">
+          <span class="cc-badge">TABLA 1 (PADRE)</span>
+          <h4><code>CONSOLA</code></h4>
+          <p>Hardware oficial (Switch, Switch 2, 3DS, GameCube) con validaciones de tipo, año (1983–2030), precio y estado.</p>
+        </div>
+        <div class="concept-card" style="border-top: 4px solid #1E293B;">
+          <span class="cc-badge">TABLA 2 (PADRE)</span>
+          <h4><code>FRANQUICIA</code></h4>
+          <p>Sagas legendarias (Mario, Zelda, Pokémon, Metroid, Smash) con su creador, año de debut y estudio.</p>
+        </div>
+        <div class="concept-card" style="border-top: 4px solid #E60012;">
+          <span class="cc-badge" style="background:#FEE2E2; color:#991B1B;">TABLA 3 (HIJA)</span>
+          <h4><code>VIDEOJUEGO</code></h4>
+          <p>Catálogo de juegos conectado por doble <code>FK</code> a Consola y Franquicia, con ESRB, Metacritic (0–100) y stock.</p>
+        </div>
+        <div class="concept-card" style="border-top: 4px solid #2563EB;">
+          <span class="cc-badge" style="background:#DBEAFE; color:#1E40AF;">TABLA 4 (HIJA OPC.)</span>
+          <h4><code>JUGADOR</code></h4>
+          <p>Usuarios My Nintendo con nickname/email únicos, monedas de oro, suscripción online y <code>FK</code> opcional a su juego favorito.</p>
+        </div>
+      </div>
+
+      <div class="callout callout-menta" style="margin-top: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+        <div>
+          <strong>🚀 ¿Listos para programar en Oracle SQL Developer / APEX?</strong><br>
+          <span>Abre el Modo Laboratorio para ver el esquema detallado de las 4 tablas, sus restricciones exactas y los 50 ejercicios progresivos con pistas.</span>
+        </div>
+        <button class="nav-btn primary" style="background: var(--nintendo-red); border-color: var(--nintendo-red); font-size: 15px; padding: 12px 22px;" @click="setMode('lab')">
+          Abrir Laboratorio Nintendo eShop (50 Ejercicios) 🎮
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- BARRA DE NOTAS DOCENTE (SOLO EN MODO SLIDES CUANDO ESTÁ ACTIVA) -->
+  <div v-if="viewMode === 'slides' && showNotes" class="teacher-notes-bar">
+    <div><span class="tn-badge">⏱️ {{ currentTeacherNote.time }}</span></div>
+    <div><strong>Guion Docente:</strong> {{ currentTeacherNote.script }}</div>
+    <div><strong>Tip de Clase:</strong> {{ currentTeacherNote.tip }}</div>
+  </div>
+
+  <!-- BOTTOMBAR DE NAVEGACIÓN DE SLIDES -->
+  <footer v-if="viewMode === 'slides'" class="slide-bottombar">
+    <button class="nav-btn" :disabled="current === 0" @click="prev">← Anterior</button>
+    <div class="dots">
+      <span
+        v-for="(s, idx) in slides"
+        :key="idx"
+        class="dot"
+        :class="{ active: current === idx }"
+        :title="s.title"
+        @click="goTo(idx)">
+      </span>
+    </div>
+    <button v-if="current < slides.length - 1" class="nav-btn primary" @click="next">Siguiente →</button>
+    <button v-else class="nav-btn primary" style="background: var(--nintendo-red); border-color: var(--nintendo-red);" @click="setMode('lab')">Ir al Caso Nintendo 🎮 →</button>
+  </footer>
+
+  <!-- DRAWER DE ÍNDICE DE SLIDES -->
+  <div v-if="showDrawer" class="drawer-backdrop" @click.self="toggleDrawer">
+    <div class="drawer-panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+        <h3 style="margin:0; font-size:18px;">Índice de Diapositivas</h3>
+        <button class="tool-btn" @click="toggleDrawer">✕ Cerrar</button>
+      </div>
+      <div
+        v-for="(s, idx) in slides"
+        :key="idx"
+        class="drawer-item"
+        :class="{ active: current === idx }"
+        @click="goTo(idx)">
+        <span style="font-family:var(--font-mono); font-weight:800; opacity:0.7;">{{ String(idx + 1).padStart(2, '0') }}</span>
+        <span>{{ s.title }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODO 2: LABORATORIO NINTENDO ESHOP (ESQUEMA + 50 EJERCICIOS PROGRESIVOS)
+       ========================================================================= -->
+  <div v-if="viewMode === 'lab'" class="lab-scroll-area">
+    <div class="lab-container">
+
+      <!-- HERO NINTENDO -->
+      <div class="nintendo-hero">
+        <div>
+          <span class="nintendo-pill">Misión Práctica · Unidad 3</span>
+          <h2>🍄 Caso: Nintendo eShop &amp; My Nintendo</h2>
+          <p>Diseña el esquema físico en Oracle SQL con sus restricciones de integridad y resuelve las 5 misiones progresivas (10 desafíos de DDL, 10 de <code>INSERT</code>, 10 de <code>UPDATE</code>, 10 de <code>DELETE</code> y 10 de <code>SELECT</code>).</p>
+        </div>
+        <div class="hero-progress-box">
+          <div class="hero-progress-num">{{ completedTotal }} / 50</div>
+          <div class="hero-progress-label">Desafíos Completados ({{ Math.round(completedTotal / 50 * 100) }}%)</div>
+        </div>
+      </div>
+
+      <!-- PESTAÑAS DE MISIONES -->
+      <nav class="mission-tabs" aria-label="Misiones del Caso Nintendo">
+        <button
+          v-for="m in missions"
+          :key="m.id"
+          class="mission-tab"
+          :class="{ active: activeMission === m.id }"
+          @click="selectMission(m.id)">
+          <span>{{ m.icon }} {{ m.name }}</span>
+          <span class="m-count">{{ getMissionDoneCount(m.id) }}/10</span>
+        </button>
+      </nav>
+
+      <!-- DIAGRAMA Y ESPECIFICACIÓN DEL MODELO RELACIONAL (SIEMPRE DISPONIBLE EN ACORDEÓN O EN MISIÓN DDL) -->
+      <details class="engine-tip" :open="activeMission === 'ddl'" style="max-width: 100%; margin-bottom: 24px; border: 2px solid var(--ink);">
+        <summary style="font-size: 14.5px; font-weight: 800; color: var(--ink); background: #F1F5F9; padding: 14px 18px;">
+          🗺️ Especificación Oficial del Modelo Relacional Nintendo eShop (4 Tablas y sus Restricciones) — Haz clic para mostrar/ocultar
+        </summary>
+        <div class="engine-tip-content" style="padding: 20px;">
+          <p style="margin-bottom: 12px;">Estudia detenidamente la estructura de las 4 tablas oficiales del caso. Respeta exactamente los nombres de tablas, nombres de columnas y tipos de datos para que todas tus consultas funcionen a la perfección:</p>
+
+          <div class="schema-grid">
+            <!-- TABLA 1: CONSOLA -->
+            <div class="schema-card">
+              <div class="schema-header">
+                <span>1. CONSOLA</span>
+                <span style="font-size:10px; opacity:0.8;">PADRE</span>
+              </div>
+              <ul class="schema-cols">
+                <li>
+                  <div class="col-top"><span>id_consola</span><span class="col-type">NUMBER(4)</span></div>
+                  <div class="badge-row"><span class="c-badge pk">PRIMARY KEY</span></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>nombre_consola</span><span class="col-type">VARCHAR2(60)</span></div>
+                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge uq">UNIQUE</span></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>tipo_consola</span><span class="col-type">VARCHAR2(20)</span></div>
+                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                  <div class="col-rule">En línea: <code>CHECK (tipo_consola IN ('SOBREMESA', 'PORTATIL', 'HIBRIDA'))</code></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>anio_lanzamiento</span><span class="col-type">NUMBER(4)</span></div>
+                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                  <div class="col-rule">En línea: <code>CHECK (anio_lanzamiento BETWEEN 1983 AND 2030)</code></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>precio_referencia_usd</span><span class="col-type">NUMBER(6,2)</span></div>
+                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                  <div class="col-rule">En línea: <code>CHECK (precio_referencia_usd &gt; 0)</code></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>estado_fabricacion</span><span class="col-type">VARCHAR2(15)</span></div>
+                  <div class="badge-row"><span class="c-badge def">DEFAULT 'ACTIVA'</span><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                  <div class="col-rule">En línea: <code>CHECK (estado_fabricacion IN ('ACTIVA', 'DESCONTINUADA'))</code></div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- TABLA 2: FRANQUICIA -->
+            <div class="schema-card">
+              <div class="schema-header">
+                <span>2. FRANQUICIA</span>
+                <span style="font-size:10px; opacity:0.8;">PADRE</span>
+              </div>
+              <ul class="schema-cols">
+                <li>
+                  <div class="col-top"><span>id_franquicia</span><span class="col-type">NUMBER(4)</span></div>
+                  <div class="badge-row"><span class="c-badge pk">PRIMARY KEY</span></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>nombre_franquicia</span><span class="col-type">VARCHAR2(60)</span></div>
+                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge uq">UNIQUE</span></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>creador_principal</span><span class="col-type">VARCHAR2(80)</span></div>
+                  <div class="col-rule">Opcional (sin <code>NOT NULL</code>; permite <code>NULL</code>).</div>
+                </li>
+                <li>
+                  <div class="col-top"><span>anio_debut</span><span class="col-type">NUMBER(4)</span></div>
+                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                  <div class="col-rule">En línea: <code>CHECK (anio_debut &gt;= 1980)</code></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>estudio_principal</span><span class="col-type">VARCHAR2(60)</span></div>
+                  <div class="badge-row"><span class="c-badge def">DEFAULT 'Nintendo EPD'</span><span class="c-badge nn">NOT NULL</span></div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- TABLA 3: VIDEOJUEGO -->
+            <div class="schema-card">
+              <div class="schema-header child-table">
+                <span>3. VIDEOJUEGO</span>
+                <span style="font-size:10px; opacity:0.9;">HIJA (2 FKs)</span>
+              </div>
+              <ul class="schema-cols">
+                <li>
+                  <div class="col-top"><span>id_juego</span><span class="col-type">NUMBER(6)</span></div>
+                  <div class="badge-row"><span class="c-badge pk">PRIMARY KEY</span></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>codigo_catalogo</span><span class="col-type">VARCHAR2(10)</span></div>
+                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge uq">UNIQUE</span></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>titulo</span><span class="col-type">VARCHAR2(100)</span></div>
+                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>id_franquicia</span><span class="col-type">NUMBER(4)</span></div>
+                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge fk">REFERENCES franquicia(id_franquicia)</span></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>id_consola</span><span class="col-type">NUMBER(4)</span></div>
+                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge fk">REFERENCES consola(id_consola)</span></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>clasificacion_esrb</span><span class="col-type">VARCHAR2(5)</span></div>
+                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                  <div class="col-rule">En línea: <code>CHECK (clasificacion_esrb IN ('E', 'E10+', 'T', 'M'))</code></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>precio_clp</span><span class="col-type">NUMBER(8)</span></div>
+                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                  <div class="col-rule">En línea: <code>CHECK (precio_clp &gt;= 0)</code></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>puntaje_metacritic</span><span class="col-type">NUMBER(3)</span></div>
+                  <div class="badge-row"><span class="c-badge chk">CHECK (...)</span></div>
+                  <div class="col-rule">Opcional (sin <code>NOT NULL</code>). En línea: <code>CHECK (puntaje_metacritic BETWEEN 0 AND 100)</code></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>stock_fisico</span><span class="col-type">NUMBER(5)</span></div>
+                  <div class="badge-row"><span class="c-badge def">DEFAULT 0</span><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                  <div class="col-rule">En línea: <code>CHECK (stock_fisico &gt;= 0)</code></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>fecha_lanzamiento</span><span class="col-type">DATE</span></div>
+                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span></div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- TABLA 4: JUGADOR -->
+            <div class="schema-card">
+              <div class="schema-header" style="background:#1E40AF;">
+                <span>4. JUGADOR</span>
+                <span style="font-size:10px; opacity:0.9;">HIJA OPCIONAL</span>
+              </div>
+              <ul class="schema-cols">
+                <li>
+                  <div class="col-top"><span>id_jugador</span><span class="col-type">NUMBER(6)</span></div>
+                  <div class="badge-row"><span class="c-badge pk">PRIMARY KEY</span></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>nickname</span><span class="col-type">VARCHAR2(30)</span></div>
+                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge uq">UNIQUE</span></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>email</span><span class="col-type">VARCHAR2(100)</span></div>
+                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge uq">UNIQUE</span></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>pais</span><span class="col-type">VARCHAR2(40)</span></div>
+                  <div class="badge-row"><span class="c-badge def">DEFAULT 'Chile'</span><span class="c-badge nn">NOT NULL</span></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>monedas_oro</span><span class="col-type">NUMBER(6)</span></div>
+                  <div class="badge-row"><span class="c-badge def">DEFAULT 0</span><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                  <div class="col-rule">En línea: <code>CHECK (monedas_oro &gt;= 0)</code></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>suscripcion_online</span><span class="col-type">VARCHAR2(15)</span></div>
+                  <div class="badge-row"><span class="c-badge def">DEFAULT 'GRATUITA'</span><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                  <div class="col-rule">En línea: <code>CHECK (suscripcion_online IN ('GRATUITA', 'INDIVIDUAL', 'FAMILIAR', 'EXPANSION'))</code></div>
+                </li>
+                <li>
+                  <div class="col-top"><span>id_juego_favorito</span><span class="col-type">NUMBER(6)</span></div>
+                  <div class="badge-row"><span class="c-badge fk">REFERENCES videojuego(id_juego)</span></div>
+                  <div class="col-rule">Opcional (sin <code>NOT NULL</code>; permite <code>NULL</code>).</div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- CABECERA DE LA MISIÓN ACTIVA -->
+      <div style="margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h3 style="margin: 0 0 4px;">{{ currentMissionObj.icon }} {{ currentMissionObj.title }}</h3>
+          <p style="margin: 0; font-size: 14.5px; color: var(--ink-soft);">{{ currentMissionObj.subtitle }}</p>
+        </div>
+        <div style="font-size: 13px; font-weight: 700; color: var(--ink-soft); background: #FFFFFF; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line);">
+          Progreso de la misión: <strong>{{ getMissionDoneCount(activeMission) }} / 10</strong>
+        </div>
+      </div>
+
+      <!-- LISTADO DE LOS 10 EJERCICIOS DE LA MISIÓN ACTIVA -->
+      <div
+        v-for="ex in currentExercises"
+        :key="ex.code"
+        class="exercise-card"
+        :class="{ completed: completedMap[ex.code] }">
+        <div class="ex-header">
+          <div class="ex-title-group">
+            <span class="ex-num-badge">{{ ex.code }}</span>
+            <span class="tag" :class="'tag-' + ex.level">
+              {{ ex.level === 'base' ? '🟢 Nivel Base' : (ex.level === 'inter' ? '🔵 Nivel Intermedio' : '🟣 Nivel Avanzado') }}
+            </span>
+            <h4 class="ex-title">{{ ex.title }}</h4>
+          </div>
+          <label class="ex-check-label">
+            <input type="checkbox" :checked="!!completedMap[ex.code]" @change="toggleEx(ex.code)">
+            <span>{{ completedMap[ex.code] ? 'Completado' : 'Marcar resuelto' }}</span>
+          </label>
+        </div>
+
+        <div class="ex-body" v-html="ex.desc"></div>
+
+        <div v-if="ex.data" class="ex-data-box">{{ ex.data }}</div>
+
+        <details class="hint-box">
+          <summary>💡 Ver pista conceptual y recordatorio de sintaxis</summary>
+          <div class="hint-box-content" v-html="ex.hint"></div>
+        </details>
+      </div>
+
+      <!-- NAVEGACIÓN ENTRE MISIONES AL FINAL DE LA PÁGINA -->
+      <div class="tab-nav-bar" style="display:flex; justify-content:space-between; margin-top: 28px; padding-top: 20px; border-top: 2px solid var(--line);">
+        <button v-if="currentMissionIndex > 0" class="nav-btn" @click="selectMission(missions[currentMissionIndex - 1].id)">
+          ← Misión Anterior: {{ missions[currentMissionIndex - 1].name }}
+        </button>
+        <div v-else></div>
+        <button v-if="currentMissionIndex < missions.length - 1" class="nav-btn primary" @click="selectMission(missions[currentMissionIndex + 1].id)">
+          Siguiente Misión: {{ missions[currentMissionIndex + 1].name }} →
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const { createApp } = Vue;
+
+  createApp({
+    data() {
+      return {
+        viewMode: 'slides', // 'slides' | 'lab'
+        current: 0,
+        isZoomed: false,
+        showNotes: false,
+        showDrawer: false,
+        activeMission: 'ddl',
+
+        // Estado del Checkpoint 1
+        q1_done: false,
+        q1_sel: null,
+        q1_ok: false,
+
+        // Mapa de ejercicios completados (persistido en localStorage)
+        completedMap: {},
+
+        slides: [
+          { title: 'Portada: Fundamentos de DDL y DML en SQL' },
+          { title: '¿Cómo se organiza el lenguaje SQL? (DDL vs DML)' },
+          { title: 'Tipos de Datos Fundamentales en Oracle' },
+          { title: 'Anatomía de CREATE TABLE' },
+          { title: 'Las 6 Restricciones (Constraints) Fundamentales' },
+          { title: 'Dominando la Restricción CHECK' },
+          { title: 'Ejemplo Integral DDL: DEPARTAMENTO y EMPLEADO' },
+          { title: 'Modificando y Destruyendo Estructuras: ALTER y DROP' },
+          { title: 'Checkpoint Formativo #1: Diagnóstico de Constraints' },
+          { title: 'Poblando Tablas con INSERT INTO' },
+          { title: 'Actualizando Datos con UPDATE' },
+          { title: 'Eliminando Filas con DELETE FROM y Transacciones' },
+          { title: 'Consultando Datos: SELECT, Cálculos y Alias' },
+          { title: 'Filtrando Filas con WHERE y sus Operadores' },
+          { title: 'Ordenamiento (ORDER BY), Agrupación (GROUP BY) e INNER JOIN' },
+          { title: 'Presentación del Caso Práctico: Nintendo eShop' }
+        ],
+
+        teacherNotes: [
+          { time: '3 min', script: 'Bienvenidos a la Unidad 3. Hoy pasamos de dibujar cajas en Data Modeler a programar en SQL real sobre Oracle Database.', tip: 'Muestre que al final de la presentación aplicaremos todo en el Caso Nintendo eShop con 50 ejercicios.' },
+          { time: '4 min', script: 'Enfatice la diferencia entre estructura (DDL) y filas (DML). Un error clásico de primer año es confundir DROP TABLE con DELETE.', tip: 'Use la analogía del edificio (DDL) y los clientes dentro del edificio (DML).' },
+          { time: '4 min', script: 'Explique por qué Oracle usa VARCHAR2 y NUMBER. Destaque la diferencia entre NUMBER(5) para enteros y NUMBER(8,2) para decimales.', tip: 'Abra el acordeón solo si algún alumno pregunta por MySQL o PostgreSQL.' },
+          { time: '4 min', script: 'Muestre la anatomía de CREATE TABLE. Resalte que la última línea antes de cerrar el paréntesis NO lleva coma.', tip: 'Recuerde la regla de crear primero las tablas Padre y luego las tablas Hija.' },
+          { time: '5 min', script: 'Presente las 6 constraints como los guardianes del motor. Pregunte qué pasaría si una web tiene un bug y envía un precio negativo.', tip: 'Relacione PK con #, NOT NULL con * y FK con las patas de gallo vistas en las Unidades 1 y 2.' },
+          { time: '6 min', script: 'Dedique tiempo especial a CHECK en línea: muestre los 4 patrones (rangos, listas IN, combinación con DEFAULT y LENGTH).', tip: 'Recalque que los textos dentro de IN (\'ACTIVO\') distinguen mayúsculas de minúsculas.' },
+          { time: '5 min', script: 'Analice línea por línea cómo EMPLEADO declara PRIMARY KEY, UNIQUE, CHECK y REFERENCES directamente en la línea de cada columna.', tip: 'Haga notar la simpleza de conectar la FK en línea con REFERENCES departamento(id_depto).' },
+          { time: '4 min', script: 'Explique ALTER TABLE (ADD con restricciones en línea, MODIFY, DROP COLUMN) y DROP TABLE.', tip: 'Enfatice que al hacer DROP TABLE el orden se invierte: primero se borran las hijas y luego las padres.' },
+          { time: '3 min', script: 'Pida a mano alzada que voten A, B, C o D antes de hacer clic en la opción.', tip: 'Aclare que DEFAULT no corrige datos inválidos; solo actúa cuando la columna se omite en el INSERT.' },
+          { time: '5 min', script: 'Enseñe INSERT INTO. Destaque el uso de comillas simples para texto, TO_DATE para fechas y cómo omitir una columna activa su DEFAULT.', tip: 'Advierta que nunca usen comillas dobles para cadenas de texto en Oracle.' },
+          { time: '4 min', script: 'Enseñe UPDATE. Haga énfasis dramático en qué ocurre cuando alguien olvida escribir el WHERE.', tip: 'Muestre cómo SET permite cálculos matemáticos sobre el valor actual de la columna.' },
+          { time: '4 min', script: 'Enseñe DELETE FROM y el bloqueo por integridad referencial (ORA-02292) si intentan borrar un padre con hijos.', tip: 'Mencione COMMIT y ROLLBACK como red de seguridad ante un DELETE o UPDATE accidental.' },
+          { time: '4 min', script: 'Introduzca SELECT, columnas calculadas y alias con AS.', tip: 'Aclare que una columna calculada en un SELECT no modifica el dato guardado en la tabla.' },
+          { time: '5 min', script: 'Revise los operadores de WHERE: BETWEEN, IN, LIKE (con comodín %) e IS NULL / IS NOT NULL.', tip: 'Subraye que escribir WHERE columna = NULL es un error lógico clásico; siempre es IS NULL.' },
+          { time: '5 min', script: 'Cierre la teoría mostrando ORDER BY, funciones de agregación con GROUP BY y cómo unir dos tablas con INNER JOIN ... ON.', tip: 'Señale el orden sagrado de las cláusulas al final de la diapositiva.' },
+          { time: '3 min', script: 'Presente las 4 tablas del Caso Nintendo eShop y cambie al Modo Laboratorio con el botón rojo.', tip: 'Indique que deben resolver los ejercicios en orden porque los datos insertados se usan en UPDATE, DELETE y SELECT.' }
+        ],
+
+        missions: [
+          { id: 'ddl',    icon: '🏗️', name: '1. DDL y Constraints', title: 'Misión 1: DDL — Creación de Tablas, Constraints, ALTER y DROP', subtitle: 'Construye el esquema físico de Nintendo eShop en Oracle SQL y pon a prueba la evolución estructural.' },
+          { id: 'insert', icon: '🟢', name: '2. INSERT INTO',       title: 'Misión 2: DML — Poblamiento de Tablas con INSERT INTO',          subtitle: 'Carga consolas, franquicias, videojuegos y jugadores verificando cómo actúan DEFAULT, NULL y las Constraints.' },
+          { id: 'update', icon: '🔵', name: '3. UPDATE',            title: 'Misión 3: DML — Actualización de Registros con UPDATE',          subtitle: 'Actualiza stock, precios en oferta, membresías y monedas de oro usando filtros WHERE precisos.' },
+          { id: 'delete', icon: '🔴', name: '4. DELETE',            title: 'Misión 4: DML — Eliminación Segura con DELETE FROM',            subtitle: 'Depura registros cancelados, usuarios bots y consolas descontinuadas respetando la integridad referencial.' },
+          { id: 'select', icon: '🟣', name: '5. SELECT',            title: 'Misión 5: Consultas Progresivas con SELECT',                    subtitle: 'Desde consultas básicas y filtros WHERE hasta reportes ejecutivos con INNER JOIN y GROUP BY.' }
+        ],
+
+        exercises: {
+          ddl: [
+            {
+              code: 'DDL-01', level: 'base',
+              title: 'Creación de la Tabla Maestra CONSOLA (Restricciones en Línea)',
+              desc: 'Escribe la sentencia <code>CREATE TABLE consola</code> declarando todas las restricciones directamente <strong>en la misma línea de cada columna</strong>: <code>PRIMARY KEY</code> en <code>id_consola</code>, <code>NOT NULL UNIQUE</code> en <code>nombre_consola</code>, <code>DEFAULT \'ACTIVA\' NOT NULL</code> en <code>estado_fabricacion</code> y los <strong>4 <code>CHECK</code> en línea</strong> correspondientes a <code>tipo_consola</code>, <code>anio_lanzamiento</code>, <code>precio_referencia_usd</code> y <code>estado_fabricacion</code>.',
+              data: 'Columnas: id_consola NUMBER(4), nombre_consola VARCHAR2(60), tipo_consola VARCHAR2(20), anio_lanzamiento NUMBER(4), precio_referencia_usd NUMBER(6,2), estado_fabricacion VARCHAR2(15).',
+              hint: 'Escribe todo en la línea de cada columna. Por ejemplo, para el tipo usa: <code>tipo_consola VARCHAR2(20) NOT NULL CHECK (tipo_consola IN (\'SOBREMESA\', \'PORTATIL\', \'HIBRIDA\')),</code> y para el estado: <code>estado_fabricacion VARCHAR2(15) DEFAULT \'ACTIVA\' NOT NULL CHECK (estado_fabricacion IN (\'ACTIVA\', \'DESCONTINUADA\'))</code>.'
+            },
+            {
+              code: 'DDL-02', level: 'base',
+              title: 'Creación de la Tabla Maestra FRANQUICIA (Restricciones en Línea)',
+              desc: 'Escribe la sentencia <code>CREATE TABLE franquicia</code> declarando sus restricciones en la línea de cada columna: <code>PRIMARY KEY</code> en <code>id_franquicia</code>, <code>NOT NULL UNIQUE</code> en <code>nombre_franquicia</code>, deja <code>creador_principal</code> como opcional (sin <code>NOT NULL</code>), configura <code>DEFAULT \'Nintendo EPD\' NOT NULL</code> en <code>estudio_principal</code> y agrega en la línea de <code>anio_debut</code> su <code>CHECK (anio_debut &gt;= 1980)</code>.',
+              data: 'Columnas: id_franquicia NUMBER(4), nombre_franquicia VARCHAR2(60), creador_principal VARCHAR2(80), anio_debut NUMBER(4), estudio_principal VARCHAR2(60).',
+              hint: 'Para que una columna sea opcional en Oracle simplemente omite <code>NOT NULL</code> en su línea. Recuerda que en una misma línea el orden es: <code>nombre_col TIPO DEFAULT valor NOT NULL CHECK (...)</code>.'
+            },
+            {
+              code: 'DDL-03', level: 'inter',
+              title: 'Creación de la Tabla Hija VIDEOJUEGO (con REFERENCES y CHECKs en Línea)',
+              desc: 'Crea la tabla central <code>videojuego</code> declarando todas las restricciones en la misma línea de cada columna: <code>PRIMARY KEY</code> en <code>id_juego</code>, <code>NOT NULL UNIQUE</code> en <code>codigo_catalogo</code>, las <strong>2 claves foráneas en línea</strong> usando <code>REFERENCES franquicia(id_franquicia)</code> y <code>REFERENCES consola(id_consola)</code>, y los <strong>4 <code>CHECK</code> en línea</strong> (<code>clasificacion_esrb IN (\'E\', \'E10+\', \'T\', \'M\')</code>, <code>precio_clp &gt;= 0</code>, <code>puntaje_metacritic BETWEEN 0 AND 100</code>, <code>stock_fisico &gt;= 0</code>).',
+              data: 'Nota: puntaje_metacritic es opcional (sin NOT NULL, pero con su CHECK en la misma línea) y stock_fisico lleva DEFAULT 0 NOT NULL CHECK (stock_fisico >= 0).',
+              hint: 'Para declarar una clave foránea en la misma línea de la columna escribe: <code>id_franquicia NUMBER(4) NOT NULL REFERENCES franquicia(id_franquicia),</code>. ¡Asegúrate de haber creado antes las tablas <code>consola</code> y <code>franquicia</code>!'
+            },
+            {
+              code: 'DDL-04', level: 'inter',
+              title: 'Creación de la Tabla JUGADOR (con FK Opcional en Línea)',
+              desc: 'Crea la tabla <code>jugador</code> con todas sus restricciones en línea: <code>PRIMARY KEY</code> en <code>id_jugador</code>, <code>NOT NULL UNIQUE</code> tanto en <code>nickname</code> como en <code>email</code>, valores por defecto en línea para <code>pais</code> (<code>DEFAULT \'Chile\' NOT NULL</code>), <code>monedas_oro</code> (<code>DEFAULT 0 NOT NULL CHECK (monedas_oro &gt;= 0)</code>) y <code>suscripcion_online</code> (<code>DEFAULT \'GRATUITA\' NOT NULL</code> con su <code>CHECK</code> de lista), y la clave foránea opcional en línea en <code>id_juego_favorito</code> apuntando a <code>videojuego(id_juego)</code>.',
+              data: 'Valores válidos para suscripcion_online: \'GRATUITA\', \'INDIVIDUAL\', \'FAMILIAR\', \'EXPANSION\'.',
+              hint: 'Como un jugador nuevo puede no tener juego favorito al registrarse, la última columna se escribe sin <code>NOT NULL</code>: <code>id_juego_favorito NUMBER(6) REFERENCES videojuego(id_juego)</code>.'
+            },
+            {
+              code: 'DDL-05', level: 'inter',
+              title: 'Creación de Tabla Experimental ACCESORIO_PRUEBA (en Línea)',
+              desc: 'El laboratorio de hardware de Kioto necesita una tabla temporal llamada <code>accesorio_prueba</code>. Créala con todas sus restricciones en línea: <code>id_accesorio NUMBER(4)</code> como <code>PRIMARY KEY</code>, <code>nombre_accesorio VARCHAR2(40)</code> obligatorio, <code>precio_usd NUMBER(5,2)</code> obligatorio con <code>CHECK (precio_usd &gt; 0)</code> en línea, e <code>id_consola NUMBER(4)</code> obligatorio con <code>REFERENCES consola(id_consola)</code> en línea.',
+              data: null,
+              hint: 'Sigue exactamente el mismo patrón de restricciones dentro de cada línea que usaste en <code>videojuego</code>.'
+            },
+            {
+              code: 'DDL-06', level: 'inter',
+              title: 'Evolución con ALTER TABLE: Agregar Columna con DEFAULT en Línea',
+              desc: 'Se requiere registrar la fecha en que cada usuario creó su cuenta en My Nintendo. Utiliza <code>ALTER TABLE</code> sobre la tabla <code>jugador</code> para <strong>agregar</strong> una nueva columna llamada <code>fecha_registro</code> de tipo <code>DATE</code>, con <code>DEFAULT SYSDATE NOT NULL</code> en la misma línea.',
+              data: null,
+              hint: 'Usa la estructura: <code>ALTER TABLE nombre_tabla ADD nombre_columna TIPO DEFAULT valor NOT NULL;</code>.'
+            },
+            {
+              code: 'DDL-07', level: 'inter',
+              title: 'Evolución con ALTER TABLE: Agregar Columna con CHECK en Línea',
+              desc: 'My Nintendo incorporará niveles de experiencia por usuario. Utiliza <code>ALTER TABLE</code> sobre la tabla <code>jugador</code> para <strong>agregar</strong> una nueva columna <code>nivel_cuenta NUMBER(3)</code> que tenga en su misma línea <code>DEFAULT 1 NOT NULL</code> y un <code>CHECK</code> que valide que <code>nivel_cuenta BETWEEN 1 AND 99</code>.',
+              data: null,
+              hint: 'Puedes incluir el <code>DEFAULT</code>, el <code>NOT NULL</code> y el <code>CHECK (...)</code> todos juntos en la misma línea del <code>ALTER TABLE jugador ADD ...</code>.'
+            },
+            {
+              code: 'DDL-08', level: 'avanzado',
+              title: 'ALTER TABLE: Ampliar Columna (MODIFY) y Eliminar Columna (DROP COLUMN)',
+              desc: 'Sobre la tabla experimental <code>accesorio_prueba</code> realiza tres cambios estructurales: 1) Amplía la columna <code>nombre_accesorio</code> a <code>VARCHAR2(100)</code> usando <code>MODIFY</code>; 2) Agrega una columna <code>color_edicion VARCHAR2(25)</code>; y 3) Elimina esa misma columna <code>color_edicion</code> usando <code>DROP COLUMN</code>.',
+              data: null,
+              hint: 'Recuerda las tres variantes de <code>ALTER TABLE accesorio_prueba</code>: <code>MODIFY columna NUEVO_TIPO</code>, <code>ADD columna TIPO</code> y <code>DROP COLUMN columna</code>.'
+            },
+            {
+              code: 'DDL-09', level: 'avanzado',
+              title: 'Destrucción Segura con DROP TABLE',
+              desc: 'El experimento de periféricos ha concluido. Elimina por completo la tabla <code>accesorio_prueba</code> de la base de datos utilizando <code>DROP TABLE</code>, asegurándote de conservar intactas las 4 tablas principales (<code>consola</code>, <code>franquicia</code>, <code>videojuego</code> y <code>jugador</code>).',
+              data: null,
+              hint: 'Como <code>accesorio_prueba</code> es una tabla hija y nadie apunta hacia ella, puedes eliminarla directamente con <code>DROP TABLE nombre_tabla;</code>.'
+            },
+            {
+              code: 'DDL-10', level: 'avanzado',
+              title: 'Desafío Experto DDL: Columna de Descuento con Regla Compuesta en Línea',
+              desc: 'Mediante <code>ALTER TABLE</code> sobre <code>videojuego</code>, agrega una nueva columna llamada <code>descuento_porcentaje NUMBER(3)</code> que tenga en su misma línea: valor por defecto <code>0</code>, obligatoriedad <code>NOT NULL</code> y un <code>CHECK</code> en línea que valide que el descuento esté entre <code>0</code> y <code>80</code> inclusive.',
+              data: null,
+              hint: 'Combina todo en la misma línea del <code>ADD</code>: <code>ADD descuento_porcentaje NUMBER(3) DEFAULT 0 NOT NULL CHECK (descuento_porcentaje BETWEEN 0 AND 80);</code>.'
+            }
+          ],
+
+          insert: [
+            {
+              code: 'INS-01', level: 'base',
+              title: 'Insertar la Primera Consola Oficial',
+              desc: 'Inserta la primera fila en la tabla <code>consola</code> especificando explícitamente todas sus columnas.',
+              data: 'id_consola: 1 | nombre_consola: \'Nintendo Switch\' | tipo_consola: \'HIBRIDA\' | anio_lanzamiento: 2017 | precio_referencia_usd: 299.99 | estado_fabricacion: \'ACTIVA\'',
+              hint: 'Usa <code>INSERT INTO consola (col1, col2, ...) VALUES (val1, val2, ...);</code>. Recuerda que los números decimales en SQL usan punto <code>299.99</code> y los textos van entre comillas simples.'
+            },
+            {
+              code: 'INS-02', level: 'base',
+              title: 'Insertar Consolas usando el Valor DEFAULT',
+              desc: 'Inserta 3 consolas más en <code>consola</code>. Para la consola <code>2</code> (<code>\'Nintendo Switch 2\'</code>), <strong>omite</strong> la columna <code>estado_fabricacion</code> en el <code>INSERT</code> para comprobar que Oracle le asigna <code>\'ACTIVA\'</code> automáticamente por defecto.',
+              data: '• Consola 2: \'Nintendo Switch 2\' | \'HIBRIDA\' | 2025 | 449.99 | (usar DEFAULT en estado_fabricacion)\n• Consola 3: \'Nintendo 3DS\' | \'PORTATIL\' | 2011 | 169.99 | \'DESCONTINUADA\'\n• Consola 4: \'Nintendo GameCube\' | \'SOBREMESA\' | 2001 | 199.99 | \'DESCONTINUADA\'',
+              hint: 'Escribe tres sentencias <code>INSERT INTO consola ...</code> separadas por punto y coma. En la consola 2, simplemente no listes <code>estado_fabricacion</code> entre los paréntesis de columnas.'
+            },
+            {
+              code: 'INS-03', level: 'base',
+              title: 'Poblar las 6 Franquicias Legendarias (con DEFAULT y NULL)',
+              desc: 'Inserta las siguientes 6 franquicias en la tabla <code>franquicia</code>. Aprovecha el valor <code>DEFAULT</code> de <code>estudio_principal</code> cuando corresponda a <code>\'Nintendo EPD\'</code> y registra <code>NULL</code> en el creador de Splatoon.',
+              data: '• ID 1: \'Super Mario\' | Creador: \'Shigeru Miyamoto\' | Debut: 1985 | Estudio: (DEFAULT \'Nintendo EPD\')\n• ID 2: \'The Legend of Zelda\' | Creador: \'Shigeru Miyamoto\' | Debut: 1986 | Estudio: (DEFAULT \'Nintendo EPD\')\n• ID 3: \'Pokemon\' | Creador: \'Satoshi Tajiri\' | Debut: 1996 | Estudio: \'Game Freak\'\n• ID 4: \'Metroid\' | Creador: \'Gunpei Yokoi\' | Debut: 1986 | Estudio: \'MercurySteam\'\n• ID 5: \'Super Smash Bros\' | Creador: \'Masahiro Sakurai\' | Debut: 1999 | Estudio: \'Bandai Namco / Sora\'\n• ID 6: \'Splatoon\' | Creador: NULL | Debut: 2015 | Estudio: (DEFAULT \'Nintendo EPD\')',
+              hint: 'Recuerda que la palabra <code>NULL</code> se escribe sin comillas simples (si escribes <code>\'NULL\'</code> entre comillas, guardarías un texto de cuatro letras en vez de un valor nulo).'
+            },
+            {
+              code: 'INS-04', level: 'inter',
+              title: 'Insertar la Primera Tanda de Videojuegos (con TO_DATE y FKs)',
+              desc: 'Inserta los primeros 3 videojuegos del catálogo en <code>videojuego</code> conectándolos con sus respectivos IDs de franquicia y consola, y convirtiendo las fechas de lanzamiento con <code>TO_DATE(\'YYYY-MM-DD\', \'YYYY-MM-DD\')</code>.',
+              data: '• Juego 101: Cod \'NSW-001\' | \'The Legend of Zelda: Breath of the Wild\' | Franquicia: 2 | Consola: 1 | ESRB: \'E10+\' | Precio: 54990 | Metacritic: 97 | Stock: 45 | Fecha: \'2017-03-03\'\n• Juego 102: Cod \'NSW-002\' | \'Super Mario Odyssey\' | Franquicia: 1 | Consola: 1 | ESRB: \'E10+\' | Precio: 49990 | Metacritic: 97 | Stock: 60 | Fecha: \'2017-10-27\'\n• Juego 103: Cod \'NSW-003\' | \'Metroid Dread\' | Franquicia: 4 | Consola: 1 | ESRB: \'T\' | Precio: 44990 | Metacritic: 88 | Stock: 15 | Fecha: \'2021-10-08\'',
+              hint: 'Para la fecha en Oracle escribe: <code>TO_DATE(\'2017-03-03\', \'YYYY-MM-DD\')</code>. Verifica que los códigos tengan al menos 6 caracteres para cumplir el <code>CHECK</code> de longitud.'
+            },
+            {
+              code: 'INS-05', level: 'inter',
+              title: 'Insertar Segunda Tanda de Videojuegos (con Puntaje NULL y Stock DEFAULT)',
+              desc: 'Inserta 4 videojuegos adicionales en <code>videojuego</code>. Observa que el juego <code>106</code> (de Switch 2) aún no tiene puntaje Metacritic (<code>NULL</code>) y usa el stock físico por defecto (<code>0</code>).',
+              data: '• Juego 104: Cod \'NSW-004\' | \'Super Smash Bros. Ultimate\' | Franquicia: 5 | Consola: 1 | ESRB: \'E10+\' | Precio: 59990 | Metacritic: 93 | Stock: 80 | Fecha: \'2018-12-07\'\n• Juego 105: Cod \'NSW-005\' | \'Pokemon Escarlata\' | Franquicia: 3 | Consola: 1 | ESRB: \'E\' | Precio: 49990 | Metacritic: 72 | Stock: 30 | Fecha: \'2022-11-18\'\n• Juego 106: Cod \'NS2-001\' | \'Mario Kart World\' | Franquicia: 1 | Consola: 2 | ESRB: \'E\' | Precio: 69990 | Metacritic: NULL | Stock: (DEFAULT 0) | Fecha: \'2025-06-05\'\n• Juego 107: Cod \'3DS-001\' | \'Pokemon Sol\' | Franquicia: 3 | Consola: 3 | ESRB: \'E\' | Precio: 29990 | Metacritic: 87 | Stock: 5 | Fecha: \'2016-11-18\'',
+              hint: 'En el juego 106 puedes omitir la columna <code>stock_fisico</code> para que tome su <code>DEFAULT 0</code>, o pasar <code>0</code> explícitamente, y pasar <code>NULL</code> en <code>puntaje_metacritic</code>.'
+            },
+            {
+              code: 'INS-06', level: 'inter',
+              title: 'Registrar los Primeros 4 Jugadores de My Nintendo',
+              desc: 'Inserta los siguientes 4 jugadores en la tabla <code>jugador</code>, enlazando su <code>id_juego_favorito</code> (o dejando <code>NULL</code> cuando aún no tienen juego favorito).',
+              data: '• Jugador 1: \'LinkHyrule99\' | \'link@hyrule.cl\' | País: (DEFAULT \'Chile\') | Monedas: 1200 | Suscripción: \'EXPANSION\' | Juego Fav: 101\n• Jugador 2: \'SamusHunter\' | \'samus@zebes.cl\' | País: \'Chile\' | Monedas: 450 | Suscripción: \'INDIVIDUAL\' | Juego Fav: 103\n• Jugador 3: \'PikaTrainer\' | \'ash@kanto.pe\' | País: \'Peru\' | Monedas: (DEFAULT 0) | Suscripción: (DEFAULT \'GRATUITA\') | Juego Fav: NULL\n• Jugador 4: \'MarioSpeedrun\' | \'mario@champinon.ar\' | País: \'Argentina\' | Monedas: 3500 | Suscripción: \'FAMILIAR\' | Juego Fav: 102',
+              hint: 'Si agregaste <code>fecha_registro DEFAULT SYSDATE</code> en el ejercicio DDL-06, no necesitas incluir esa columna en tus sentencias <code>INSERT</code> porque se llenará sola.'
+            },
+            {
+              code: 'INS-07', level: 'avanzado',
+              title: 'Laboratorio de Fallo #1: Provocar y Corregir Violación de CHECK (ORA-02290)',
+              desc: '<strong>Paso A:</strong> Intenta insertar el juego <code>108</code> (<code>\'The Legend of Zelda: Tears of the Kingdom\'</code>) poniendo por error <code>clasificacion_esrb = \'TODOS\'</code> o <code>puntaje_metacritic = 105</code>. Ejecútalo y observa el mensaje <code>ORA-02290: check constraint violated</code>.<br><strong>Paso B:</strong> Corrige la sentencia e inserta exitosamente el juego <code>108</code> con sus datos válidos.',
+              data: 'Datos válidos Juego 108: Cod \'NSW-008\' | \'The Legend of Zelda: Tears of the Kingdom\' | Franquicia: 2 | Consola: 1 | ESRB: \'E10+\' | Precio: 64990 | Metacritic: 96 | Stock: 50 | Fecha: \'2023-05-12\'',
+              hint: 'Observa cómo el <code>CHECK</code> definido en la línea de la columna rechaza de inmediato cualquier valor fuera de la lista o del rango 0..100.'
+            },
+            {
+              code: 'INS-08', level: 'avanzado',
+              title: 'Laboratorio de Fallo #2: Provocar y Corregir Violación de FOREIGN KEY (ORA-02291)',
+              desc: '<strong>Paso A:</strong> Intenta insertar el clásico <code>\'Super Smash Bros. Melee\'</code> asignándole <code>id_consola = 99</code> (un ID de consola que no existe en la tabla padre <code>consola</code>). Verifica el error <code>ORA-02291: parent key not found</code>.<br><strong>Paso B:</strong> Corrige el ID de consola apuntando a <code>4</code> (Nintendo GameCube) e insértalo.',
+              data: 'Datos válidos Juego 109: Cod \'GCN-001\' | \'Super Smash Bros. Melee\' | Franquicia: 5 | Consola: 4 | ESRB: \'T\' | Precio: 39990 | Metacritic: 92 | Stock: 0 | Fecha: \'2001-11-21\'',
+              hint: 'La restricción <code>REFERENCES consola(id_consola)</code> en la línea de la columna impide que existan videojuegos asociados a una consola inexistente.'
+            },
+            {
+              code: 'INS-09', level: 'avanzado',
+              title: 'Laboratorio de Fallo #3: Provocar y Corregir Violación de UNIQUE (ORA-00001)',
+              desc: '<strong>Paso A:</strong> Intenta insertar a la jugadora <code>5</code> usando el nickname <code>\'LinkHyrule99\'</code> (que ya le pertenece al jugador 1) y observa el error <code>ORA-00001: unique constraint violated</code>.<br><strong>Paso B:</strong> Corrige su nickname e inserta a los jugadores <code>5</code> y <code>6</code>.',
+              data: '• Jugador 5: \'ZeldaWisdom\' | \'zelda@hyrule.cl\' | País: \'Chile\' | Monedas: 800 | Suscripción: \'EXPANSION\' | Juego Fav: 108\n• Jugador 6: \'KirbyGourmet\' | \'kirby@dreamland.mx\' | País: \'Mexico\' | Monedas: 150 | Suscripción: \'GRATUITA\' | Juego Fav: NULL',
+              hint: 'Tanto <code>PRIMARY KEY</code> como <code>UNIQUE</code> declarados en la línea de la columna lanzan <code>ORA-00001</code> si intentas repetir un valor existente.'
+            },
+            {
+              code: 'INS-10', level: 'avanzado',
+              title: 'Inserción de Registros Temporales para Auditoría Posterior',
+              desc: 'Para preparar las pruebas de actualización y borrado de las siguientes misiones, inserta el videojuego cancelado <code>110</code> (usando <code>SYSDATE</code> como fecha de lanzamiento) y la cuenta bot <code>99</code> que apunta a dicho juego.',
+              data: '• Juego 110: Cod \'NSW-999\' | \'Proyecto Secreto Cancelado\' | Franquicia: 6 (Splatoon) | Consola: 1 | ESRB: \'T\' | Precio: 10000 | Metacritic: NULL | Stock: 0 | Fecha: SYSDATE\n• Jugador 99: \'BotSpam01\' | \'spam@bot.com\' | País: \'Desconocido\' | Monedas: 0 | Suscripción: \'GRATUITA\' | Juego Fav: 110',
+              hint: 'Recuerda que debes insertar primero el juego <code>110</code> antes de insertar al jugador <code>99</code> que lo referencia como <code>id_juego_favorito</code>. Al terminar los 10 INSERT, ejecuta <code>COMMIT;</code>.'
+            }
+          ],
+
+          update: [
+            {
+              code: 'UPD-01', level: 'base',
+              title: 'Reposición de Stock por Clave Primaria',
+              desc: 'Llegó un nuevo embarque de <code>\'Pokemon Escarlata\'</code> (<code>id_juego = 105</code>) a la bodega central. Actualiza su columna <code>stock_fisico</code> para que su nuevo valor sea exactamente <code>75</code>.',
+              data: null,
+              hint: 'Estructura: <code>UPDATE videojuego SET columna = nuevo_valor WHERE id_juego = 105;</code>.'
+            },
+            {
+              code: 'UPD-02', level: 'base',
+              title: 'Actualización de Múltiples Columnas en una Sola Sentencia',
+              desc: 'El jugador <code>\'PikaTrainer\'</code> (<code>id_jugador = 3</code>) contrató una suscripción pagada y eligió su juego favorito. En <strong>un solo comando <code>UPDATE</code></strong>, cambia su <code>suscripcion_online</code> a <code>\'INDIVIDUAL\'</code> y su <code>id_juego_favorito</code> a <code>105</code>.',
+              data: null,
+              hint: 'En la cláusula <code>SET</code> separa cada asignación con una coma: <code>SET col1 = val1, col2 = val2 WHERE ...</code>.'
+            },
+            {
+              code: 'UPD-03', level: 'base',
+              title: 'Reemplazar un Valor NULL por Calificación Oficial',
+              desc: 'El juego de Switch 2 <code>\'Mario Kart World\'</code> (<code>id_juego = 106</code>) ya fue evaluado por la prensa internacional y recibió stock de estreno. Actualiza su <code>puntaje_metacritic</code> (que estaba en <code>NULL</code>) a <code>94</code> y su <code>stock_fisico</code> a <code>120</code>.',
+              data: null,
+              hint: 'Para sobrescribir una celda que hoy vale <code>NULL</code>, simplemente asigna el nuevo valor con <code>SET puntaje_metacritic = 94, stock_fisico = 120</code> filtrando por su clave primaria.'
+            },
+            {
+              code: 'UPD-04', level: 'inter',
+              title: 'Incremento Matemático de Monedas por País',
+              desc: '¡Evento "Fiestas Patrias en My Nintendo"! Todos los jugadores registrados en el país <code>\'Chile\'</code> reciben un regalo de <strong>+250 monedas de oro</strong> sobre las que ya tenían. Ejecuta el <code>UPDATE</code> correspondiente.',
+              data: null,
+              hint: 'Para sumar sobre el valor actual usa <code>SET monedas_oro = monedas_oro + 250</code> junto con el filtro <code>WHERE pais = \'Chile\'</code>.'
+            },
+            {
+              code: 'UPD-05', level: 'inter',
+              title: 'Campaña de Descuento (15% OFF) con Condición Compuesta (AND)',
+              desc: 'Activa las ofertas de la eShop: reduce en un <strong>15%</strong> el <code>precio_clp</code> (multiplicando por <code>0.85</code> y redondeando con <code>ROUND</code>) de todos los videojuegos que pertenezcan a la consola <code>1</code> (Nintendo Switch) <strong>Y</strong> cuyo <code>precio_clp</code> actual sea estrictamente mayor a <code>50000</code>.',
+              data: null,
+              hint: 'Usa <code>SET precio_clp = ROUND(precio_clp * 0.85)</code> y combina ambos filtros con <code>WHERE id_consola = 1 AND precio_clp &gt; 50000</code>.'
+            },
+            {
+              code: 'UPD-06', level: 'inter',
+              title: 'Actualización con Lista de Valores (Operador IN)',
+              desc: 'Las franquicias con <code>id_franquicia</code> igual a <code>1</code> (Super Mario) y <code>2</code> (The Legend of Zelda) pasaron a llamarse oficialmente en su columna <code>estudio_principal</code> como <code>\'Nintendo EPD Kyoto\'</code>. Actualízalas en una sola sentencia usando el operador <code>IN</code>.',
+              data: null,
+              hint: 'Filtra con <code>WHERE id_franquicia IN (1, 2)</code>.'
+            },
+            {
+              code: 'UPD-07', level: 'inter',
+              title: 'Refuerzo de Stock Crítico con Operador BETWEEN',
+              desc: 'Todos los videojuegos que tengan un <code>stock_fisico</code> bajo —entre <code>1</code> y <code>20</code> unidades inclusive— reciben un refuerzo urgente de <strong>+30 unidades</strong> adicionales. Escribe el <code>UPDATE</code> usando <code>BETWEEN</code>.',
+              data: null,
+              hint: 'Recuerda que <code>BETWEEN 1 AND 20</code> incluye los extremos 1 y 20 (por lo que los juegos agotados con stock 0 no serán tocados).'
+            },
+            {
+              code: 'UPD-08', level: 'avanzado',
+              title: 'Poniendo a Prueba el CHECK en un UPDATE (Evitando Saldo Negativo)',
+              desc: '<strong>Paso A:</strong> Intenta restar <code>500</code> monedas a <code>\'KirbyGourmet\'</code> (<code>id_jugador = 6</code>, quien solo tiene 150 monedas) con <code>SET monedas_oro = monedas_oro - 500</code> y observa cómo el <code>CHECK (monedas_oro &gt;= 0)</code> impide que quede en <code>-350</code>.<br><strong>Paso B:</strong> Escribe un <code>UPDATE</code> válido para el jugador <code>6</code> que deje sus <code>monedas_oro</code> exactamente en <code>0</code>.',
+              data: null,
+              hint: 'Las restricciones <code>CHECK</code> en la línea de la columna vigilan tanto los <code>INSERT</code> como los <code>UPDATE</code>. Al asignar <code>monedas_oro = 0</code> se cumple la condición <code>monedas_oro &gt;= 0</code>.'
+            },
+            {
+              code: 'UPD-09', level: 'avanzado',
+              title: 'Desvincular Clave Foránea (Preparación para Borrado)',
+              desc: 'El juego <code>110</code> (<code>\'Proyecto Secreto Cancelado\'</code>) será eliminado en la siguiente misión, pero el jugador <code>99</code> (<code>\'BotSpam01\'</code>) lo tiene asignado como su <code>id_juego_favorito</code>. Actualiza a <code>NULL</code> la columna <code>id_juego_favorito</code> de todos los jugadores cuyo juego favorito actual sea el <code>110</code>.',
+              data: null,
+              hint: 'Usa <code>SET id_juego_favorito = NULL WHERE id_juego_favorito = 110;</code>. Esto rompe el vínculo hijo-padre sin necesidad de borrar aún al jugador.'
+            },
+            {
+              code: 'UPD-10', level: 'avanzado',
+              title: 'Bonificación Premium con OR, Paréntesis e IS NOT NULL',
+              desc: 'Otorga un bono de <strong>+500 monedas de oro</strong> a todos los jugadores cuya <code>suscripcion_online</code> sea <code>\'EXPANSION\'</code> <strong>O</strong> <code>\'FAMILIAR\'</code> (puedes usar <code>OR</code> con paréntesis o <code>IN</code>), <strong>siempre y cuando</strong> tengan un juego favorito registrado (es decir, que <code>id_juego_favorito</code> no sea nulo).',
+              data: null,
+              hint: 'Si usas <code>OR</code>, agrupa con paréntesis: <code>WHERE (suscripcion_online = \'EXPANSION\' OR suscripcion_online = \'FAMILIAR\') AND id_juego_favorito IS NOT NULL</code>.'
+            }
+          ],
+
+          delete: [
+            {
+              code: 'DEL-01', level: 'base',
+              title: 'Eliminar Cuenta Bot por Clave Primaria',
+              desc: 'El equipo de seguridad detectó la cuenta falsa <code>\'BotSpam01\'</code> (<code>id_jugador = 99</code>). Elimina esa fila de la tabla <code>jugador</code> filtrando por su clave primaria.',
+              data: null,
+              hint: 'Sintaxis: <code>DELETE FROM jugador WHERE id_jugador = 99;</code>.'
+            },
+            {
+              code: 'DEL-02', level: 'base',
+              title: 'Eliminar Videojuego Cancelado por su Código de Catálogo',
+              desc: 'Ahora que ningún jugador referencia al proyecto cancelado, elimina de la tabla <code>videojuego</code> el registro cuyo <code>codigo_catalogo</code> sea exactamente <code>\'NSW-999\'</code>.',
+              data: null,
+              hint: 'Puedes filtrar en el <code>WHERE</code> por cualquier columna única: <code>DELETE FROM videojuego WHERE codigo_catalogo = \'NSW-999\';</code>.'
+            },
+            {
+              code: 'DEL-03', level: 'base',
+              title: 'Eliminar Franquicia sin Videojuegos Asociados',
+              desc: 'Tras eliminar el proyecto cancelado, la franquicia <code>\'Splatoon\'</code> (<code>id_franquicia = 6</code>) quedó con cero videojuegos asociados en la tabla hija. Elimínala de la tabla <code>franquicia</code>.',
+              data: null,
+              hint: 'Como ya no existen filas hijas en <code>videojuego</code> apuntando a <code>id_franquicia = 6</code>, Oracle permitirá ejecutar el <code>DELETE FROM franquicia</code> sin errores.'
+            },
+            {
+              code: 'DEL-04', level: 'inter',
+              title: 'Experimento de Bloqueo Referencial (ORA-02292) y Borrado de Consola',
+              desc: '<strong>Paso A:</strong> Intenta ejecutar <code>DELETE FROM consola WHERE id_consola = 1;</code> y comprueba cómo Oracle protege los videojuegos de Nintendo Switch lanzando el error <code>ORA-02292: child record found</code>.<br><strong>Paso B:</strong> Inserta una consola <code>5</code> (<code>\'Virtual Boy\'</code>, <code>\'PORTATIL\'</code>, año <code>1995</code>, precio <code>179.99</code>, <code>\'DESCONTINUADA\'</code>) y luego elimínala inmediatamente con <code>DELETE</code>.',
+              data: null,
+              hint: 'Una fila padre solo puede borrarse si ninguna fila hija la apunta. Como nadie apunta a la consola 5 recién creada, su <code>DELETE</code> funcionará de inmediato.'
+            },
+            {
+              code: 'DEL-05', level: 'inter',
+              title: 'Limpieza de Catálogo Retro Sin Stock (Condición AND)',
+              desc: 'Elimina de la tabla <code>videojuego</code> aquellos títulos que pertenezcan a la consola <code>4</code> (Nintendo GameCube) <strong>Y</strong> cuyo <code>stock_fisico</code> sea igual a <code>0</code> (esto eliminará <code>\'Super Smash Bros. Melee\'</code>).',
+              data: null,
+              hint: 'Combina ambas condiciones en el filtro: <code>WHERE id_consola = 4 AND stock_fisico = 0</code>.'
+            },
+            {
+              code: 'DEL-06', level: 'inter',
+              title: 'Depuración de Cuentas Inactivas (Múltiples Condiciones e IS NULL)',
+              desc: 'Elimina de la tabla <code>jugador</code> a los usuarios que cumplan simultáneamente las siguientes 3 condiciones: 1) tengan <code>suscripcion_online = \'GRATUITA\'</code>, 2) tengan <code>monedas_oro = 0</code>, y 3) no tengan juego favorito (<code>id_juego_favorito IS NULL</code>).',
+              data: 'Nota: Esto eliminará a KirbyGourmet (a quien dejamos con 0 monedas en UPD-08), pero conservará a PikaTrainer (quien subió a INDIVIDUAL y eligió favorito en UPD-02).',
+              hint: 'Une las tres condiciones con <code>AND</code> y recuerda usar <code>id_juego_favorito IS NULL</code>.'
+            },
+            {
+              code: 'DEL-07', level: 'inter',
+              title: 'Eliminar Videojuegos Antiguos por Fecha (TO_DATE)',
+              desc: 'Elimina de <code>videojuego</code> todos los títulos cuya <code>fecha_lanzamiento</code> sea anterior al 1 de enero de 2017 (<code>&lt; TO_DATE(\'2017-01-01\', \'YYYY-MM-DD\')</code>) <strong>Y</strong> que tengan un <code>stock_fisico</code> menor a <code>10</code> unidades (esto retirará a <code>\'Pokemon Sol\'</code> de 3DS).',
+              data: null,
+              hint: 'En el <code>WHERE</code> puedes comparar fechas directamente con <code>&lt;</code> o <code>&gt;</code> usando <code>TO_DATE(\'2017-01-01\', \'YYYY-MM-DD\')</code>.'
+            },
+            {
+              code: 'DEL-08', level: 'avanzado',
+              title: 'Eliminación de Consolas Descontinuadas Liberadas',
+              desc: 'Gracias a los ejercicios DEL-05 y DEL-07, tanto <code>\'Nintendo GameCube\'</code> como <code>\'Nintendo 3DS\'</code> ya no tienen videojuegos hijos en la tabla <code>videojuego</code>. Elimina en una sola sentencia todas las consolas cuyo <code>estado_fabricacion</code> sea <code>\'DESCONTINUADA\'</code> <strong>Y</strong> su <code>anio_lanzamiento</code> sea menor a <code>2015</code>.',
+              data: null,
+              hint: 'Verifica cómo el orden lógico de borrado (primero limpiar los hijos en <code>videojuego</code> y luego borrar los padres en <code>consola</code>) respeta la integridad referencial.'
+            },
+            {
+              code: 'DEL-09', level: 'avanzado',
+              title: 'Simulacro de Emergencia: Rescate con ROLLBACK',
+              desc: '<strong>Paso A:</strong> Haz primero un <code>COMMIT;</code> para asegurar todo tu avance hasta aquí.<br><strong>Paso B:</strong> Simula el peor error de un programador junior ejecutando <code>DELETE FROM jugador;</code> (¡sin <code>WHERE</code>!). Haz un <code>SELECT * FROM jugador;</code> y observa que la tabla quedó vacía.<br><strong>Paso C:</strong> Ejecuta inmediatamente <code>ROLLBACK;</code> y vuelve a consultar <code>SELECT * FROM jugador;</code> para comprobar que recuperaste a todos tus jugadores.',
+              data: null,
+              hint: '<code>ROLLBACK;</code> deshace todas las operaciones DML (<code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>) realizadas desde el último <code>COMMIT;</code>.'
+            },
+            {
+              code: 'DEL-10', level: 'avanzado',
+              title: 'Purga por Patrón de Texto (LIKE) y Clasificación ESRB',
+              desc: 'Inserta un juego de prueba <code>120</code> llamado <code>\'DEMO: Metroid Prime 4\'</code> (código <code>\'NSW-120\'</code>, franquicia <code>4</code>, consola <code>1</code>, clasificación <code>\'M\'</code>, precio <code>0</code>, stock <code>0</code>, fecha <code>SYSDATE</code>) y luego escribe una sentencia <code>DELETE</code> que elimine cualquier videojuego cuyo <code>titulo</code> comience con la palabra <code>\'DEMO:\'</code> <strong>Y</strong> su <code>precio_clp</code> sea igual a <code>0</code>.',
+              data: null,
+              hint: 'Usa el operador de comodín al final del prefijo: <code>WHERE titulo LIKE \'DEMO:%\' AND precio_clp = 0</code>. Al terminar este bloque, ejecuta <code>COMMIT;</code>.'
+            }
+          ],
+
+          select: [
+            {
+              code: 'SEL-01', level: 'base',
+              title: 'Catálogo Básico con Proyección y Alias (AS)',
+              desc: 'Construye una consulta <code>SELECT</code> sobre la tabla <code>videojuego</code> que muestre únicamente las columnas <code>codigo_catalogo</code>, <code>titulo</code>, <code>clasificacion_esrb</code> y <code>precio_clp</code>, renombrándolas con alias como <code>codigo</code>, <code>nombre_videojuego</code>, <code>esrb</code> y <code>precio_actual</code>.',
+              data: null,
+              hint: 'Estructura: <code>SELECT col1 AS alias1, col2 AS alias2 FROM tabla;</code>.'
+            },
+            {
+              code: 'SEL-02', level: 'base',
+              title: 'Columnas Calculadas: Precio con IVA y Conversión a Dólares',
+              desc: 'Consulta de la tabla <code>videojuego</code> el <code>titulo</code>, el <code>precio_clp</code>, una columna calculada llamada <code>precio_con_iva</code> (multiplicando <code>precio_clp * 1.19</code> y redondeando a entero con <code>ROUND</code>) y otra columna llamada <code>precio_estimado_usd</code> (dividiendo <code>precio_clp / 950</code> y redondeando a 2 decimales).',
+              data: null,
+              hint: 'Usa <code>ROUND(precio_clp * 1.19) AS precio_con_iva</code> y <code>ROUND(precio_clp / 950, 2) AS precio_estimado_usd</code>.'
+            },
+            {
+              code: 'SEL-03', level: 'base',
+              title: 'Ranking de Obras Maestras (WHERE + ORDER BY Múltiple)',
+              desc: 'Obtén el <code>titulo</code>, <code>puntaje_metacritic</code> y <code>precio_clp</code> de todos los videojuegos que tengan un <code>puntaje_metacritic</code> mayor o igual a <code>90</code>. Ordena el resultado desde el puntaje más alto al más bajo (<code>DESC</code>) y, en caso de empate en puntaje, ordena alfabéticamente por <code>titulo</code> (<code>ASC</code>).',
+              data: null,
+              hint: 'Al final de la consulta escribe: <code>ORDER BY puntaje_metacritic DESC, titulo ASC</code>.'
+            },
+            {
+              code: 'SEL-04', level: 'inter',
+              title: 'Filtro de Inventario Familiar (IN + BETWEEN)',
+              desc: 'Muestra el <code>titulo</code>, <code>clasificacion_esrb</code> y <code>stock_fisico</code> de los videojuegos aptos para todo público cuya <code>clasificacion_esrb</code> esté en la lista <code>(\'E\', \'E10+\')</code> <strong>Y</strong> cuyo <code>stock_fisico</code> se encuentre entre <code>40</code> y <code>150</code> unidades inclusive.',
+              data: null,
+              hint: 'Combina en el <code>WHERE</code>: <code>clasificacion_esrb IN (\'E\', \'E10+\') AND stock_fisico BETWEEN 40 AND 150</code>.'
+            },
+            {
+              code: 'SEL-05', level: 'inter',
+              title: 'Buscador de Sagas con LIKE y Condiciones Agrupadas',
+              desc: 'Busca en la tabla <code>videojuego</code> todos los títulos que contengan la palabra <code>\'Zelda\'</code> <strong>O</strong> la palabra <code>\'Mario\'</code> en cualquier parte de su <code>titulo</code>, <strong>y que además</strong> tengan un <code>precio_clp</code> menor a <code>60000</code>. Muestra <code>codigo_catalogo</code>, <code>titulo</code> y <code>precio_clp</code>.',
+              data: null,
+              hint: 'Usa comodines a ambos lados (<code>\'%Zelda%\'</code>) y encierra el <code>OR</code> entre paréntesis: <code>WHERE (titulo LIKE \'%Zelda%\' OR titulo LIKE \'%Mario%\') AND precio_clp &lt; 60000</code>.'
+            },
+            {
+              code: 'SEL-06', level: 'inter',
+              title: 'Reporte Estadístico Global (Funciones de Agregación)',
+              desc: 'En una sola consulta sobre <code>videojuego</code>, calcula 5 indicadores ejecutivos: 1) Total de juegos en catálogo (<code>COUNT(*)</code>), 2) Promedio de puntaje Metacritic redondeado a 1 decimal (<code>ROUND(AVG(puntaje_metacritic), 1)</code>), 3) Precio más bajo (<code>MIN(precio_clp)</code>), 4) Precio más alto (<code>MAX(precio_clp)</code>), y 5) Suma total de unidades físicas en bodega (<code>SUM(stock_fisico)</code>).',
+              data: null,
+              hint: 'Cuando solo usas funciones de agregación en el <code>SELECT</code> sin columnas sueltas, no necesitas <code>GROUP BY</code> y obtienes una única fila resumen.'
+            },
+            {
+              code: 'SEL-07', level: 'avanzado',
+              title: 'Tu Primer INNER JOIN: Videojuegos con el Nombre de su Franquicia',
+              desc: 'Une la tabla <code>videojuego</code> (alias <code>v</code>) con la tabla <code>franquicia</code> (alias <code>f</code>) usando <code>INNER JOIN</code> para mostrar: <code>v.titulo</code>, <code>f.nombre_franquicia</code>, <code>f.creador_principal</code> y <code>v.precio_clp</code>. Ordena el reporte por <code>f.nombre_franquicia ASC</code>.',
+              data: null,
+              hint: 'Conecta la clave foránea con la clave primaria en la cláusula <code>ON</code>: <code>FROM videojuego v INNER JOIN franquicia f ON v.id_franquicia = f.id_franquicia</code>.'
+            },
+            {
+              code: 'SEL-08', level: 'avanzado',
+              title: 'INNER JOIN de 3 Tablas: Catálogo Completo (Juego + Franquicia + Consola)',
+              desc: 'Realiza un doble <code>INNER JOIN</code> que conecte <code>videojuego</code> (<code>v</code>), <code>franquicia</code> (<code>f</code>) y <code>consola</code> (<code>c</code>). Muestra <code>v.codigo_catalogo</code>, <code>v.titulo</code>, <code>f.nombre_franquicia</code>, <code>c.nombre_consola</code> y <code>v.puntaje_metacritic</code>, filtrando solo aquellos juegos donde <code>c.nombre_consola = \'Nintendo Switch\'</code>.',
+              data: null,
+              hint: 'Encadena ambos joins después del <code>FROM videojuego v</code>: primero <code>INNER JOIN franquicia f ON ...</code> y debajo <code>INNER JOIN consola c ON v.id_consola = c.id_consola</code>.'
+            },
+            {
+              code: 'SEL-09', level: 'avanzado',
+              title: 'INNER JOIN: Jugadores de My Nintendo y su Videojuego Favorito',
+              desc: 'Une la tabla <code>jugador</code> (<code>j</code>) con <code>videojuego</code> (<code>v</code>) mediante la columna <code>id_juego_favorito</code> para mostrar: <code>j.nickname</code>, <code>j.pais</code>, <code>j.suscripcion_online</code>, <code>j.monedas_oro</code> y el <code>v.titulo</code> de su juego favorito. Ordena de mayor a menor cantidad de <code>monedas_oro</code>.',
+              data: null,
+              hint: 'La condición de unión es <code>ON j.id_juego_favorito = v.id_juego</code>. Observa cómo <code>INNER JOIN</code> muestra automáticamente solo a los jugadores que sí tienen un juego favorito asignado.'
+            },
+            {
+              code: 'SEL-10', level: 'avanzado',
+              title: 'El Jefe Final: INNER JOIN + GROUP BY + Funciones de Agregación',
+              desc: 'La dirección de Nintendo Latinoamérica solicita el reporte maestro por franquicia. Une <code>franquicia</code> (<code>f</code>) con <code>videojuego</code> (<code>v</code>), agrupa por <code>f.nombre_franquicia</code> (usando <code>GROUP BY</code>) y muestra para cada franquicia:<br>1) <code>f.nombre_franquicia</code><br>2) Cantidad de videojuegos registrados (<code>COUNT(v.id_juego) AS cantidad_juegos</code>)<br>3) Promedio de puntaje Metacritic redondeado a 1 decimal (<code>ROUND(AVG(v.puntaje_metacritic), 1) AS promedio_metacritic</code>)<br>4) Stock físico total acumulado (<code>SUM(v.stock_fisico) AS stock_total</code>)<br>Ordena el resultado desde la franquicia con más stock total hacia la de menor stock.',
+              data: null,
+              hint: 'Recuerda la regla de oro de <code>GROUP BY</code>: toda columna del <code>SELECT</code> que NO esté dentro de una función de agregación (<code>COUNT</code>, <code>AVG</code>, <code>SUM</code>) debe ir declarada en el <code>GROUP BY f.nombre_franquicia</code>.'
+            }
+          ]
+        }
+      };
+    },
+
+    computed: {
+      progressWidth() {
+        return (((this.current + 1) / this.slides.length) * 100) + '%';
+      },
+      completedTotal() {
+        return Object.values(this.completedMap).filter(Boolean).length;
+      },
+      labProgressWidth() {
+        return ((this.completedTotal / 50) * 100) + '%';
+      },
+      currentTeacherNote() {
+        return this.teacherNotes[this.current] || { time: '3 min', script: 'Explicar los conceptos clave de la diapositiva.', tip: 'Fomentar preguntas del curso.' };
+      },
+      currentMissionObj() {
+        return this.missions.find(m => m.id === this.activeMission) || this.missions[0];
+      },
+      currentMissionIndex() {
+        return this.missions.findIndex(m => m.id === this.activeMission);
+      },
+      currentExercises() {
+        return this.exercises[this.activeMission] || [];
+      }
+    },
+
+    methods: {
+      setMode(mode) {
+        this.viewMode = mode;
+        this.highlightAll();
+      },
+      next() {
+        if (this.current < this.slides.length - 1) {
+          this.current++;
+          this.onSlideChange();
+        }
+      },
+      prev() {
+        if (this.current > 0) {
+          this.current--;
+          this.onSlideChange();
+        }
+      },
+      goTo(idx) {
+        if (idx >= 0 && idx < this.slides.length) {
+          this.current = idx;
+          this.showDrawer = false;
+          this.onSlideChange();
+        }
+      },
+      onSlideChange() {
+        this.$nextTick(() => {
+          const canvas = document.querySelector('.slide-canvas');
+          if (canvas) canvas.scrollTop = 0;
+          this.highlightAll();
+        });
+      },
+      selectMission(id) {
+        this.activeMission = id;
+        this.$nextTick(() => {
+          const area = document.querySelector('.lab-scroll-area');
+          if (area) area.scrollTop = 0;
+        });
+      },
+      getMissionDoneCount(missionId) {
+        const list = this.exercises[missionId] || [];
+        return list.filter(ex => this.completedMap[ex.code]).length;
+      },
+      toggleEx(code) {
+        this.completedMap[code] = !this.completedMap[code];
+        localStorage.setItem('u3_nintendo_ddl_dml_v1', JSON.stringify(this.completedMap));
+      },
+      loadProgress() {
+        try {
+          const saved = localStorage.getItem('u3_nintendo_ddl_dml_v1');
+          if (saved) {
+            this.completedMap = JSON.parse(saved);
+          }
+        } catch (e) {}
+      },
+      ansQ1(idx) {
+        this.q1_done = true;
+        this.q1_sel = idx;
+        this.q1_ok = (idx === 1);
+      },
+      toggleZoom() {
+        this.isZoomed = !this.isZoomed;
+      },
+      toggleNotes() {
+        this.showNotes = !this.showNotes;
+      },
+      toggleDrawer() {
+        this.showDrawer = !this.showDrawer;
+      },
+      toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      },
+      highlightAll() {
+        this.$nextTick(() => {
+          if (typeof hljs !== 'undefined') {
+            document.querySelectorAll('pre code:not(.hljs)').forEach((block) => {
+              hljs.highlightElement(block);
+            });
+          }
+        });
+      }
+    },
+
+    mounted() {
+      this.loadProgress();
+      this.highlightAll();
+
+      window.addEventListener('keydown', (e) => {
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+
+        if (this.viewMode === 'slides') {
+          if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+            e.preventDefault();
+            this.next();
+          } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+            e.preventDefault();
+            this.prev();
+          } else if (e.key === 'Home') {
+            e.preventDefault();
+            this.goTo(0);
+          } else if (e.key === 'End') {
+            e.preventDefault();
+            this.goTo(this.slides.length - 1);
+          } else if (e.key === 'm' || e.key === 'M') {
+            this.toggleDrawer();
+          } else if (e.key === 'n' || e.key === 'N') {
+            this.toggleNotes();
+          }
+        }
+
+        if (e.key === 'z' || e.key === 'Z') {
+          this.toggleZoom();
+        } else if (e.key === 'f' || e.key === 'F') {
+          this.toggleFullscreen();
+        }
+      });
+    }
+  }).mount('#app');
+</script>
+
+</body>
+</html>
