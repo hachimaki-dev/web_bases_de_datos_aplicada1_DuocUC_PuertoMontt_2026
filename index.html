@@ -17,6 +17,18 @@
       <div class="portal-links">
         <a href="https://github.com/hachimaki-dev" target="_blank">GitHub HachiMaki-dev</a>
       </div>
+
+      <div class="portal-db-banner">
+        <button id="open-db-modal-btn" class="db-guide-trigger" type="button" aria-haspopup="dialog" aria-controls="db-connection-modal">
+          <div class="db-trigger-icon">🔌</div>
+          <div class="db-trigger-content">
+            <span class="db-trigger-tag">Guía de Inicio Rápido</span>
+            <span class="db-trigger-title">¿Cómo conectarse a la Base de Datos Oracle en VS Code?</span>
+            <span class="db-trigger-desc">Credenciales para <strong>Laboratorios Duoc UC</strong> (ORCL / SYSDBA) y <strong>Docker</strong> (FREEPDB1) + Script para crear tu usuario</span>
+          </div>
+          <div class="db-trigger-badge">Ver Guía Paso a Paso →</div>
+        </button>
+      </div>
     </header>
 
     <!-- UNIDAD 3: SQL, DDL Y DML -->
@@ -53,5 +65,426 @@
       </a>
     </section>
   </div>
+
+  <!-- MODAL: GUÍA DE CONEXIÓN A LA BD ORACLE -->
+  <dialog id="db-connection-modal" class="db-modal" closedby="any" aria-labelledby="db-modal-title">
+    <div class="db-modal-inner">
+      <div class="db-modal-header">
+        <div class="db-modal-title-wrap">
+          <span class="db-modal-badge">Oracle Developer Tools for VS Code</span>
+          <h2 id="db-modal-title">🔌 Guía de Conexión a Oracle Database</h2>
+          <p class="db-modal-subtitle">Configuración paso a paso para Laboratorios Duoc UC y Docker personal</p>
+        </div>
+        <button id="close-db-modal-btn" class="db-modal-close" type="button" aria-label="Cerrar modal">&times;</button>
+      </div>
+
+      <div class="db-modal-body">
+        <!-- ALERTA CRÍTICA: ADMIN PRIMERO -->
+        <div class="db-alert db-alert-warning">
+          <div class="db-alert-icon">⚠️</div>
+          <div class="db-alert-text">
+            <strong>REGLA DE ORO: Primero debes conectarte como Administrador (Admin)</strong>
+            <p>Una base de datos recién instalada o reiniciada <strong>aún no tiene creado tu usuario de desarrollo</strong>. Primero debes conectarte obligatoriamente con el usuario administrador (<code>SYS</code> o <code>SYSTEM</code>) para habilitar scripts, crear a <code>usuario_desarrollador</code> y otorgarle permisos y cuota.</p>
+          </div>
+        </div>
+
+        <!-- PASO 1: EXTENSIÓN VS CODE -->
+        <div class="db-step">
+          <div class="db-step-header">
+            <div class="db-step-num">1</div>
+            <div>
+              <h3>Instalar la Extensión en Visual Studio Code</h3>
+              <p>Abre el panel de Extensiones en VS Code (<code>Ctrl+Shift+X</code> en Windows o <code>Cmd+Shift+X</code> en Mac):</p>
+            </div>
+          </div>
+          <div class="db-ext-box">
+            <span class="db-ext-icon">🗄️</span>
+            <div class="db-ext-info">
+              <strong>Oracle Developer Tools for VS Code (SQL and PL/SQL)</strong>
+              <span>Extensión oficial desarrollada por <em>Oracle Corporation</em> (ID: <code>oracle.oracledevtools</code>)</span>
+            </div>
+            <span class="db-ext-check">Recomendada</span>
+          </div>
+          <p class="small" style="margin-top: 8px;">Una vez instalada, aparecerá el ícono de la base de datos de Oracle en la barra lateral izquierda. Haz clic en el botón <strong><code>+</code> (Create Connection)</strong> para configurar la primera conexión.</p>
+        </div>
+
+        <!-- PASO 2: CONEXIÓN ADMIN (DUOC VS DOCKER) -->
+        <div class="db-step">
+          <div class="db-step-header">
+            <div class="db-step-num">2</div>
+            <div>
+              <h3>Conexión Inicial como Administrador</h3>
+              <p>Selecciona tu entorno de trabajo para ver las credenciales exactas que debes ingresar en VS Code:</p>
+            </div>
+          </div>
+
+          <!-- SELECTOR DE PESTAÑAS DE ENTORNO -->
+          <div class="db-env-tabs" role="tablist" aria-label="Entornos de Conexión">
+            <button class="db-env-tab active" id="tab-btn-duoc" role="tab" aria-selected="true" aria-controls="tab-pane-duoc">
+              🏢 Laboratorios Duoc UC (PCs de la Sede)
+            </button>
+            <button class="db-env-tab" id="tab-btn-docker" role="tab" aria-selected="false" aria-controls="tab-pane-docker">
+              🐳 Docker en PC / Mac (Imagen gvenzl)
+            </button>
+          </div>
+
+          <!-- TAB PANE: LABORATORIO DUOC UC -->
+          <div class="db-env-pane active" id="tab-pane-duoc" role="tabpanel" aria-labelledby="tab-btn-duoc">
+            <div class="db-table-responsive">
+              <table class="db-param-table">
+                <thead>
+                  <tr>
+                    <th>Campo en VS Code</th>
+                    <th>Valor en Laboratorios Duoc UC</th>
+                    <th>Nota o Detalle</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Connection Name</strong></td>
+                    <td><code>Oracle-Admin-Duoc</code></td>
+                    <td>Nombre descriptivo para la conexión</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Connection Type</strong></td>
+                    <td><code>Basic</code></td>
+                    <td>Tipo estándar de conexión TCP/IP</td>
+                  </tr>
+                  <tr class="db-highlight-row">
+                    <td><strong>Role</strong></td>
+                    <td><span class="badge-role sysdba">SYSDBA</span></td>
+                    <td>🚨 <strong>¡OBLIGATORIO!</strong> Al conectarte con <code>SYS</code> debes seleccionar rol <code>SYSDBA</code>. Si dejas <code>Default</code>, fallará con <code>ORA-28009</code>.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Authentication Type</strong></td>
+                    <td><code>Default</code></td>
+                    <td>Autenticación clásica de base de datos</td>
+                  </tr>
+                  <tr>
+                    <td><strong>User Name</strong></td>
+                    <td><strong><code>SYS</code></strong></td>
+                    <td>Superusuario administrativo de Oracle</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Password</strong></td>
+                    <td><code>123456</code></td>
+                    <td>Contraseña configurada en laboratorios de la sede</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Host Name</strong></td>
+                    <td><code>localhost</code></td>
+                    <td>O la IP de laboratorio (ej: <code>127.0.0.1</code>)</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Port</strong></td>
+                    <td><code>1521</code></td>
+                    <td>Puerto oficial del Oracle Listener</td>
+                  </tr>
+                  <tr class="db-highlight-row">
+                    <td><strong>Type (Radio Button)</strong></td>
+                    <td><strong>SID</strong></td>
+                    <td>En laboratorios Duoc UC se conecta vía <strong>SID</strong></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Database Name (SID)</strong></td>
+                    <td><code>ORCL</code></td>
+                    <td>Identificador del Sistema (SID) instalado</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB PANE: DOCKER GVENZL -->
+          <div class="db-env-pane" id="tab-pane-docker" role="tabpanel" aria-labelledby="tab-btn-docker">
+            <div class="db-table-responsive">
+              <table class="db-param-table">
+                <thead>
+                  <tr>
+                    <th>Campo en VS Code</th>
+                    <th>Valor para Docker (gvenzl)</th>
+                    <th>Nota o Detalle</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Connection Name</strong></td>
+                    <td><code>Oracle-Admin-Docker</code></td>
+                    <td>Nombre descriptivo para la conexión</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Connection Type</strong></td>
+                    <td><code>Basic</code></td>
+                    <td>Tipo estándar TCP/IP</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Role</strong></td>
+                    <td><span class="badge-role default">Default</span></td>
+                    <td>Con el usuario <code>SYSTEM</code> se utiliza el rol <code>Default</code></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Authentication Type</strong></td>
+                    <td><code>Default</code></td>
+                    <td>Autenticación estándar</td>
+                  </tr>
+                  <tr>
+                    <td><strong>User Name</strong></td>
+                    <td><strong><code>SYSTEM</code></strong></td>
+                    <td>Usuario administrador por defecto en contenedores</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Password</strong></td>
+                    <td><code>123456</code></td>
+                    <td>O la contraseña que configuraste en <code>ORACLE_PASSWORD</code></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Host Name</strong></td>
+                    <td><code>localhost</code></td>
+                    <td>Tu equipo anfitrión</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Port</strong></td>
+                    <td><code>1521</code></td>
+                    <td>Puerto publicado en el contenedor (<code>-p 1521:1521</code>)</td>
+                  </tr>
+                  <tr class="db-highlight-row">
+                    <td><strong>Type (Radio Button)</strong></td>
+                    <td><strong>Service Name</strong></td>
+                    <td>🚨 <strong>¡CRÍTICO!</strong> Seleccionar <strong>Service Name</strong> (NO uses SID)</td>
+                  </tr>
+                  <tr class="db-highlight-row">
+                    <td><strong>Service Name</strong></td>
+                    <td><code>FREEPDB1</code></td>
+                    <td>Pluggable Database para Oracle 23c Free (o <code>XEPDB1</code> si usas imagen 21c XE)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PASO 3: SCRIPT CREACIÓN USUARIO -->
+        <div class="db-step">
+          <div class="db-step-header">
+            <div class="db-step-num">3</div>
+            <div>
+              <h3>Ejecutar el Script SQL con el Administrador</h3>
+              <p>Haz clic derecho en la conexión de Administrador recién conectada y selecciona <strong>"Open SQL Worksheet"</strong>. Pega y ejecuta el siguiente script:</p>
+            </div>
+          </div>
+
+          <div class="db-code-wrapper">
+            <div class="db-code-header">
+              <span class="db-code-lang">Oracle SQL Script</span>
+              <button id="copy-sql-btn" class="db-copy-btn" type="button" aria-label="Copiar script SQL al portapapeles">
+                <span class="copy-icon">📋</span>
+                <span class="copy-text">Copiar Script SQL</span>
+              </button>
+            </div>
+            <pre class="db-code"><code id="sql-script-content">-- Habilita la creación de usuarios en Oracle 12c/19c/21c/23c
+ALTER SESSION SET "_ORACLE_SCRIPT"=TRUE;
+
+-- Crear el usuario
+CREATE USER usuario_desarrollador IDENTIFIED BY "123456"
+DEFAULT TABLESPACE "USERS"
+TEMPORARY TABLESPACE "TEMP";
+
+-- Asignar cuota y permisos básicos
+ALTER USER usuario_desarrollador QUOTA UNLIMITED ON USERS;
+GRANT CREATE SESSION TO usuario_desarrollador;
+GRANT "RESOURCE" TO usuario_desarrollador;
+ALTER USER usuario_desarrollador DEFAULT ROLE "RESOURCE";</code></pre>
+          </div>
+
+          <div class="db-explanation-box">
+            <h4>💡 ¿Qué hace cada sentencia de este script?</h4>
+            <ul class="db-explanation-list">
+              <li><code>ALTER SESSION SET "_ORACLE_SCRIPT"=TRUE;</code>: En bases de datos Oracle Multitenant (CDB/PDB), los usuarios normalmente exigen el prefijo <code>C##</code>. Esta instrucción desactiva temporalmente esa restricción para crear un usuario de desarrollo estándar.</li>
+              <li><code>CREATE USER usuario_desarrollador IDENTIFIED BY "123456" ...</code>: Crea el usuario personal con clave <code>123456</code> y le asigna el tablespace de almacenamiento <code>USERS</code> y de temporales <code>TEMP</code>.</li>
+              <li><code>ALTER USER usuario_desarrollador QUOTA UNLIMITED ON USERS;</code>: Le asigna cuota de almacenamiento ilimitada en el tablespace para que puedas crear tablas e insertar datos sin errores de cuota (<code>ORA-01950</code>).</li>
+              <li><code>GRANT CREATE SESSION ...;</code>: Le otorga el permiso indispensable para poder autenticarse e iniciar sesión en Oracle.</li>
+              <li><code>GRANT "RESOURCE" ...;</code>: Le otorga el rol de desarrollo que incluye privilegios para crear tablas, secuencias, vistas y triggers.</li>
+            </ul>
+          </div>
+          <p class="small" style="margin-top: 8px;"><strong>¿Cómo ejecutarlo en VS Code?</strong> Selecciona todo el código con <code>Ctrl+A</code> (o <code>Cmd+A</code>) y presiona la tecla <strong><code>F5</code></strong> o el ícono de <strong>"Execute as Script"</strong> (la página con play/engranaje en la barra superior del editor).</p>
+        </div>
+
+        <!-- PASO 4: CONEXIÓN USUARIO_DESARROLLADOR -->
+        <div class="db-step">
+          <div class="db-step-header">
+            <div class="db-step-num">4</div>
+            <div>
+              <h3>Crear la Conexión de Alumno (usuario_desarrollador)</h3>
+              <p>¡Listo! Ahora presiona nuevamente el botón <strong><code>+</code> (Create Connection)</strong> en VS Code para crear tu conexión de trabajo habitual:</p>
+            </div>
+          </div>
+
+          <div class="db-table-responsive">
+            <table class="db-param-table">
+              <thead>
+                <tr>
+                  <th>Campo en VS Code</th>
+                  <th>Valor en Duoc UC</th>
+                  <th>Valor en Docker</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Connection Name</strong></td>
+                  <td><code>Oracle-Desarrollo-Duoc</code></td>
+                  <td><code>Oracle-Desarrollo-Docker</code></td>
+                </tr>
+                <tr>
+                  <td><strong>User Name</strong></td>
+                  <td colspan="2"><strong style="color: var(--accent-menta);"><code>usuario_desarrollador</code></strong></td>
+                </tr>
+                <tr>
+                  <td><strong>Password</strong></td>
+                  <td colspan="2"><code>123456</code></td>
+                </tr>
+                <tr>
+                  <td><strong>Role</strong></td>
+                  <td colspan="2"><span class="badge-role default">Default</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Host Name : Port</strong></td>
+                  <td colspan="2"><code>localhost</code> : <code>1521</code></td>
+                </tr>
+                <tr>
+                  <td><strong>Tipo y Base de Datos</strong></td>
+                  <td>SID: <code>ORCL</code></td>
+                  <td>Service Name: <code>FREEPDB1</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="db-success-card">
+            🎉 <strong>¡Excelente!</strong> A partir de ahora, todas tus clases, desafíos de SQL (Nintendo eShop, Spotify, DDL, DML) y evaluaciones las desarrollarás conectado con <strong><code>usuario_desarrollador</code></strong>.
+          </div>
+        </div>
+
+        <!-- SECCIÓN DE ERRORES FRECUENTES -->
+        <div class="db-trouble-section">
+          <h4>🛠️ Errores Frecuentes y Cómo Solucionarlos</h4>
+          <div class="db-trouble-grid">
+            <div class="db-trouble-item">
+              <span class="db-trouble-code">ORA-28009: connection as SYS should be as SYSDBA or SYSOPER</span>
+              <p>Ocurre al conectar con <code>SYS</code> en Duoc UC sin cambiar el <strong>Role</strong>. Cámbialo de <code>Default</code> a <code>SYSDBA</code>.</p>
+            </div>
+            <div class="db-trouble-item">
+              <span class="db-trouble-code">ORA-12505 / ORA-12514: listener does not know SID/Service</span>
+              <p>Revisa el botón de radio de conexión: en <strong>Duoc UC</strong> debe ser <strong>SID: ORCL</strong>, mientras que en <strong>Docker</strong> debe ser <strong>Service Name: FREEPDB1</strong>.</p>
+            </div>
+            <div class="db-trouble-item">
+              <span class="db-trouble-code">ORA-01017: invalid username/password; logon denied</span>
+              <p>Revisa que la clave sea exactamente <code>123456</code> y que no tengas las mayúsculas activadas (Bloq Mayús / Caps Lock).</p>
+            </div>
+            <div class="db-trouble-item">
+              <span class="db-trouble-code">ORA-01045: user lacks CREATE SESSION privilege</span>
+              <p>Faltó ejecutar <code>GRANT CREATE SESSION TO usuario_desarrollador;</code> desde el usuario Administrador.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="db-modal-footer">
+        <button id="footer-close-btn" class="btn" type="button">Entendido, cerrar guía</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- LÓGICA DE CONTROL DEL MODAL -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Modal controls
+      const dbModal = document.getElementById('db-connection-modal');
+      const openDbModalBtn = document.getElementById('open-db-modal-btn');
+      const closeDbModalBtn = document.getElementById('close-db-modal-btn');
+      const footerCloseBtn = document.getElementById('footer-close-btn');
+
+      if (openDbModalBtn && dbModal) {
+        openDbModalBtn.addEventListener('click', () => {
+          dbModal.showModal();
+        });
+      }
+
+      const closeModal = () => {
+        if (dbModal && dbModal.open) {
+          dbModal.close();
+        }
+      };
+
+      if (closeDbModalBtn) closeDbModalBtn.addEventListener('click', closeModal);
+      if (footerCloseBtn) footerCloseBtn.addEventListener('click', closeModal);
+
+      // Light dismiss fallback for backdrop click
+      if (dbModal) {
+        dbModal.addEventListener('click', (e) => {
+          const rect = dbModal.getBoundingClientRect();
+          const isInDialog = (
+            rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
+            rect.left <= e.clientX && e.clientX <= rect.left + rect.width
+          );
+          if (!isInDialog) {
+            closeModal();
+          }
+        });
+      }
+
+      // Tabs Duoc UC vs Docker
+      const tabDuoc = document.getElementById('tab-btn-duoc');
+      const tabDocker = document.getElementById('tab-btn-docker');
+      const paneDuoc = document.getElementById('tab-pane-duoc');
+      const paneDocker = document.getElementById('tab-pane-docker');
+
+      if (tabDuoc && tabDocker && paneDuoc && paneDocker) {
+        tabDuoc.addEventListener('click', () => {
+          tabDuoc.classList.add('active');
+          tabDuoc.setAttribute('aria-selected', 'true');
+          tabDocker.classList.remove('active');
+          tabDocker.setAttribute('aria-selected', 'false');
+          paneDuoc.classList.add('active');
+          paneDocker.classList.remove('active');
+        });
+
+        tabDocker.addEventListener('click', () => {
+          tabDocker.classList.add('active');
+          tabDocker.setAttribute('aria-selected', 'true');
+          tabDuoc.classList.remove('active');
+          tabDuoc.setAttribute('aria-selected', 'false');
+          paneDocker.classList.add('active');
+          paneDuoc.classList.remove('active');
+        });
+      }
+
+      // Copy SQL Script
+      const copySqlBtn = document.getElementById('copy-sql-btn');
+      const sqlContent = document.getElementById('sql-script-content');
+
+      if (copySqlBtn && sqlContent) {
+        copySqlBtn.addEventListener('click', async () => {
+          const text = sqlContent.textContent || sqlContent.innerText;
+          try {
+            await navigator.clipboard.writeText(text.trim());
+            copySqlBtn.classList.add('copied');
+            const iconEl = copySqlBtn.querySelector('.copy-icon');
+            const textEl = copySqlBtn.querySelector('.copy-text');
+            if (iconEl) iconEl.textContent = '✅';
+            if (textEl) textEl.textContent = '¡Copiado al portapapeles!';
+
+            setTimeout(() => {
+              copySqlBtn.classList.remove('copied');
+              if (iconEl) iconEl.textContent = '📋';
+              if (textEl) textEl.textContent = 'Copiar Script SQL';
+            }, 2500);
+          } catch (err) {
+            console.error('Error al copiar al portapapeles:', err);
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>
