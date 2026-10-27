@@ -637,142 +637,249 @@
     .lab-scroll-area {
       flex: 1;
       overflow-y: auto;
+      scroll-behavior: smooth;
       background: var(--bg-soft);
-      padding: 0 0 80px;
+      padding: 0 0 100px;
     }
     .lab-container {
-      max-width: 1080px;
+      max-width: 1160px;
       margin: 0 auto;
-      padding: 28px 24px;
+      padding: 24px 28px 100px;
+      font-size: 16px;
+      line-height: 1.65;
     }
 
+    /* HERO NINTENDO */
     .nintendo-hero {
       background: linear-gradient(135deg, #E60012 0%, #B8000E 100%);
       color: #FFFFFF;
       border-radius: var(--radius-lg);
-      padding: 28px 32px;
+      padding: 32px 36px;
       margin-bottom: 24px;
-      box-shadow: 0 8px 24px rgba(230, 0, 18, 0.18);
+      box-shadow: 0 10px 28px rgba(230, 0, 18, 0.22);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 24px;
+      gap: 28px;
       flex-wrap: wrap;
     }
     .nintendo-hero h2 {
       color: #FFFFFF;
-      font-size: clamp(24px, 3vw, 34px);
-      margin: 6px 0 8px;
+      font-size: clamp(26px, 3.2vw, 36px);
+      margin: 8px 0 10px;
+      letter-spacing: -0.02em;
     }
     .nintendo-hero p {
-      color: rgba(255, 255, 255, 0.92);
-      font-size: 15px;
+      color: rgba(255, 255, 255, 0.95);
+      font-size: 16px;
+      line-height: 1.6;
       margin: 0;
-      max-width: 680px;
+      max-width: 720px;
     }
     .nintendo-pill {
       display: inline-block;
       background: #FFFFFF;
       color: #E60012;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 900;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 999px;
     }
     .hero-progress-box {
-      background: rgba(0, 0, 0, 0.22);
-      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: rgba(0, 0, 0, 0.26);
+      border: 1.5px solid rgba(255, 255, 255, 0.35);
       border-radius: var(--radius-md);
-      padding: 16px 20px;
-      min-width: 230px;
+      padding: 18px 24px;
+      min-width: 240px;
       text-align: center;
     }
     .hero-progress-num {
       font-family: var(--font-mono);
-      font-size: 28px;
+      font-size: 32px;
       font-weight: 900;
       color: #FFFFFF;
       line-height: 1.1;
     }
     .hero-progress-label {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.85);
-      margin-top: 4px;
+      font-size: 13px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.9);
+      margin-top: 6px;
     }
 
-    /* Sticky Mission Tabs */
+    /* PESTAÑAS PEGAJOSAS DE MISIONES (STICKY TABS) */
     .mission-tabs {
       display: flex;
-      gap: 6px;
-      background: #FFFFFF;
-      padding: 10px 12px;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(10px);
+      padding: 12px 14px;
       border-radius: var(--radius-md);
-      border: 1.5px solid var(--line);
+      border: 2px solid var(--line);
       position: sticky;
-      top: 10px;
-      z-index: 30;
+      top: 0;
+      z-index: 45;
       margin-bottom: 24px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
       overflow-x: auto;
     }
     .mission-tab {
-      border: 1px solid transparent;
+      border: 1.5px solid transparent;
       background: var(--bg-soft);
       color: var(--ink-soft);
       font-family: var(--font-body);
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 800;
-      padding: 9px 14px;
-      border-radius: var(--radius-sm);
+      padding: 10px 16px;
+      border-radius: 8px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 8px;
       white-space: nowrap;
-      transition: all 0.15s ease;
+      transition: all 0.18s ease;
     }
     .mission-tab:hover {
-      background: var(--bg-muted);
+      background: #E2E8F0;
       color: var(--ink);
+      transform: translateY(-1px);
     }
     .mission-tab.active {
-      background: var(--ink);
-      color: #FFFFFF;
+      color: #FFFFFF !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
     }
+    .mission-tab.tab-ddl.active    { background: #1E3A8A !important; border-color: #1E3A8A; }
+    .mission-tab.tab-insert.active { background: #065F46 !important; border-color: #065F46; }
+    .mission-tab.tab-update.active { background: #B45309 !important; border-color: #B45309; }
+    .mission-tab.tab-delete.active { background: #B91C1C !important; border-color: #B91C1C; }
+    .mission-tab.tab-select.active { background: #6D28D9 !important; border-color: #6D28D9; }
+
     .mission-tab .m-count {
       font-family: var(--font-mono);
-      font-size: 11px;
-      padding: 2px 6px;
+      font-size: 11.5px;
+      font-weight: 800;
+      padding: 2px 7px;
       border-radius: 999px;
       background: rgba(0,0,0,0.08);
     }
     .mission-tab.active .m-count {
-      background: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.25);
       color: #FFFFFF;
     }
 
-    /* Model Table Cards for Nintendo Schema */
-    .schema-grid {
+    /* ESPECIFICACIÓN DEL MODELO RELACIONAL (VISOR MODERNO CON PESTAÑAS) */
+    .schema-inspector {
+      background: #FFFFFF;
+      border: 2px solid var(--ink);
+      border-radius: var(--radius-md);
+      box-shadow: 3px 3px 0 var(--line);
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+    .schema-inspector-header {
+      background: var(--ink);
+      color: #FFFFFF;
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .schema-inspector-title {
+      font-size: 16px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .schema-inspector-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .schema-action-btn {
+      background: #FFFFFF;
+      color: var(--ink);
+      border: none;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .schema-action-btn:hover {
+      background: #F1F5F9;
+      transform: translateY(-1px);
+    }
+
+    /* Pestañas de tablas dentro del visor de esquema */
+    .schema-table-nav {
+      display: flex;
+      gap: 6px;
+      background: #F1F5F9;
+      padding: 10px 16px;
+      border-bottom: 2px solid var(--line);
+      overflow-x: auto;
+    }
+    .st-btn {
+      background: #FFFFFF;
+      border: 1.5px solid var(--line);
+      color: var(--ink-soft);
+      font-family: var(--font-body);
+      font-size: 13.5px;
+      font-weight: 800;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .st-btn:hover {
+      background: #E2E8F0;
+      color: var(--ink);
+    }
+    .st-btn.active {
+      background: var(--ink);
+      color: #FFFFFF;
+      border-color: var(--ink);
+    }
+
+    /* Grid y Tarjetas del Esquema */
+    .schema-content-area {
+      padding: 20px;
+    }
+    .schema-grid-2x2 {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-      margin: 18px 0 28px;
+      grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+      gap: 20px;
+    }
+    .schema-single-view {
+      max-width: 100%;
     }
     .schema-card {
       background: #FFFFFF;
       border: 2px solid var(--ink);
       border-radius: var(--radius-md);
       overflow: hidden;
-      box-shadow: 3px 3px 0 var(--line);
+      box-shadow: 2px 2px 0 var(--line);
     }
     .schema-header {
       background: var(--ink);
       color: #FFFFFF;
-      padding: 10px 14px;
+      padding: 12px 18px;
       font-family: var(--font-mono);
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 800;
       display: flex;
       justify-content: space-between;
@@ -781,85 +888,193 @@
     .schema-header.child-table {
       background: #991B1B;
     }
-    .schema-cols {
-      list-style: none;
-      margin: 0;
-      padding: 0;
+    .schema-header.child-optional {
+      background: #1E40AF;
     }
-    .schema-cols li {
-      padding: 8px 12px;
+    .schema-table-view {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .schema-table-view th {
+      background: #F8FAFC;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 2px solid var(--line);
+    }
+    .schema-table-view td {
+      padding: 12px 14px;
       border-bottom: 1px solid var(--line);
-      font-size: 12.5px;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
+      vertical-align: top;
+      color: #0F172A;
     }
-    .schema-cols li:last-child {
+    .schema-table-view tr:last-child td {
       border-bottom: none;
     }
-    .col-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    .col-name {
       font-family: var(--font-mono);
+      font-size: 14.5px;
+      font-weight: 800;
+      color: #0F172A;
+    }
+    .col-type-tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 13px;
       font-weight: 700;
-      color: var(--ink);
+      color: #3730A3;
+      background: #EEF2FF;
+      border: 1px solid #C7D2FE;
+      padding: 2px 7px;
+      border-radius: 4px;
     }
-    .col-type {
-      color: var(--ink-muted);
-      font-size: 11px;
-      font-weight: 600;
-    }
-    .col-rule {
-      font-size: 11.5px;
-      color: var(--ink-soft);
-      line-height: 1.35;
-    }
-    .badge-row {
+    .col-constraints {
       display: flex;
       flex-wrap: wrap;
-      gap: 4px;
-      margin-top: 2px;
+      gap: 5px;
+      margin-bottom: 4px;
     }
     .c-badge {
       font-family: var(--font-body);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 800;
-      padding: 1px 6px;
+      padding: 2px 8px;
       border-radius: 4px;
       text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
-    .c-badge.pk  { background: #FEE2E2; color: #991B1B; }
-    .c-badge.fk  { background: #DBEAFE; color: #1E40AF; }
-    .c-badge.nn  { background: #DCFCE7; color: #166534; }
-    .c-badge.uq  { background: #F3E8FF; color: #6B21A8; }
-    .c-badge.chk { background: #FEF3C7; color: #92400E; }
-    .c-badge.def { background: #E2E8F0; color: #334155; }
+    .c-badge.pk  { background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
+    .c-badge.fk  { background: #DBEAFE; color: #1E40AF; border: 1px solid #93C5FD; }
+    .c-badge.nn  { background: #DCFCE7; color: #166534; border: 1px solid #86EFAC; }
+    .c-badge.uq  { background: #F3E8FF; color: #6B21A8; border: 1px solid #D8B4FE; }
+    .c-badge.chk { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
+    .c-badge.def { background: #E2E8F0; color: #334155; border: 1px solid #CBD5E1; }
+    .col-rule-desc {
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.45;
+    }
 
-    /* Exercise Cards */
+    /* BANNER DE CONTEXTO Y PRERREQUISITOS POR MISIÓN */
+    .mission-context-banner {
+      background: #FFFFFF;
+      border: 2px solid var(--ink);
+      border-radius: var(--radius-md);
+      box-shadow: 3px 3px 0 var(--line);
+      padding: 22px 24px;
+      margin-bottom: 26px;
+      scroll-margin-top: 80px;
+    }
+    .mcb-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--line);
+    }
+    .mcb-title-box h3 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0F172A;
+      margin: 0 0 4px;
+    }
+    .mcb-subtitle {
+      font-size: 15px;
+      font-weight: 500;
+      color: #475569;
+      margin: 0;
+    }
+    .mcb-progress-pill {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--ink);
+      background: #F1F5F9;
+      padding: 6px 16px;
+      border-radius: 999px;
+      border: 1.5px solid var(--line);
+    }
+    .mcb-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .mcb-card {
+      background: #F8FAFC;
+      border: 1.5px solid #CBD5E1;
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .mcb-card-badge {
+      align-self: flex-start;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .mcb-card.goal .mcb-card-badge   { background: #DBEAFE; color: #1E40AF; }
+    .mcb-card.prereq .mcb-card-badge { background: #FEF3C7; color: #92400E; }
+    .mcb-card.rule .mcb-card-badge   { background: #DCFCE7; color: #166534; }
+
+    .mcb-card-title {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: #0F172A;
+      margin: 0;
+    }
+    .mcb-card-body {
+      font-size: 13.5px;
+      color: #334155;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    /* TARJETAS DE EJERCICIOS ESPACIOSAS */
     .exercise-card {
       background: #FFFFFF;
       border: 2px solid #334155;
       border-radius: var(--radius-md);
-      padding: 18px 20px;
-      margin-bottom: 16px;
-      box-shadow: 2px 2px 0 #CBD5E1;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      padding: 24px 28px;
+      margin-bottom: 22px;
+      box-shadow: 3px 3px 0 #CBD5E1;
+      scroll-margin-top: 90px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
     }
     .exercise-card:hover {
       border-color: #0F172A;
-      box-shadow: 3px 3px 0 #94A3B8;
+      box-shadow: 4px 4px 0 #94A3B8;
+      transform: translateY(-1px);
     }
     .exercise-card.completed {
-      border-color: #15803D;
+      border-color: #15803D !important;
       background: #F0FDF4;
     }
+
+    /* Bordes acento según misión */
+    .exercise-card.m-ddl    { border-left: 8px solid #1E3A8A; }
+    .exercise-card.m-insert { border-left: 8px solid #065F46; }
+    .exercise-card.m-update { border-left: 8px solid #B45309; }
+    .exercise-card.m-delete { border-left: 8px solid #B91C1C; }
+    .exercise-card.m-select { border-left: 8px solid #6D28D9; }
+
     .ex-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 10px;
+      gap: 14px;
+      margin-bottom: 14px;
       flex-wrap: wrap;
     }
     .ex-title-group {
@@ -867,75 +1082,116 @@
       align-items: center;
       gap: 10px;
       flex-wrap: wrap;
+      flex: 1;
     }
     .ex-num-badge {
       font-family: var(--font-mono);
-      font-size: 12.5px;
-      font-weight: 800;
+      font-size: 13.5px;
+      font-weight: 900;
       background: #0F172A;
       color: #FFFFFF;
       padding: 4px 10px;
       border-radius: 6px;
     }
     .ex-title {
-      font-size: 17px;
+      font-size: 19px;
       font-weight: 800;
       color: #0F172A;
       margin: 0;
+      line-height: 1.35;
     }
     .ex-check-label {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      font-size: 13px;
+      gap: 8px;
+      font-size: 14px;
       font-weight: 800;
       color: #0F172A;
       cursor: pointer;
       user-select: none;
-      padding: 5px 12px;
+      padding: 6px 14px;
       border-radius: 6px;
       background: #F1F5F9;
       border: 1.5px solid #475569;
+      transition: all 0.15s ease;
+    }
+    .ex-check-label:hover {
+      background: #E2E8F0;
+      border-color: #0F172A;
     }
     .ex-check-label input {
-      width: 16px;
-      height: 16px;
+      width: 17px;
+      height: 17px;
       accent-color: #15803D;
       cursor: pointer;
     }
     .ex-body {
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 500;
-      line-height: 1.6;
-      color: #0F172A;
-      margin-bottom: 10px;
+      line-height: 1.7;
+      color: #1E293B;
+      margin: 12px 0 16px;
     }
-    .ex-data-box {
-      background: #F8FAFC;
+
+    /* CAJA DE DATOS ESTRUCTURADA CON BOTÓN COPIAR */
+    .ex-data-card {
+      margin: 14px 0 16px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
       border: 1.5px solid #475569;
-      border-left: 5px solid #0F172A;
-      padding: 12px 16px;
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+    .ex-data-header {
+      background: #E2E8F0;
+      padding: 7px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #334155;
+    }
+    .btn-copy-data {
+      background: #FFFFFF;
+      border: 1px solid #64748B;
+      border-radius: 4px;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 800;
+      color: #0F172A;
+      padding: 3px 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+    .btn-copy-data:hover {
+      background: var(--ink);
+      color: #FFFFFF;
+      border-color: var(--ink);
+    }
+    .ex-data-body {
+      background: #F8FAFC;
+      padding: 14px 18px;
       font-family: var(--font-mono);
-      font-size: 13.5px;
+      font-size: 14px;
       font-weight: 600;
       color: #0F172A;
-      margin: 10px 0;
-      line-height: 1.6;
+      line-height: 1.65;
       white-space: pre-wrap;
     }
 
-    /* Hint Accordion (sin mostrar código resuelto) */
+    /* Pistas desplegables */
     details.hint-box {
-      margin-top: 12px;
+      margin-top: 14px;
       border: 1.5px solid #B45309;
       background: #FEF3C7;
       border-radius: var(--radius-sm);
       overflow: hidden;
     }
     details.hint-box summary {
-      padding: 9px 14px;
-      font-size: 13.5px;
+      padding: 11px 16px;
+      font-size: 14.5px;
       font-weight: 800;
       color: #78350F;
       cursor: pointer;
@@ -943,7 +1199,7 @@
       list-style: none;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
     details.hint-box summary::-webkit-details-marker {
       display: none;
@@ -951,25 +1207,54 @@
     details.hint-box summary::after {
       content: '▾';
       margin-left: auto;
+      font-size: 16px;
     }
     details.hint-box[open] summary::after {
       transform: rotate(180deg);
     }
     .hint-box-content {
-      padding: 10px 14px;
+      padding: 14px 18px;
       border-top: 1px solid #FDE68A;
-      font-size: 13.5px;
+      font-size: 14.5px;
       color: #78350F;
-      background: #FFFFFF;
-      line-height: 1.5;
+      background: #FFFBEB;
+      line-height: 1.6;
     }
 
-    @media (max-width: 820px) {
+    /* TOAST DE NOTIFICACIÓN FLOTANTE */
+    .toast-notification {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: #0F172A;
+      color: #FFFFFF;
+      padding: 12px 24px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 800;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+      animation: toastPop 0.25s ease-out;
+    }
+    @keyframes toastPop {
+      from { opacity: 0; transform: translateY(10px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @media (max-width: 900px) {
       .two-col { grid-template-columns: 1fr; }
+      .schema-grid-2x2 { grid-template-columns: 1fr; }
       .topbar-title { display: none; }
       .teacher-notes-bar { grid-template-columns: 1fr; gap: 6px; }
+      .exercise-card { padding: 18px 20px; }
     }
   </style>
+</head>
+<body>
 </head>
 <body>
 
@@ -1733,203 +2018,383 @@ ORDER BY d.nombre_depto ASC;</code></pre>
         </div>
       </div>
 
-      <!-- PESTAÑAS DE MISIONES -->
+      <!-- PESTAÑAS DE MISIONES (STICKY) -->
       <nav class="mission-tabs" aria-label="Misiones del Caso Nintendo">
         <button
           v-for="m in missions"
           :key="m.id"
           class="mission-tab"
-          :class="{ active: activeMission === m.id }"
+          :class="['tab-' + m.id, { active: activeMission === m.id }]"
           @click="selectMission(m.id)">
           <span>{{ m.icon }} {{ m.name }}</span>
           <span class="m-count">{{ getMissionDoneCount(m.id) }}/10</span>
         </button>
       </nav>
 
-      <!-- DIAGRAMA Y ESPECIFICACIÓN DEL MODELO RELACIONAL (SIEMPRE DISPONIBLE EN ACORDEÓN O EN MISIÓN DDL) -->
-      <details class="engine-tip" :open="activeMission === 'ddl'" style="max-width: 100%; margin-bottom: 24px; border: 2px solid var(--ink);">
-        <summary style="font-size: 14.5px; font-weight: 800; color: var(--ink); background: #F1F5F9; padding: 14px 18px;">
-          🗺️ Especificación Oficial del Modelo Relacional Nintendo eShop (4 Tablas y sus Restricciones) — Haz clic para mostrar/ocultar
-        </summary>
-        <div class="engine-tip-content" style="padding: 20px;">
-          <p style="margin-bottom: 12px;">Estudia detenidamente la estructura de las 4 tablas oficiales del caso. Respeta exactamente los nombres de tablas, nombres de columnas y tipos de datos para que todas tus consultas funcionen a la perfección:</p>
+      <!-- VISOR DE ESQUEMA RELACIONAL NINTENDO (4 TABLAS Y SUS RESTRICCIONES) -->
+      <details class="schema-inspector" :open="activeMission === 'ddl'">
+        <summary style="display:none;"></summary>
+        <div class="schema-inspector-header">
+          <div class="schema-inspector-title">
+            <span>🗺️ Especificación Oficial del Modelo Relacional: Nintendo eShop &amp; My Nintendo</span>
+          </div>
+          <div class="schema-inspector-actions">
+            <button class="schema-action-btn" @click="copyDdl" title="Copiar al portapapeles el script DDL inicial de las 4 tablas en Oracle SQL">
+              <span>📋 Copiar DDL Oficial (4 Tablas)</span>
+            </button>
+          </div>
+        </div>
 
-          <div class="schema-grid">
+        <nav class="schema-table-nav" aria-label="Selector de tablas del esquema">
+          <button class="st-btn" :class="{ active: schemaTab === 'all' }" @click="setSchemaTab('all')">
+            👁️ Ver 4 Tablas (Cuadrícula 2x2)
+          </button>
+          <button class="st-btn" :class="{ active: schemaTab === 'consola' }" @click="setSchemaTab('consola')">
+            🎮 1. CONSOLA (Padre)
+          </button>
+          <button class="st-btn" :class="{ active: schemaTab === 'franquicia' }" @click="setSchemaTab('franquicia')">
+            ⭐ 2. FRANQUICIA (Padre)
+          </button>
+          <button class="st-btn" :class="{ active: schemaTab === 'videojuego' }" @click="setSchemaTab('videojuego')">
+            🕹️ 3. VIDEOJUEGO (Hija · 2 FKs)
+          </button>
+          <button class="st-btn" :class="{ active: schemaTab === 'jugador' }" @click="setSchemaTab('jugador')">
+            👤 4. JUGADOR (Hija Opcional)
+          </button>
+        </nav>
+
+        <div class="schema-content-area">
+          <div :class="schemaTab === 'all' ? 'schema-grid-2x2' : 'schema-single-view'">
+
             <!-- TABLA 1: CONSOLA -->
-            <div class="schema-card">
+            <div v-if="schemaTab === 'all' || schemaTab === 'consola'" class="schema-card">
               <div class="schema-header">
-                <span>1. CONSOLA</span>
-                <span style="font-size:10px; opacity:0.8;">PADRE</span>
+                <span>1. TABLA: CONSOLA</span>
+                <span class="c-badge def" style="background:#0F172A; color:#FFFFFF; border:1px solid #475569;">TABLA PADRE</span>
               </div>
-              <ul class="schema-cols">
-                <li>
-                  <div class="col-top"><span>id_consola</span><span class="col-type">NUMBER(4)</span></div>
-                  <div class="badge-row"><span class="c-badge pk">PRIMARY KEY</span></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>nombre_consola</span><span class="col-type">VARCHAR2(60)</span></div>
-                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge uq">UNIQUE</span></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>tipo_consola</span><span class="col-type">VARCHAR2(20)</span></div>
-                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
-                  <div class="col-rule">En línea: <code>CHECK (tipo_consola IN ('SOBREMESA', 'PORTATIL', 'HIBRIDA'))</code></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>anio_lanzamiento</span><span class="col-type">NUMBER(4)</span></div>
-                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
-                  <div class="col-rule">En línea: <code>CHECK (anio_lanzamiento BETWEEN 1983 AND 2030)</code></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>precio_referencia_usd</span><span class="col-type">NUMBER(6,2)</span></div>
-                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
-                  <div class="col-rule">En línea: <code>CHECK (precio_referencia_usd &gt; 0)</code></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>estado_fabricacion</span><span class="col-type">VARCHAR2(15)</span></div>
-                  <div class="badge-row"><span class="c-badge def">DEFAULT 'ACTIVA'</span><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
-                  <div class="col-rule">En línea: <code>CHECK (estado_fabricacion IN ('ACTIVA', 'DESCONTINUADA'))</code></div>
-                </li>
-              </ul>
+              <table class="schema-table-view">
+                <thead>
+                  <tr>
+                    <th style="width: 32%;">Columna</th>
+                    <th style="width: 25%;">Tipo Oracle</th>
+                    <th>Restricciones y Reglas de Integridad</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="col-name">id_consola</span></td>
+                    <td><span class="col-type-tag">NUMBER(4)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge pk">PRIMARY KEY</span></div>
+                      <div class="col-rule-desc">Identificador único irrepetible de la consola.</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">nombre_consola</span></td>
+                    <td><span class="col-type-tag">VARCHAR2(60)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge nn">NOT NULL</span><span class="c-badge uq">UNIQUE</span></div>
+                      <div class="col-rule-desc">Nombre comercial único oficial (Switch, 3DS, etc.).</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">tipo_consola</span></td>
+                    <td><span class="col-type-tag">VARCHAR2(20)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                      <div class="col-rule-desc"><code>CHECK (tipo_consola IN ('SOBREMESA', 'PORTATIL', 'HIBRIDA'))</code></div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">anio_lanzamiento</span></td>
+                    <td><span class="col-type-tag">NUMBER(4)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                      <div class="col-rule-desc"><code>CHECK (anio_lanzamiento BETWEEN 1983 AND 2030)</code></div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">precio_referencia_usd</span></td>
+                    <td><span class="col-type-tag">NUMBER(6,2)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                      <div class="col-rule-desc"><code>CHECK (precio_referencia_usd &gt; 0)</code> (decimal con punto).</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">estado_fabricacion</span></td>
+                    <td><span class="col-type-tag">VARCHAR2(15)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge def">DEFAULT 'ACTIVA'</span><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                      <div class="col-rule-desc"><code>CHECK (estado_fabricacion IN ('ACTIVA', 'DESCONTINUADA'))</code></div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
 
             <!-- TABLA 2: FRANQUICIA -->
-            <div class="schema-card">
+            <div v-if="schemaTab === 'all' || schemaTab === 'franquicia'" class="schema-card">
               <div class="schema-header">
-                <span>2. FRANQUICIA</span>
-                <span style="font-size:10px; opacity:0.8;">PADRE</span>
+                <span>2. TABLA: FRANQUICIA</span>
+                <span class="c-badge def" style="background:#0F172A; color:#FFFFFF; border:1px solid #475569;">TABLA PADRE</span>
               </div>
-              <ul class="schema-cols">
-                <li>
-                  <div class="col-top"><span>id_franquicia</span><span class="col-type">NUMBER(4)</span></div>
-                  <div class="badge-row"><span class="c-badge pk">PRIMARY KEY</span></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>nombre_franquicia</span><span class="col-type">VARCHAR2(60)</span></div>
-                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge uq">UNIQUE</span></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>creador_principal</span><span class="col-type">VARCHAR2(80)</span></div>
-                  <div class="col-rule">Opcional (sin <code>NOT NULL</code>; permite <code>NULL</code>).</div>
-                </li>
-                <li>
-                  <div class="col-top"><span>anio_debut</span><span class="col-type">NUMBER(4)</span></div>
-                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
-                  <div class="col-rule">En línea: <code>CHECK (anio_debut &gt;= 1980)</code></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>estudio_principal</span><span class="col-type">VARCHAR2(60)</span></div>
-                  <div class="badge-row"><span class="c-badge def">DEFAULT 'Nintendo EPD'</span><span class="c-badge nn">NOT NULL</span></div>
-                </li>
-              </ul>
+              <table class="schema-table-view">
+                <thead>
+                  <tr>
+                    <th style="width: 32%;">Columna</th>
+                    <th style="width: 25%;">Tipo Oracle</th>
+                    <th>Restricciones y Reglas de Integridad</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="col-name">id_franquicia</span></td>
+                    <td><span class="col-type-tag">NUMBER(4)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge pk">PRIMARY KEY</span></div>
+                      <div class="col-rule-desc">Identificador único de la saga o franquicia.</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">nombre_franquicia</span></td>
+                    <td><span class="col-type-tag">VARCHAR2(60)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge nn">NOT NULL</span><span class="c-badge uq">UNIQUE</span></div>
+                      <div class="col-rule-desc">Nombre único de la saga (Super Mario, Zelda, etc.).</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">creador_principal</span></td>
+                    <td><span class="col-type-tag">VARCHAR2(80)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge def" style="background:#F1F5F9; color:#475569;">OPCIONAL (NULL)</span></div>
+                      <div class="col-rule-desc">Sin <code>NOT NULL</code>. Puede quedar en blanco.</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">anio_debut</span></td>
+                    <td><span class="col-type-tag">NUMBER(4)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                      <div class="col-rule-desc"><code>CHECK (anio_debut &gt;= 1980)</code></div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">estudio_principal</span></td>
+                    <td><span class="col-type-tag">VARCHAR2(60)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge def">DEFAULT 'Nintendo EPD'</span><span class="c-badge nn">NOT NULL</span></div>
+                      <div class="col-rule-desc">Estudio desarrollador principal por omisión.</div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
 
             <!-- TABLA 3: VIDEOJUEGO -->
-            <div class="schema-card">
+            <div v-if="schemaTab === 'all' || schemaTab === 'videojuego'" class="schema-card">
               <div class="schema-header child-table">
-                <span>3. VIDEOJUEGO</span>
-                <span style="font-size:10px; opacity:0.9;">HIJA (2 FKs)</span>
+                <span>3. TABLA: VIDEOJUEGO</span>
+                <span class="c-badge pk" style="background:#7F1D1D; color:#FFFFFF; border:1px solid #B91C1C;">TABLA HIJA (2 FKs)</span>
               </div>
-              <ul class="schema-cols">
-                <li>
-                  <div class="col-top"><span>id_juego</span><span class="col-type">NUMBER(6)</span></div>
-                  <div class="badge-row"><span class="c-badge pk">PRIMARY KEY</span></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>codigo_catalogo</span><span class="col-type">VARCHAR2(10)</span></div>
-                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge uq">UNIQUE</span></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>titulo</span><span class="col-type">VARCHAR2(100)</span></div>
-                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>id_franquicia</span><span class="col-type">NUMBER(4)</span></div>
-                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge fk">REFERENCES franquicia(id_franquicia)</span></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>id_consola</span><span class="col-type">NUMBER(4)</span></div>
-                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge fk">REFERENCES consola(id_consola)</span></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>clasificacion_esrb</span><span class="col-type">VARCHAR2(5)</span></div>
-                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
-                  <div class="col-rule">En línea: <code>CHECK (clasificacion_esrb IN ('E', 'E10+', 'T', 'M'))</code></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>precio_clp</span><span class="col-type">NUMBER(8)</span></div>
-                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
-                  <div class="col-rule">En línea: <code>CHECK (precio_clp &gt;= 0)</code></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>puntaje_metacritic</span><span class="col-type">NUMBER(3)</span></div>
-                  <div class="badge-row"><span class="c-badge chk">CHECK (...)</span></div>
-                  <div class="col-rule">Opcional (sin <code>NOT NULL</code>). En línea: <code>CHECK (puntaje_metacritic BETWEEN 0 AND 100)</code></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>stock_fisico</span><span class="col-type">NUMBER(5)</span></div>
-                  <div class="badge-row"><span class="c-badge def">DEFAULT 0</span><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
-                  <div class="col-rule">En línea: <code>CHECK (stock_fisico &gt;= 0)</code></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>fecha_lanzamiento</span><span class="col-type">DATE</span></div>
-                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span></div>
-                </li>
-              </ul>
+              <table class="schema-table-view">
+                <thead>
+                  <tr>
+                    <th style="width: 30%;">Columna</th>
+                    <th style="width: 25%;">Tipo Oracle</th>
+                    <th>Restricciones y Reglas de Integridad</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="col-name">id_juego</span></td>
+                    <td><span class="col-type-tag">NUMBER(6)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge pk">PRIMARY KEY</span></div>
+                      <div class="col-rule-desc">Identificador único del videojuego.</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">codigo_catalogo</span></td>
+                    <td><span class="col-type-tag">VARCHAR2(10)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge nn">NOT NULL</span><span class="c-badge uq">UNIQUE</span></div>
+                      <div class="col-rule-desc">Código alfanumérico único oficial (ej. 'NSW-001').</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">titulo</span></td>
+                    <td><span class="col-type-tag">VARCHAR2(100)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge nn">NOT NULL</span></div>
+                      <div class="col-rule-desc">Título comercial completo del juego.</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">id_franquicia</span></td>
+                    <td><span class="col-type-tag">NUMBER(4)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge nn">NOT NULL</span><span class="c-badge fk">REFERENCES franquicia(id_franquicia)</span></div>
+                      <div class="col-rule-desc">FK obligatoria: Conecta con la tabla padre FRANQUICIA.</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">id_consola</span></td>
+                    <td><span class="col-type-tag">NUMBER(4)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge nn">NOT NULL</span><span class="c-badge fk">REFERENCES consola(id_consola)</span></div>
+                      <div class="col-rule-desc">FK obligatoria: Conecta con la tabla padre CONSOLA.</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">clasificacion_esrb</span></td>
+                    <td><span class="col-type-tag">VARCHAR2(5)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                      <div class="col-rule-desc"><code>CHECK (clasificacion_esrb IN ('E', 'E10+', 'T', 'M'))</code></div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">precio_clp</span></td>
+                    <td><span class="col-type-tag">NUMBER(8)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                      <div class="col-rule-desc"><code>CHECK (precio_clp &gt;= 0)</code> (precios en pesos chilenos).</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">puntaje_metacritic</span></td>
+                    <td><span class="col-type-tag">NUMBER(3)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge def" style="background:#F1F5F9; color:#475569;">OPCIONAL (NULL)</span><span class="c-badge chk">CHECK (...)</span></div>
+                      <div class="col-rule-desc"><code>CHECK (puntaje_metacritic BETWEEN 0 AND 100)</code>.</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">stock_fisico</span></td>
+                    <td><span class="col-type-tag">NUMBER(5)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge def">DEFAULT 0</span><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                      <div class="col-rule-desc"><code>CHECK (stock_fisico &gt;= 0)</code></div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">fecha_lanzamiento</span></td>
+                    <td><span class="col-type-tag">DATE</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge nn">NOT NULL</span></div>
+                      <div class="col-rule-desc">Fecha oficial (usar <code>TO_DATE('YYYY-MM-DD', 'YYYY-MM-DD')</code>).</div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
 
             <!-- TABLA 4: JUGADOR -->
-            <div class="schema-card">
-              <div class="schema-header" style="background:#1E40AF;">
-                <span>4. JUGADOR</span>
-                <span style="font-size:10px; opacity:0.9;">HIJA OPCIONAL</span>
+            <div v-if="schemaTab === 'all' || schemaTab === 'jugador'" class="schema-card">
+              <div class="schema-header child-optional">
+                <span>4. TABLA: JUGADOR</span>
+                <span class="c-badge fk" style="background:#1E3A8A; color:#FFFFFF; border:1px solid #3B82F6;">TABLA HIJA (FK OPCIONAL)</span>
               </div>
-              <ul class="schema-cols">
-                <li>
-                  <div class="col-top"><span>id_jugador</span><span class="col-type">NUMBER(6)</span></div>
-                  <div class="badge-row"><span class="c-badge pk">PRIMARY KEY</span></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>nickname</span><span class="col-type">VARCHAR2(30)</span></div>
-                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge uq">UNIQUE</span></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>email</span><span class="col-type">VARCHAR2(100)</span></div>
-                  <div class="badge-row"><span class="c-badge nn">NOT NULL</span><span class="c-badge uq">UNIQUE</span></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>pais</span><span class="col-type">VARCHAR2(40)</span></div>
-                  <div class="badge-row"><span class="c-badge def">DEFAULT 'Chile'</span><span class="c-badge nn">NOT NULL</span></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>monedas_oro</span><span class="col-type">NUMBER(6)</span></div>
-                  <div class="badge-row"><span class="c-badge def">DEFAULT 0</span><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
-                  <div class="col-rule">En línea: <code>CHECK (monedas_oro &gt;= 0)</code></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>suscripcion_online</span><span class="col-type">VARCHAR2(15)</span></div>
-                  <div class="badge-row"><span class="c-badge def">DEFAULT 'GRATUITA'</span><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
-                  <div class="col-rule">En línea: <code>CHECK (suscripcion_online IN ('GRATUITA', 'INDIVIDUAL', 'FAMILIAR', 'EXPANSION'))</code></div>
-                </li>
-                <li>
-                  <div class="col-top"><span>id_juego_favorito</span><span class="col-type">NUMBER(6)</span></div>
-                  <div class="badge-row"><span class="c-badge fk">REFERENCES videojuego(id_juego)</span></div>
-                  <div class="col-rule">Opcional (sin <code>NOT NULL</code>; permite <code>NULL</code>).</div>
-                </li>
-              </ul>
+              <table class="schema-table-view">
+                <thead>
+                  <tr>
+                    <th style="width: 30%;">Columna</th>
+                    <th style="width: 25%;">Tipo Oracle</th>
+                    <th>Restricciones y Reglas de Integridad</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="col-name">id_jugador</span></td>
+                    <td><span class="col-type-tag">NUMBER(6)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge pk">PRIMARY KEY</span></div>
+                      <div class="col-rule-desc">Identificador único de la cuenta de usuario My Nintendo.</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">nickname</span></td>
+                    <td><span class="col-type-tag">VARCHAR2(30)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge nn">NOT NULL</span><span class="c-badge uq">UNIQUE</span></div>
+                      <div class="col-rule-desc">Nombre de usuario público irrepetible.</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">email</span></td>
+                    <td><span class="col-type-tag">VARCHAR2(100)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge nn">NOT NULL</span><span class="c-badge uq">UNIQUE</span></div>
+                      <div class="col-rule-desc">Correo electrónico único para inicio de sesión.</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">pais</span></td>
+                    <td><span class="col-type-tag">VARCHAR2(40)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge def">DEFAULT 'Chile'</span><span class="c-badge nn">NOT NULL</span></div>
+                      <div class="col-rule-desc">País de residencia para la tienda eShop regional.</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">monedas_oro</span></td>
+                    <td><span class="col-type-tag">NUMBER(6)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge def">DEFAULT 0</span><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                      <div class="col-rule-desc"><code>CHECK (monedas_oro &gt;= 0)</code> (saldo acumulado de puntos).</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">suscripcion_online</span></td>
+                    <td><span class="col-type-tag">VARCHAR2(15)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge def">DEFAULT 'GRATUITA'</span><span class="c-badge nn">NOT NULL</span><span class="c-badge chk">CHECK (...)</span></div>
+                      <div class="col-rule-desc"><code>CHECK (suscripcion_online IN ('GRATUITA', 'INDIVIDUAL', 'FAMILIAR', 'EXPANSION'))</code></div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="col-name">id_juego_favorito</span></td>
+                    <td><span class="col-type-tag">NUMBER(6)</span></td>
+                    <td>
+                      <div class="col-constraints"><span class="c-badge def" style="background:#F1F5F9; color:#475569;">OPCIONAL (NULL)</span><span class="c-badge fk">REFERENCES videojuego(id_juego)</span></div>
+                      <div class="col-rule-desc">FK opcional: Conecta con VIDEOJUEGO (permite NULL si no ha elegido).</div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
+
           </div>
         </div>
       </details>
 
-      <!-- CABECERA DE LA MISIÓN ACTIVA -->
-      <div style="margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-        <div>
-          <h3 style="margin: 0 0 4px;">{{ currentMissionObj.icon }} {{ currentMissionObj.title }}</h3>
-          <p style="margin: 0; font-size: 14.5px; color: var(--ink-soft);">{{ currentMissionObj.subtitle }}</p>
+      <!-- BANNER DE CONTEXTO Y PRERREQUISITOS DE LA MISIÓN ACTIVA -->
+      <div class="mission-context-banner">
+        <div class="mcb-header">
+          <div class="mcb-title-box">
+            <h3>{{ currentMissionObj.icon }} {{ currentMissionObj.title }}</h3>
+            <p class="mcb-subtitle">{{ currentMissionObj.subtitle }}</p>
+          </div>
+          <div class="mcb-progress-pill">
+            Progreso Misión: <strong>{{ getMissionDoneCount(activeMission) }} / 10</strong>
+          </div>
         </div>
-        <div style="font-size: 13px; font-weight: 700; color: var(--ink-soft); background: #FFFFFF; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line);">
-          Progreso de la misión: <strong>{{ getMissionDoneCount(activeMission) }} / 10</strong>
+
+        <div class="mcb-grid">
+          <div class="mcb-card goal">
+            <span class="mcb-card-badge">📌 Objetivo de Negocio</span>
+            <div class="mcb-card-body">{{ currentMissionContext.goal }}</div>
+          </div>
+          <div class="mcb-card prereq">
+            <span class="mcb-card-badge">⚠️ Prerrequisito de Datos</span>
+            <div class="mcb-card-body">{{ currentMissionContext.prereq }}</div>
+          </div>
+          <div class="mcb-card rule">
+            <span class="mcb-card-badge">🎯 Regla de Oro en Oracle</span>
+            <div class="mcb-card-body">{{ currentMissionContext.oracleRule }}</div>
+          </div>
         </div>
       </div>
 
@@ -1938,7 +2403,7 @@ ORDER BY d.nombre_depto ASC;</code></pre>
         v-for="ex in currentExercises"
         :key="ex.code"
         class="exercise-card"
-        :class="{ completed: completedMap[ex.code] }">
+        :class="['m-' + activeMission, { completed: completedMap[ex.code] }]">
         <div class="ex-header">
           <div class="ex-title-group">
             <span class="ex-num-badge">{{ ex.code }}</span>
@@ -1947,24 +2412,32 @@ ORDER BY d.nombre_depto ASC;</code></pre>
             </span>
             <h4 class="ex-title">{{ ex.title }}</h4>
           </div>
-          <label class="ex-check-label">
+          <label class="ex-check-label" :title="'Marcar ' + ex.code + ' como resuelto'">
             <input type="checkbox" :checked="!!completedMap[ex.code]" @change="toggleEx(ex.code)">
-            <span>{{ completedMap[ex.code] ? 'Completado' : 'Marcar resuelto' }}</span>
+            <span>{{ completedMap[ex.code] ? '✓ Completado' : 'Marcar resuelto' }}</span>
           </label>
         </div>
 
         <div class="ex-body" v-html="ex.desc"></div>
 
-        <div v-if="ex.data" class="ex-data-box">{{ ex.data }}</div>
+        <div v-if="ex.data" class="ex-data-card">
+          <div class="ex-data-header">
+            <span>📦 DATOS A REGISTRAR EN EL COMANDO SQL:</span>
+            <button class="btn-copy-data" @click="copyText(ex.data, 'Datos del ejercicio ' + ex.code)">
+              <span>📋 Copiar Datos</span>
+            </button>
+          </div>
+          <div class="ex-data-body">{{ ex.data }}</div>
+        </div>
 
         <details class="hint-box">
-          <summary>💡 Ver pista conceptual y recordatorio de sintaxis</summary>
+          <summary>💡 Ver pista conceptual y recordatorio de sintaxis Oracle</summary>
           <div class="hint-box-content" v-html="ex.hint"></div>
         </details>
       </div>
 
       <!-- NAVEGACIÓN ENTRE MISIONES AL FINAL DE LA PÁGINA -->
-      <div class="tab-nav-bar" style="display:flex; justify-content:space-between; margin-top: 28px; padding-top: 20px; border-top: 2px solid var(--line);">
+      <div class="tab-nav-bar" style="display:flex; justify-content:space-between; margin-top: 28px; padding-top: 20px; border-top: 2px solid var(--line); flex-wrap:wrap; gap:12px;">
         <button v-if="currentMissionIndex > 0" class="nav-btn" @click="selectMission(missions[currentMissionIndex - 1].id)">
           ← Misión Anterior: {{ missions[currentMissionIndex - 1].name }}
         </button>
@@ -1972,6 +2445,11 @@ ORDER BY d.nombre_depto ASC;</code></pre>
         <button v-if="currentMissionIndex < missions.length - 1" class="nav-btn primary" @click="selectMission(missions[currentMissionIndex + 1].id)">
           Siguiente Misión: {{ missions[currentMissionIndex + 1].name }} →
         </button>
+      </div>
+
+      <!-- TOAST DE CONFIRMACIÓN AL COPIAR -->
+      <div v-if="toastMsg" class="toast-notification">
+        <span>✓ {{ toastMsg }}</span>
       </div>
 
     </div>
@@ -1991,6 +2469,9 @@ ORDER BY d.nombre_depto ASC;</code></pre>
         showNotes: false,
         showDrawer: false,
         activeMission: 'ddl',
+        schemaTab: 'all',
+        toastMsg: '',
+        toastTimeout: null,
 
         // Estado del Checkpoint 1
         q1_done: false,
@@ -1999,6 +2480,86 @@ ORDER BY d.nombre_depto ASC;</code></pre>
 
         // Mapa de ejercicios completados (persistido en localStorage)
         completedMap: {},
+
+        // Contexto y Reglas de Oro por Misión
+        missionContexts: {
+          ddl: {
+            goal: 'Diseñar e implementar las 4 tablas blindadas del catálogo oficial de Nintendo eShop y My Nintendo, declarando restricciones de integridad en línea (PK, FK, UNIQUE, CHECK, NOT NULL y DEFAULT) y evaluando la evolución estructural con ALTER TABLE y DROP TABLE.',
+            prereq: 'Punto de partida autónomo. Esta misión crea la infraestructura relacional de las 4 tablas oficiales antes de cargar datos.',
+            oracleRule: 'Crea primero las tablas padre (CONSOLA, FRANQUICIA) y luego las tablas hijas (VIDEOJUEGO, JUGADOR). Respeta el orden de restricciones en la misma línea de cada columna: DEFAULT → NOT NULL → CHECK.'
+          },
+          insert: {
+            goal: 'Poblar consolas históricas, franquicias oficiales, el catálogo de videojuegos y los primeros jugadores de My Nintendo, comprobando el funcionamiento de DEFAULT, NULL y la captura de violaciones de integridad.',
+            prereq: 'Requiere haber ejecutado exitosamente la Misión 1 (DDL) para que existan las 4 tablas en la base de datos.',
+            oracleRule: 'Lista siempre las columnas de forma explícita en el INSERT. Esto permite que columnas agregadas en DDL tomen su DEFAULT sin error ORA-00947. Usa comillas simples para cadenas y TO_DATE(\'YYYY-MM-DD\', \'YYYY-MM-DD\') para fechas.'
+          },
+          update: {
+            goal: 'Simular operaciones en tiempo real en la tienda digital: reposición de stock en bodega, promociones de descuento (15% OFF), asignación de membresías pagadas y bonificación de monedas de oro.',
+            prereq: 'Requiere haber completado las inserciones de la Misión 2. Los ejercicios UPD-08 (Kirby a 0 monedas) y UPD-09 (desvincular bot) son indispensables para la Misión 4.',
+            oracleRule: '¡Regla de Oro: Nunca ejecutes un UPDATE sin WHERE! En Oracle, un UPDATE sin WHERE modifica todas las filas de la tabla. Además, los nuevos valores deben cumplir estrictamente los CHECK.'
+          },
+          delete: {
+            goal: 'Depurar de forma segura cuentas bots, proyectos cancelados, videojuegos sin stock y consolas descontinuadas que ya no tengan títulos asociados, respetando la integridad referencial.',
+            prereq: 'Requiere haber completado las Misiones 2 y 3. En particular, UPD-08 permite que DEL-06 borre usuarios inactivos y UPD-09 desvincula la FK para que DEL-02 borre el proyecto cancelado.',
+            oracleRule: 'Una fila padre no se puede eliminar si existen filas hijas que la referencian (ORA-02292). La técnica correcta es borrar primero los hijos y luego la fila padre. Usa ROLLBACK en caso de error antes de ejecutar COMMIT.'
+          },
+          select: {
+            goal: 'Construir consultas y reportes ejecutivos para Nintendo Latinoamérica: rankings de títulos con Metacritic sobre 90, cálculo de IVA y conversión a USD, y reportes analíticos con INNER JOIN y GROUP BY.',
+            prereq: 'Requiere haber ejecutado las Misiones 2, 3 y 4. Las consultas reflejan el estado limpio del catálogo tras las actualizaciones y eliminaciones.',
+            oracleRule: 'Orden sagrado: SELECT → FROM → INNER JOIN ... ON → WHERE → GROUP BY → ORDER BY. Toda columna en el SELECT que no esté envuelta en una función agregada (COUNT, AVG, SUM, MIN, MAX) debe ir en el GROUP BY.'
+          }
+        },
+
+        // Script DDL Oficial de Respaldo
+        ddlFullScript: `-- ==========================================================
+-- ESQUEMA OFICIAL: NINTENDO eSHOP & MY NINTENDO (ORACLE SQL)
+-- Bases de Datos Aplicada 1 · Unidad 3
+-- ==========================================================
+
+-- 1. TABLA CONSOLA (PADRE)
+CREATE TABLE consola (
+    id_consola NUMBER(4) PRIMARY KEY,
+    nombre_consola VARCHAR2(60) NOT NULL UNIQUE,
+    tipo_consola VARCHAR2(20) NOT NULL CHECK (tipo_consola IN ('SOBREMESA', 'PORTATIL', 'HIBRIDA')),
+    anio_lanzamiento NUMBER(4) NOT NULL CHECK (anio_lanzamiento BETWEEN 1983 AND 2030),
+    precio_referencia_usd NUMBER(6,2) NOT NULL CHECK (precio_referencia_usd > 0),
+    estado_fabricacion VARCHAR2(15) DEFAULT 'ACTIVA' NOT NULL CHECK (estado_fabricacion IN ('ACTIVA', 'DESCONTINUADA'))
+);
+
+-- 2. TABLA FRANQUICIA (PADRE)
+CREATE TABLE franquicia (
+    id_franquicia NUMBER(4) PRIMARY KEY,
+    nombre_franquicia VARCHAR2(60) NOT NULL UNIQUE,
+    creador_principal VARCHAR2(80),
+    anio_debut NUMBER(4) NOT NULL CHECK (anio_debut >= 1980),
+    estudio_principal VARCHAR2(60) DEFAULT 'Nintendo EPD' NOT NULL
+);
+
+-- 3. TABLA VIDEOJUEGO (HIJA)
+CREATE TABLE videojuego (
+    id_juego NUMBER(6) PRIMARY KEY,
+    codigo_catalogo VARCHAR2(10) NOT NULL UNIQUE,
+    titulo VARCHAR2(100) NOT NULL,
+    id_franquicia NUMBER(4) NOT NULL REFERENCES franquicia(id_franquicia),
+    id_consola NUMBER(4) NOT NULL REFERENCES consola(id_consola),
+    clasificacion_esrb VARCHAR2(5) NOT NULL CHECK (clasificacion_esrb IN ('E', 'E10+', 'T', 'M')),
+    precio_clp NUMBER(8) NOT NULL CHECK (precio_clp >= 0),
+    puntaje_metacritic NUMBER(3) CHECK (puntaje_metacritic BETWEEN 0 AND 100),
+    stock_fisico NUMBER(5) DEFAULT 0 NOT NULL CHECK (stock_fisico >= 0),
+    fecha_lanzamiento DATE NOT NULL
+);
+
+-- 4. TABLA JUGADOR (HIJA OPCIONAL)
+CREATE TABLE jugador (
+    id_jugador NUMBER(6) PRIMARY KEY,
+    nickname VARCHAR2(30) NOT NULL UNIQUE,
+    email VARCHAR2(100) NOT NULL UNIQUE,
+    pais VARCHAR2(40) DEFAULT 'Chile' NOT NULL,
+    monedas_oro NUMBER(6) DEFAULT 0 NOT NULL CHECK (monedas_oro >= 0),
+    suscripcion_online VARCHAR2(15) DEFAULT 'GRATUITA' NOT NULL CHECK (suscripcion_online IN ('GRATUITA', 'INDIVIDUAL', 'FAMILIAR', 'EXPANSION')),
+    id_juego_favorito NUMBER(6) REFERENCES videojuego(id_juego)
+);
+COMMIT;`,
 
         slides: [
           { title: 'Portada: Fundamentos de DDL y DML en SQL' },
@@ -2147,7 +2708,7 @@ ORDER BY d.nombre_depto ASC;</code></pre>
               title: 'Insertar la Primera Tanda de Videojuegos (con TO_DATE y FKs)',
               desc: 'Inserta los primeros 3 videojuegos del catálogo en <code>videojuego</code> conectándolos con sus respectivos IDs de franquicia y consola, y convirtiendo las fechas de lanzamiento con <code>TO_DATE(\'YYYY-MM-DD\', \'YYYY-MM-DD\')</code>.',
               data: '• Juego 101: Cod \'NSW-001\' | \'The Legend of Zelda: Breath of the Wild\' | Franquicia: 2 | Consola: 1 | ESRB: \'E10+\' | Precio: 54990 | Metacritic: 97 | Stock: 45 | Fecha: \'2017-03-03\'\n• Juego 102: Cod \'NSW-002\' | \'Super Mario Odyssey\' | Franquicia: 1 | Consola: 1 | ESRB: \'E10+\' | Precio: 49990 | Metacritic: 97 | Stock: 60 | Fecha: \'2017-10-27\'\n• Juego 103: Cod \'NSW-003\' | \'Metroid Dread\' | Franquicia: 4 | Consola: 1 | ESRB: \'T\' | Precio: 44990 | Metacritic: 88 | Stock: 15 | Fecha: \'2021-10-08\'',
-              hint: 'Para la fecha en Oracle escribe: <code>TO_DATE(\'2017-03-03\', \'YYYY-MM-DD\')</code>. Verifica que los códigos tengan al menos 6 caracteres para cumplir el <code>CHECK</code> de longitud.'
+              hint: 'Para la fecha en Oracle escribe: <code>TO_DATE(\'2017-03-03\', \'YYYY-MM-DD\')</code>. Asegúrate de incluir todas las columnas requeridas o especificar la lista de columnas en el <code>INSERT INTO videojuego (...)</code>.'
             },
             {
               code: 'INS-05', level: 'inter',
@@ -2159,9 +2720,9 @@ ORDER BY d.nombre_depto ASC;</code></pre>
             {
               code: 'INS-06', level: 'inter',
               title: 'Registrar los Primeros 4 Jugadores de My Nintendo',
-              desc: 'Inserta los siguientes 4 jugadores en la tabla <code>jugador</code>, enlazando su <code>id_juego_favorito</code> (o dejando <code>NULL</code> cuando aún no tienen juego favorito).',
+              desc: 'Inserta los siguientes 4 jugadores en la tabla <code>jugador</code> listando explícitamente las columnas en el <code>INSERT INTO jugador (id_jugador, nickname, email, ...)</code> (esto evita el error <code>ORA-00947</code> por las columnas añadidas en DDL-06/07) y enlazando su <code>id_juego_favorito</code> (o dejando <code>NULL</code> si aún no tienen).',
               data: '• Jugador 1: \'LinkHyrule99\' | \'link@hyrule.cl\' | País: (DEFAULT \'Chile\') | Monedas: 1200 | Suscripción: \'EXPANSION\' | Juego Fav: 101\n• Jugador 2: \'SamusHunter\' | \'samus@zebes.cl\' | País: \'Chile\' | Monedas: 450 | Suscripción: \'INDIVIDUAL\' | Juego Fav: 103\n• Jugador 3: \'PikaTrainer\' | \'ash@kanto.pe\' | País: \'Peru\' | Monedas: (DEFAULT 0) | Suscripción: (DEFAULT \'GRATUITA\') | Juego Fav: NULL\n• Jugador 4: \'MarioSpeedrun\' | \'mario@champinon.ar\' | País: \'Argentina\' | Monedas: 3500 | Suscripción: \'FAMILIAR\' | Juego Fav: 102',
-              hint: 'Si agregaste <code>fecha_registro DEFAULT SYSDATE</code> en el ejercicio DDL-06, no necesitas incluir esa columna en tus sentencias <code>INSERT</code> porque se llenará sola.'
+              hint: 'Buena práctica profesional: Escribe siempre la lista de columnas <code>INSERT INTO jugador (id_jugador, nickname, email, ...) VALUES (...)</code>. Como agregaste <code>fecha_registro</code> y <code>estado_cuenta</code> con <code>DEFAULT</code> en DDL-06 y DDL-07, al omitirlas en la lista tomarán sus valores por defecto automáticamente.'
             },
             {
               code: 'INS-07', level: 'avanzado',
@@ -2238,10 +2799,10 @@ ORDER BY d.nombre_depto ASC;</code></pre>
             },
             {
               code: 'UPD-07', level: 'inter',
-              title: 'Refuerzo de Stock Crítico con Operador BETWEEN',
-              desc: 'Todos los videojuegos que tengan un <code>stock_fisico</code> bajo —entre <code>1</code> y <code>20</code> unidades inclusive— reciben un refuerzo urgente de <strong>+30 unidades</strong> adicionales. Escribe el <code>UPDATE</code> usando <code>BETWEEN</code>.',
+              title: 'Refuerzo de Stock Crítico Switch con Operador BETWEEN',
+              desc: 'El centro logístico de Nintendo Switch recibió reposición de inventario: todos los videojuegos de la consola Nintendo Switch (<code>id_consola = 1</code>) cuyo <code>stock_fisico</code> esté en nivel crítico —entre <code>1</code> y <code>20</code> unidades inclusive— reciben un refuerzo urgente de <strong>+30 unidades</strong> adicionales. Escribe el <code>UPDATE</code> combinando <code>id_consola = 1</code> y <code>BETWEEN 1 AND 20</code>.',
               data: null,
-              hint: 'Recuerda que <code>BETWEEN 1 AND 20</code> incluye los extremos 1 y 20 (por lo que los juegos agotados con stock 0 no serán tocados).'
+              hint: 'Usa <code>WHERE id_consola = 1 AND stock_fisico BETWEEN 1 AND 20</code>. Al acotar a Nintendo Switch, los títulos retro como Pokémon Sol (3DS) mantienen su stock histórico bajo para el posterior ejercicio de liquidación DEL-07.'
             },
             {
               code: 'UPD-08', level: 'avanzado',
@@ -2436,10 +2997,54 @@ ORDER BY d.nombre_depto ASC;</code></pre>
       },
       currentExercises() {
         return this.exercises[this.activeMission] || [];
+      },
+      currentMissionContext() {
+        return this.missionContexts[this.activeMission] || null;
       }
     },
 
     methods: {
+      setSchemaTab(tab) {
+        this.schemaTab = tab;
+      },
+      showToast(msg) {
+        this.toastMsg = msg;
+        clearTimeout(this._toastTimer);
+        this._toastTimer = setTimeout(() => {
+          this.toastMsg = '';
+        }, 2600);
+      },
+      copyText(text, label = 'Contenido') {
+        if (!text) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => {
+            this.showToast(`✓ ${label} copiado al portapapeles`);
+          }).catch(() => {
+            this.fallbackCopy(text, label);
+          });
+        } else {
+          this.fallbackCopy(text, label);
+        }
+      },
+      copyDdl() {
+        this.copyText(this.ddlFullScript, 'Script DDL completo (4 tablas)');
+      },
+      fallbackCopy(text, label) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try {
+          document.execCommand('copy');
+          this.showToast(`✓ ${label} copiado`);
+        } catch (err) {
+          this.showToast(`✗ No se pudo copiar automáticamente`);
+        }
+        document.body.removeChild(ta);
+      },
       setMode(mode) {
         this.viewMode = mode;
         this.highlightAll();
