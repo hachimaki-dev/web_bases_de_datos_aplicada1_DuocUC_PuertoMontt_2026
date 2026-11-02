@@ -1,0 +1,1992 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consultas en SQL (SELECT) · Bases de Datos Aplicada 1</title>
+  <meta name="description" content="Presentación minimalista sobre consultas SQL en Oracle 19c: análisis de base de datos, SELECT, alias, WHERE, ORDER BY, GROUP BY, JOIN básico y metodología de resolución.">
+  <link rel="stylesheet" href="../../shared/fonts.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #FFFFFF;
+      --surface: #F8FAFC;
+      --ink: #0F172A;
+      --ink-secondary: #334155;
+      --ink-muted: #64748B;
+      --border: #E2E8F0;
+      --border-strong: #CBD5E1;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100dvh;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+
+    #app {
+      height: 100dvh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .progress-line {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      background: var(--ink);
+      transition: width 0.2s ease;
+      z-index: 20;
+    }
+
+    .slide-index {
+      position: fixed;
+      bottom: 20px;
+      right: 28px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink-muted);
+      z-index: 20;
+      user-select: none;
+    }
+
+    .slide-viewport {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 7vw;
+    }
+
+    .slide-viewport.align-top {
+      align-items: flex-start;
+      padding-top: 52px;
+      padding-bottom: 72px;
+    }
+
+    .slide {
+      width: 100%;
+      max-width: 1120px;
+      animation: fadeIn 0.14s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .kicker {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      margin: 0 0 12px 0;
+    }
+
+    h1 {
+      font-size: clamp(2.75rem, 1.8rem + 3vw, 4.5rem);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 1.08;
+      margin: 0 0 20px 0;
+      color: var(--ink);
+    }
+
+    h2 {
+      font-size: clamp(2.1rem, 1.4rem + 2.2vw, 3.25rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.14;
+      margin: 0 0 20px 0;
+      color: var(--ink);
+    }
+
+    .lead {
+      font-size: clamp(1.35rem, 1.05rem + 0.7vw, 1.8rem);
+      font-weight: 400;
+      color: var(--ink-secondary);
+      line-height: 1.45;
+      margin: 0 0 28px 0;
+      max-width: 900px;
+    }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.88em;
+      font-weight: 600;
+      background: #F1F5F9;
+      color: var(--ink);
+      padding: 2px 7px;
+      border-radius: 5px;
+    }
+
+    pre.sql-block {
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin: 16px 0;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: clamp(1.2rem, 0.98rem + 0.6vw, 1.6rem);
+      line-height: 1.6;
+    }
+
+    pre.sql-block code,
+    pre.sql-block code.hljs {
+      background: transparent !important;
+      padding: 0 !important;
+      font-size: inherit !important;
+      font-family: var(--font-mono) !important;
+      color: var(--ink) !important;
+      font-weight: 500;
+    }
+
+    pre.sql-block .hljs-keyword {
+      color: #0F172A !important;
+      font-weight: 800 !important;
+    }
+    pre.sql-block .hljs-string {
+      color: #0369A1 !important;
+    }
+    pre.sql-block .hljs-number {
+      color: #B45309 !important;
+    }
+    pre.sql-block .hljs-built_in,
+    pre.sql-block .hljs-type {
+      color: #4338CA !important;
+      font-weight: 700 !important;
+    }
+    pre.sql-block .hljs-comment {
+      color: #64748B !important;
+      font-style: italic;
+    }
+
+    .cols-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 28px;
+      align-items: start;
+    }
+
+    .cols-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .cols-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .cols-5 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px 24px;
+    }
+
+    .panel h3 {
+      font-size: clamp(1.25rem, 1.05rem + 0.4vw, 1.55rem);
+      font-weight: 700;
+      margin: 0 0 8px 0;
+      color: var(--ink);
+    }
+
+    .panel p {
+      font-size: clamp(1.05rem, 0.95rem + 0.3vw, 1.25rem);
+      color: var(--ink-secondary);
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    .note-line {
+      margin-top: 22px;
+      padding-left: 16px;
+      border-left: 3px solid var(--ink);
+      font-size: clamp(1.15rem, 1rem + 0.4vw, 1.4rem);
+      color: var(--ink-secondary);
+    }
+
+    .table-wrapper {
+      overflow: auto;
+      max-inline-size: 100%;
+      max-block-size: min(440px, 65dvh);
+      container-type: inline-size;
+      margin: 12px 0;
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: clamp(1.05rem, 0.95rem + 0.3vw, 1.3rem);
+    }
+
+    table.data-table thead {
+      position: sticky;
+      inset-block-start: 0;
+      z-index: 1;
+      background: var(--bg);
+    }
+
+    table.data-table th {
+      text-align: left;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--ink);
+      padding: 10px 16px;
+      border-bottom: 2px solid var(--ink);
+      background: var(--bg);
+    }
+
+    table.data-table td {
+      padding: 10px 16px;
+      color: var(--ink-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sequence-bar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin: 24px 0;
+    }
+
+    .seq-node {
+      font-family: var(--font-mono);
+      font-size: clamp(1.15rem, 1rem + 0.4vw, 1.45rem);
+      font-weight: 700;
+      padding: 14px 22px;
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      color: var(--ink);
+    }
+
+    .seq-arrow {
+      font-size: 22px;
+      color: var(--ink-muted);
+    }
+
+    .btn-minimal {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 9px 16px;
+      border-radius: 7px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg);
+      color: var(--ink);
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .btn-minimal:hover {
+      background: var(--surface);
+    }
+    .btn-minimal.active {
+      background: var(--ink);
+      color: var(--bg);
+      border-color: var(--ink);
+    }
+
+    .ex-row {
+      padding: 18px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .ex-row-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .ex-title {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--ink);
+      line-height: 1.45;
+      margin: 0;
+    }
+    .ex-num-label {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-muted);
+      margin-right: 10px;
+    }
+    .ex-hint-grid {
+      margin-top: 12px;
+      padding: 14px 18px;
+      background: var(--surface);
+      border-radius: 8px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      font-size: 14px;
+    }
+    .ex-hint-grid strong {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ink-muted);
+      margin-bottom: 4px;
+    }
+
+    @media (max-width: 900px) {
+      .cols-2, .cols-3, .cols-4, .cols-5, .ex-hint-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <div class="progress-line" :style="{ width: ((current + 1) / totalSlides * 100) + '%' }"></div>
+  <div class="slide-index">{{ current + 1 }} / {{ totalSlides }}</div>
+
+  <main class="slide-viewport" :class="{ 'align-top': current === totalSlides - 1 }">
+
+    <!-- SLIDE 0: PORTADA -->
+    <div v-if="current === 0" class="slide">
+      <p class="kicker">Bases de Datos Aplicada 1</p>
+      <h1>Consultas en SQL</h1>
+      <p class="lead">Cómo explorar una base de datos, filtrar registros, ordenar resultados, agrupar estadísticas y cruzar tablas con <code>SELECT</code>.</p>
+    </div>
+
+    <!-- SLIDE 1: SCRIPT DE LA BASE DE DATOS AL INICIO PARA COPIAR Y PEGAR -->
+    <div v-if="current === 1" class="slide">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; margin-bottom:14px;">
+        <div>
+          <p class="kicker">Preparación del Entorno · Oracle 19c</p>
+          <h2 style="margin:0;">Script de la Base de Datos: Torneo de eSports</h2>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn-minimal active" @click="copySqlScript">
+            {{ copied ? '✓ Copiado al portapapeles' : 'Copiar Script SQL Completo' }}
+          </button>
+          <a href="esports_torneo_3fn.sql" download="esports_torneo_3fn.sql" class="btn-minimal">
+            Descargar .sql
+          </a>
+        </div>
+      </div>
+      <pre class="sql-block" style="max-height: 62dvh; overflow-y: auto; font-size: 0.95rem; margin: 0;"><code class="language-sql">{{ fullSqlScript }}</code></pre>
+    </div>
+
+    <!-- =========================================================================
+         BLOQUE 1: ANÁLISIS DE LA BASE DE DATOS (SLIDES 2 A 7)
+         ========================================================================= -->
+
+    <!-- SLIDE 2: POR DÓNDE EMPEZAR -->
+    <div v-if="current === 2" class="slide">
+      <p class="kicker">1 · Análisis Previo</p>
+      <h2>Antes de consultar, analiza el modelo</h2>
+      <p class="lead">Para construir cualquier consulta necesitamos responder tres preguntas sobre la base de datos:</p>
+      <div class="cols-3">
+        <div class="panel">
+          <h3>1. ¿Qué tablas existen?</h3>
+          <p>Identificar dónde se almacena cada concepto del dominio.</p>
+        </div>
+        <div class="panel">
+          <h3>2. ¿Qué columnas tienen?</h3>
+          <p>Conocer los nombres exactos de los atributos y sus tipos de datos.</p>
+        </div>
+        <div class="panel">
+          <h3>3. ¿Cómo se relacionan?</h3>
+          <p>Ubicar las claves primarias (<code>id</code>) y las claves foráneas (<code>..._id</code>).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: EL CASO DE ESTUDIO -->
+    <div v-if="current === 3" class="slide">
+      <p class="kicker">1 · Caso de Estudio</p>
+      <h2>Base de Datos: Torneo de eSports</h2>
+      <p class="lead">El sistema registra regiones, equipos, jugadores, patrocinadores, agentes, mapas y el rendimiento en cada partida.</p>
+      <div class="cols-3">
+        <div class="panel">
+          <h3>Tablas Catálogo</h3>
+          <p><code>regiones</code><br><code>patrocinadores</code><br><code>agentes</code><br><code>mapas</code></p>
+        </div>
+        <div class="panel">
+          <h3>Tablas con Dependencia (1:N)</h3>
+          <p><code>equipos</code><br><code>jugadores</code><br><code>partidas</code></p>
+        </div>
+        <div class="panel">
+          <h3>Tablas Intermedias / Pivote (N:M)</h3>
+          <p><code>patrocinios</code><br><code>participaciones</code></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: TABLAS CATÁLOGO -->
+    <div v-if="current === 4" class="slide">
+      <p class="kicker">1 · Estructura de Tablas (1/3)</p>
+      <h2>Tablas Catálogo</h2>
+      <div class="cols-2">
+        <pre class="sql-block" style="margin:0; font-size: 0.98rem;"><code class="language-sql">CREATE TABLE regiones (
+    id                 NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    codigo             VARCHAR2(10) NOT NULL UNIQUE,
+    nombre             VARCHAR2(50) NOT NULL UNIQUE,
+    servidor_principal VARCHAR2(40) NOT NULL
+);
+
+CREATE TABLE patrocinadores (
+    id          NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre      VARCHAR2(60) NOT NULL UNIQUE,
+    rubro       VARCHAR2(40) NOT NULL,
+    pais_origen VARCHAR2(40) NOT NULL
+);</code></pre>
+        <pre class="sql-block" style="margin:0; font-size: 0.98rem;"><code class="language-sql">CREATE TABLE agentes (
+    id          NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre      VARCHAR2(40) NOT NULL UNIQUE,
+    rol         VARCHAR2(20) NOT NULL,
+    origen_lore VARCHAR2(40) NOT NULL
+);
+
+CREATE TABLE mapas (
+    id           NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre       VARCHAR2(40) NOT NULL UNIQUE,
+    sitios_bomba NUMBER(1)    NOT NULL,
+    ambientacion VARCHAR2(50) NOT NULL
+);</code></pre>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: TABLAS DEPENDIENTES 1:N -->
+    <div v-if="current === 5" class="slide">
+      <p class="kicker">1 · Estructura de Tablas (2/3)</p>
+      <h2>Tablas con Relación 1:N</h2>
+      <p class="lead">Cada fila apunta a su tabla padre mediante una clave foránea (<code>region_id</code>, <code>equipo_id</code>, <code>mapa_id</code>):</p>
+      <pre class="sql-block" style="font-size: 1.05rem;"><code class="language-sql">CREATE TABLE equipos (
+    id                NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre            VARCHAR2(60) NOT NULL UNIQUE,
+    tag               VARCHAR2(6)  NOT NULL UNIQUE,
+    presupuesto_anual NUMBER(10)   NOT NULL,
+    anio_fundacion    NUMBER(4)    NOT NULL,
+    region_id         NUMBER       NOT NULL REFERENCES regiones(id)
+);
+
+CREATE TABLE jugadores (
+    id             NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nickname       VARCHAR2(40) NOT NULL UNIQUE,
+    nombre_real    VARCHAR2(80) NOT NULL,
+    pais_natal     VARCHAR2(40) NOT NULL,
+    edad           NUMBER(2)    NOT NULL,
+    sueldo_mensual NUMBER(8)    NOT NULL,
+    equipo_id      NUMBER       NOT NULL REFERENCES equipos(id)
+);</code></pre>
+    </div>
+
+    <!-- SLIDE 6: TABLAS PIVOTE N:M -->
+    <div v-if="current === 6" class="slide">
+      <p class="kicker">1 · Estructura de Tablas (3/3)</p>
+      <h2>Tablas Pivote (Muchos a Muchos)</h2>
+      <p class="lead">Resuelven relaciones <code>N:M</code> almacenando las claves foráneas de las tablas que conectan más los datos propios del cruce:</p>
+      <div class="cols-2">
+        <pre class="sql-block" style="margin:0; font-size: 0.98rem;"><code class="language-sql">-- Conecta equipos con patrocinadores:
+CREATE TABLE patrocinios (
+    id              NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    monto_anual     NUMBER(9)    NOT NULL,
+    tipo_contrato   VARCHAR2(20) NOT NULL,
+    equipo_id       NUMBER       NOT NULL REFERENCES equipos(id),
+    patrocinador_id NUMBER       NOT NULL REFERENCES patrocinadores(id)
+);</code></pre>
+        <pre class="sql-block" style="margin:0; font-size: 0.98rem;"><code class="language-sql">-- Conecta jugadores, partidas y agentes:
+CREATE TABLE participaciones (
+    id              NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    kills           NUMBER(3) NOT NULL,
+    deaths          NUMBER(3) NOT NULL,
+    assists         NUMBER(3) NOT NULL,
+    puntaje_combate NUMBER(4) NOT NULL,
+    gano            CHAR(1)   NOT NULL,
+    jugador_id      NUMBER    NOT NULL REFERENCES jugadores(id),
+    partida_id      NUMBER    NOT NULL REFERENCES partidas(id),
+    agente_id       NUMBER    NOT NULL REFERENCES agentes(id)
+);</code></pre>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: MAPA DE RELACIONES -->
+    <div v-if="current === 7" class="slide">
+      <p class="kicker">1 · Mapa de Conexiones</p>
+      <h2>Cómo se conectan las 9 tablas</h2>
+      <div class="sequence-bar">
+        <div class="seq-node">regiones.id</div>
+        <span class="seq-arrow">←</span>
+        <div class="seq-node">equipos.region_id</div>
+        <span class="seq-arrow">←</span>
+        <div class="seq-node">jugadores.equipo_id</div>
+      </div>
+      <div class="sequence-bar">
+        <div class="seq-node">equipos.id</div>
+        <span class="seq-arrow">←</span>
+        <div class="seq-node">patrocinios</div>
+        <span class="seq-arrow">→</span>
+        <div class="seq-node">patrocinadores.id</div>
+      </div>
+      <div class="sequence-bar">
+        <div class="seq-node">jugadores.id</div>
+        <span class="seq-arrow">←</span>
+        <div class="seq-node">participaciones</div>
+        <span class="seq-arrow">→</span>
+        <div class="seq-node">partidas.id (→ mapas.id) + agentes.id</div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         BLOQUE 2: SELECT BÁSICO, PROYECCIÓN Y ALIAS (SLIDES 8 A 13)
+         ========================================================================= -->
+
+    <!-- SLIDE 8: TABLA GENÉRICA PARA LOS EJEMPLOS -->
+    <div v-if="current === 8" class="slide">
+      <p class="kicker">2 · Fundamentos de SELECT</p>
+      <h2>Tabla de referencia: <code>productos</code></h2>
+      <p class="lead">Usaremos esta tabla genérica para observar el efecto de cada cláusula SQL:</p>
+      <div tabindex="0" role="region" aria-label="Tabla de referencia productos" class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr><th>id</th><th>nombre</th><th>categoria</th><th>precio</th><th>stock</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Teclado Mecánico</td><td>Periféricos</td><td>45000</td><td>20</td></tr>
+            <tr><td>2</td><td>Mouse Inalámbrico</td><td>Periféricos</td><td>25000</td><td>35</td></tr>
+            <tr><td>3</td><td>Audífonos Estudio</td><td>Audio</td><td>80000</td><td>10</td></tr>
+            <tr><td>4</td><td>Micrófono USB</td><td>Audio</td><td>60000</td><td>15</td></tr>
+            <tr><td>5</td><td>Monitor 27"</td><td>Video</td><td>220000</td><td>8</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 9: ESTRUCTURA MÍNIMA -->
+    <div v-if="current === 9" class="slide">
+      <p class="kicker">2 · Fundamentos de SELECT</p>
+      <h2>Estructura mínima de una consulta</h2>
+      <pre class="sql-block"><code class="language-sql">SELECT columnas
+FROM tabla;</code></pre>
+      <p class="note-line"><code>SELECT</code> indica qué columnas queremos ver; <code>FROM</code> indica desde qué tabla se extraen.</p>
+    </div>
+
+    <!-- SLIDE 10: SELECT * -->
+    <div v-if="current === 10" class="slide">
+      <p class="kicker">2 · Fundamentos de SELECT</p>
+      <h2>Consultar todas las columnas (<code>*</code>)</h2>
+      <pre class="sql-block"><code class="language-sql">SELECT *
+FROM productos;</code></pre>
+      <p class="note-line">El asterisco <code>*</code> devuelve todas las columnas de la tabla en su orden original.</p>
+    </div>
+
+    <!-- SLIDE 11: PROYECCIÓN -->
+    <div v-if="current === 11" class="slide">
+      <p class="kicker">2 · Fundamentos de SELECT</p>
+      <h2>Seleccionar columnas específicas</h2>
+      <pre class="sql-block"><code class="language-sql">SELECT nombre, precio
+FROM productos;</code></pre>
+      <p class="note-line">Las columnas se separan con coma. Después de la última columna antes de <code>FROM</code> no va coma.</p>
+    </div>
+
+    <!-- SLIDE 12: EXPRESIONES ARITMÉTICAS -->
+    <div v-if="current === 12" class="slide">
+      <p class="kicker">2 · Fundamentos de SELECT</p>
+      <h2>Operaciones matemáticas en el <code>SELECT</code></h2>
+      <pre class="sql-block"><code class="language-sql">SELECT nombre,
+       precio * stock
+FROM productos;</code></pre>
+      <p class="note-line">Calcula un nuevo valor fila por fila usando <code>+</code>, <code>-</code>, <code>*</code> o <code>/</code> sin alterar los datos guardados.</p>
+    </div>
+
+    <!-- SLIDE 13: ALIAS CON AS -->
+    <div v-if="current === 13" class="slide">
+      <p class="kicker">2 · Fundamentos de SELECT</p>
+      <h2>Renombrar columnas con Alias (<code>AS</code>)</h2>
+      <pre class="sql-block"><code class="language-sql">SELECT nombre AS producto,
+       precio * stock AS valor_inventario
+FROM productos;</code></pre>
+      <p class="note-line"><code>AS</code> asigna un nombre legible al encabezado de la columna en el resultado.</p>
+    </div>
+
+    <!-- =========================================================================
+         BLOQUE 3: FILTRAR FILAS CON WHERE (SLIDES 14 A 22)
+         ========================================================================= -->
+
+    <!-- SLIDE 14: QUÉ HACE WHERE -->
+    <div v-if="current === 14" class="slide">
+      <p class="kicker">3 · Filtrado con WHERE</p>
+      <h2>Filtrar filas con <code>WHERE</code></h2>
+      <pre class="sql-block"><code class="language-sql">SELECT nombre, precio
+FROM productos
+WHERE precio > 50000;</code></pre>
+      <p class="note-line"><code>WHERE</code> se ubica después de <code>FROM</code> y deja pasar únicamente las filas que cumplen la condición.</p>
+    </div>
+
+    <!-- SLIDE 15: COMPARACIÓN DE TEXTO -->
+    <div v-if="current === 15" class="slide">
+      <p class="kicker">3 · Filtrado con WHERE</p>
+      <h2>Filtrar por texto exacto (<code>=</code>)</h2>
+      <pre class="sql-block"><code class="language-sql">SELECT nombre, precio
+FROM productos
+WHERE categoria = 'Audio';</code></pre>
+      <p class="note-line">En SQL los textos van entre comillas simples <code>'Audio'</code> y distinguen entre mayúsculas y minúsculas.</p>
+    </div>
+
+    <!-- SLIDE 16: OPERADORES DE COMPARACIÓN -->
+    <div v-if="current === 16" class="slide">
+      <p class="kicker">3 · Filtrado con WHERE</p>
+      <h2>Operadores de comparación</h2>
+      <div class="cols-3">
+        <div class="panel">
+          <h3><code>=</code></h3>
+          <p>Igual a</p>
+        </div>
+        <div class="panel">
+          <h3><code>&lt;&gt;</code> o <code>!=</code></h3>
+          <p>Distinto de</p>
+        </div>
+        <div class="panel">
+          <h3><code>&gt;</code> &nbsp; <code>&lt;</code></h3>
+          <p>Mayor que / Menor que</p>
+        </div>
+        <div class="panel">
+          <h3><code>&gt;=</code></h3>
+          <p>Mayor o igual que</p>
+        </div>
+        <div class="panel">
+          <h3><code>&lt;=</code></h3>
+          <p>Menor o igual que</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 17: OPERADOR LÓGICO AND -->
+    <div v-if="current === 17" class="slide">
+      <p class="kicker">3 · Filtrado con WHERE</p>
+      <h2>Condiciones simultáneas con <code>AND</code></h2>
+      <pre class="sql-block"><code class="language-sql">SELECT nombre, categoria, precio
+FROM productos
+WHERE categoria = 'Audio'
+  AND precio >= 70000;</code></pre>
+      <p class="note-line">Con <code>AND</code>, la fila debe cumplir <strong>todas</strong> las condiciones al mismo tiempo.</p>
+    </div>
+
+    <!-- SLIDE 18: OPERADOR LÓGICO OR -->
+    <div v-if="current === 18" class="slide">
+      <p class="kicker">3 · Filtrado con WHERE</p>
+      <h2>Condiciones alternativas con <code>OR</code></h2>
+      <pre class="sql-block"><code class="language-sql">SELECT nombre, categoria, precio
+FROM productos
+WHERE categoria = 'Audio'
+   OR categoria = 'Video';</code></pre>
+      <p class="note-line">Con <code>OR</code>, basta con que la fila cumpla <strong>al menos una</strong> de las condiciones.</p>
+    </div>
+
+    <!-- SLIDE 19: RANGOS CON BETWEEN -->
+    <div v-if="current === 19" class="slide">
+      <p class="kicker">3 · Filtrado con WHERE</p>
+      <h2>Rangos con <code>BETWEEN</code></h2>
+      <pre class="sql-block"><code class="language-sql">SELECT nombre, precio
+FROM productos
+WHERE precio BETWEEN 30000 AND 80000;</code></pre>
+      <p class="note-line">Equivale a <code>precio &gt;= 30000 AND precio &lt;= 80000</code> (incluye ambos extremos).</p>
+    </div>
+
+    <!-- SLIDE 20: CONJUNTOS CON IN -->
+    <div v-if="current === 20" class="slide">
+      <p class="kicker">3 · Filtrado con WHERE</p>
+      <h2>Listas de valores con <code>IN</code></h2>
+      <pre class="sql-block"><code class="language-sql">SELECT nombre, categoria
+FROM productos
+WHERE categoria IN ('Audio', 'Video', 'Redes');</code></pre>
+      <p class="note-line">Comprueba si el valor coincide con cualquiera de los elementos dentro del paréntesis.</p>
+    </div>
+
+    <!-- SLIDE 21: PATRONES CON LIKE -->
+    <div v-if="current === 21" class="slide">
+      <p class="kicker">3 · Filtrado con WHERE</p>
+      <h2>Búsqueda de texto parcial con <code>LIKE</code></h2>
+      <pre class="sql-block"><code class="language-sql">SELECT nombre
+FROM productos
+WHERE nombre LIKE '%USB%';</code></pre>
+      <div class="cols-3" style="margin-top: 18px;">
+        <div class="panel">
+          <h3><code>'Pro%'</code></h3>
+          <p>Empieza con "Pro"</p>
+        </div>
+        <div class="panel">
+          <h3><code>'%USB'</code></h3>
+          <p>Termina con "USB"</p>
+        </div>
+        <div class="panel">
+          <h3><code>'%USB%'</code></h3>
+          <p>Contiene "USB"</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 22: NULOS CON IS NULL -->
+    <div v-if="current === 22" class="slide">
+      <p class="kicker">3 · Filtrado con WHERE</p>
+      <h2>Detectar valores vacíos con <code>IS NULL</code></h2>
+      <pre class="sql-block"><code class="language-sql">SELECT nombre, descuento
+FROM productos
+WHERE descuento IS NULL;</code></pre>
+      <p class="note-line"><code>NULL</code> representa la ausencia de dato. Nunca se usa <code>= NULL</code>; siempre <code>IS NULL</code> o <code>IS NOT NULL</code>.</p>
+    </div>
+
+    <!-- =========================================================================
+         BLOQUE 4: ORDENAMIENTO CON ORDER BY (SLIDES 23 A 28)
+         ========================================================================= -->
+
+    <!-- SLIDE 23: QUÉ HACE ORDER BY -->
+    <div v-if="current === 23" class="slide">
+      <p class="kicker">4 · Ordenamiento con ORDER BY</p>
+      <h2>Ordenar el resultado con <code>ORDER BY</code></h2>
+      <pre class="sql-block"><code class="language-sql">SELECT nombre, precio
+FROM productos
+ORDER BY precio;</code></pre>
+      <p class="note-line"><code>ORDER BY</code> siempre se escribe en la última línea de la consulta.</p>
+    </div>
+
+    <!-- SLIDE 24: ASC VS DESC -->
+    <div v-if="current === 24" class="slide">
+      <p class="kicker">4 · Ordenamiento con ORDER BY</p>
+      <h2>Direcciones de ordenamiento: <code>ASC</code> y <code>DESC</code></h2>
+      <div class="cols-2">
+        <div class="panel">
+          <h3><code>ASC</code> (Ascendente — por defecto)</h3>
+          <p>Números: menor a mayor (<code>1 → 100</code>)<br>Texto: alfabético (<code>A → Z</code>)<br>Fechas: más antigua a más reciente</p>
+        </div>
+        <div class="panel">
+          <h3><code>DESC</code> (Descendente)</h3>
+          <p>Números: mayor a menor (<code>100 → 1</code>)<br>Texto: alfabético inverso (<code>Z → A</code>)<br>Fechas: más reciente a más antigua</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 25: EJEMPLO 1 ORDER BY NUMÉRICO -->
+    <div v-if="current === 25" class="slide">
+      <p class="kicker">4 · Ordenamiento con ORDER BY · Ejemplo 1</p>
+      <h2>Ordenar números de mayor a menor</h2>
+      <div class="cols-2">
+        <pre class="sql-block" style="margin:0;"><code class="language-sql">SELECT nombre, precio
+FROM productos
+ORDER BY precio DESC;</code></pre>
+        <div tabindex="0" role="region" aria-label="Productos ordenados por precio descendente" class="table-wrapper" style="margin:0;">
+          <table class="data-table">
+            <thead><tr><th>nombre</th><th>precio</th></tr></thead>
+            <tbody>
+              <tr><td>Monitor 27"</td><td>220000</td></tr>
+              <tr><td>Audífonos Estudio</td><td>80000</td></tr>
+              <tr><td>Micrófono USB</td><td>60000</td></tr>
+              <tr><td>Teclado Mecánico</td><td>45000</td></tr>
+              <tr><td>Mouse Inalámbrico</td><td>25000</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 26: EJEMPLO 2 ORDER BY TEXTO -->
+    <div v-if="current === 26" class="slide">
+      <p class="kicker">4 · Ordenamiento con ORDER BY · Ejemplo 2</p>
+      <h2>Ordenar texto alfabéticamente</h2>
+      <div class="cols-2">
+        <pre class="sql-block" style="margin:0;"><code class="language-sql">SELECT nombre, categoria
+FROM productos
+ORDER BY nombre ASC;</code></pre>
+        <div tabindex="0" role="region" aria-label="Productos ordenados alfabéticamente" class="table-wrapper" style="margin:0;">
+          <table class="data-table">
+            <thead><tr><th>nombre</th><th>categoria</th></tr></thead>
+            <tbody>
+              <tr><td>Audífonos Estudio</td><td>Audio</td></tr>
+              <tr><td>Micrófono USB</td><td>Audio</td></tr>
+              <tr><td>Monitor 27"</td><td>Video</td></tr>
+              <tr><td>Mouse Inalámbrico</td><td>Periféricos</td></tr>
+              <tr><td>Teclado Mecánico</td><td>Periféricos</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 27: EJEMPLO 3 ORDER BY MULTINIVEL -->
+    <div v-if="current === 27" class="slide">
+      <p class="kicker">4 · Ordenamiento con ORDER BY · Ejemplo 3</p>
+      <h2>Ordenar por dos columnas (Desempate)</h2>
+      <p class="lead">Primero ordena por <code>categoria</code> (A–Z). Cuando dos filas tienen la misma categoría, desempata por <code>precio</code> de mayor a menor:</p>
+      <div class="cols-2">
+        <pre class="sql-block" style="margin:0;"><code class="language-sql">SELECT categoria, nombre, precio
+FROM productos
+ORDER BY categoria ASC,
+         precio DESC;</code></pre>
+        <div tabindex="0" role="region" aria-label="Ordenamiento por categoría y precio" class="table-wrapper" style="margin:0;">
+          <table class="data-table">
+            <thead><tr><th>categoria</th><th>nombre</th><th>precio</th></tr></thead>
+            <tbody>
+              <tr><td>Audio</td><td>Audífonos Estudio</td><td>80000</td></tr>
+              <tr><td>Audio</td><td>Micrófono USB</td><td>60000</td></tr>
+              <tr><td>Periféricos</td><td>Teclado Mecánico</td><td>45000</td></tr>
+              <tr><td>Periféricos</td><td>Mouse Inalámbrico</td><td>25000</td></tr>
+              <tr><td>Video</td><td>Monitor 27"</td><td>220000</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 28: EJEMPLO 4 WHERE + ORDER BY + ALIAS -->
+    <div v-if="current === 28" class="slide">
+      <p class="kicker">4 · Ordenamiento con ORDER BY · Ejemplo 4</p>
+      <h2>Filtrar primero y ordenar por un Alias</h2>
+      <pre class="sql-block"><code class="language-sql">SELECT nombre,
+       precio * stock AS valor_inventario
+FROM productos
+WHERE stock >= 10
+ORDER BY valor_inventario DESC;</code></pre>
+      <p class="note-line">Como <code>ORDER BY</code> es el último paso en ejecutarse, puede utilizar directamente el alias definido en el <code>SELECT</code>.</p>
+    </div>
+
+    <!-- =========================================================================
+         BLOQUE 5: AGREGACIÓN Y GROUP BY (SLIDES 29 A 39)
+         ========================================================================= -->
+
+    <!-- SLIDE 29: FUNCIONES DE AGREGACIÓN -->
+    <div v-if="current === 29" class="slide">
+      <p class="kicker">5 · Funciones de Agregación y GROUP BY</p>
+      <h2>Las 5 funciones de agregación</h2>
+      <p class="lead">Operan sobre un conjunto de filas y devuelven un único valor resumido:</p>
+      <div class="cols-5">
+        <div class="panel">
+          <h3><code>COUNT(*)</code></h3>
+          <p>Cantidad de filas</p>
+        </div>
+        <div class="panel">
+          <h3><code>SUM(col)</code></h3>
+          <p>Suma total</p>
+        </div>
+        <div class="panel">
+          <h3><code>AVG(col)</code></h3>
+          <p>Promedio</p>
+        </div>
+        <div class="panel">
+          <h3><code>MIN(col)</code></h3>
+          <p>Valor mínimo</p>
+        </div>
+        <div class="panel">
+          <h3><code>MAX(col)</code></h3>
+          <p>Valor máximo</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 30: AGREGACIÓN SIN GROUP BY -->
+    <div v-if="current === 30" class="slide">
+      <p class="kicker">5 · Funciones de Agregación y GROUP BY</p>
+      <h2>Agregación sin <code>GROUP BY</code></h2>
+      <div class="cols-2">
+        <pre class="sql-block" style="margin:0;"><code class="language-sql">SELECT COUNT(*) AS total_productos,
+       SUM(stock) AS unidades_totales,
+       AVG(precio) AS precio_promedio
+FROM productos;</code></pre>
+        <div tabindex="0" role="region" aria-label="Resultado de agregación global" class="table-wrapper" style="margin:0;">
+          <table class="data-table">
+            <thead><tr><th>total_productos</th><th>unidades_totales</th><th>precio_promedio</th></tr></thead>
+            <tbody>
+              <tr><td>5</td><td>88</td><td>86000</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="note-line">Sin <code>GROUP BY</code>, todas las filas de la tabla se resumen en <strong>una sola fila</strong>.</p>
+    </div>
+
+    <!-- SLIDE 31: CUÁNDO USAR GROUP BY -->
+    <div v-if="current === 31" class="slide">
+      <p class="kicker">5 · Funciones de Agregación y GROUP BY</p>
+      <h2>¿Por qué necesitamos <code>GROUP BY</code>?</h2>
+      <p class="lead">Cuando no queremos un único total general, sino calcular un resumen <strong>por cada grupo distinto</strong> dentro de una columna.</p>
+      <div class="cols-2">
+        <div class="panel">
+          <h3>Sin <code>GROUP BY</code></h3>
+          <p>"¿Cuál es el precio promedio de toda la tienda?"<br>→ Devuelve <strong>1 fila</strong>.</p>
+        </div>
+        <div class="panel">
+          <h3>Con <code>GROUP BY categoria</code></h3>
+          <p>"¿Cuál es el precio promedio <strong>por cada categoría</strong>?"<br>→ Devuelve <strong>1 fila por cada categoría</strong>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 32: CÓMO FUNCIONA GROUP BY -->
+    <div v-if="current === 32" class="slide">
+      <p class="kicker">5 · Funciones de Agregación y GROUP BY</p>
+      <h2>Cómo opera <code>GROUP BY</code> paso a paso</h2>
+      <div class="cols-3">
+        <div class="panel">
+          <h3>1. Agrupa</h3>
+          <p>Reúne todas las filas que tienen el mismo valor en la columna indicada (ej. <code>Audio</code>, <code>Periféricos</code>, <code>Video</code>).</p>
+        </div>
+        <div class="panel">
+          <h3>2. Calcula</h3>
+          <p>Aplica la función (<code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code>, <code>MAX</code>) al interior de cada grupo por separado.</p>
+        </div>
+        <div class="panel">
+          <h3>3. Entrega</h3>
+          <p>Genera una única fila de salida por cada grupo.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 33: EJEMPLO 1 GROUP BY + COUNT -->
+    <div v-if="current === 33" class="slide">
+      <p class="kicker">5 · GROUP BY · Ejemplo 1</p>
+      <h2>Contar filas por grupo (<code>COUNT</code>)</h2>
+      <p class="lead">¿Cuántos productos existen en cada categoría?</p>
+      <div class="cols-2">
+        <pre class="sql-block" style="margin:0;"><code class="language-sql">SELECT categoria,
+       COUNT(*) AS cantidad_productos
+FROM productos
+GROUP BY categoria;</code></pre>
+        <div tabindex="0" role="region" aria-label="Conteo de productos por categoría" class="table-wrapper" style="margin:0;">
+          <table class="data-table">
+            <thead><tr><th>categoria</th><th>cantidad_productos</th></tr></thead>
+            <tbody>
+              <tr><td>Periféricos</td><td>2</td></tr>
+              <tr><td>Audio</td><td>2</td></tr>
+              <tr><td>Video</td><td>1</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 34: EJEMPLO 2 GROUP BY + SUM -->
+    <div v-if="current === 34" class="slide">
+      <p class="kicker">5 · GROUP BY · Ejemplo 2</p>
+      <h2>Sumar valores por grupo (<code>SUM</code>)</h2>
+      <p class="lead">¿Cuántas unidades de stock acumulamos en cada categoría?</p>
+      <div class="cols-2">
+        <pre class="sql-block" style="margin:0;"><code class="language-sql">SELECT categoria,
+       SUM(stock) AS stock_total
+FROM productos
+GROUP BY categoria;</code></pre>
+        <div tabindex="0" role="region" aria-label="Suma de stock por categoría" class="table-wrapper" style="margin:0;">
+          <table class="data-table">
+            <thead><tr><th>categoria</th><th>stock_total</th></tr></thead>
+            <tbody>
+              <tr><td>Periféricos</td><td>55</td></tr>
+              <tr><td>Audio</td><td>25</td></tr>
+              <tr><td>Video</td><td>8</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="note-line"><code>COUNT(*)</code> cuenta cuántas filas hay en el grupo; <code>SUM(stock)</code> suma los valores numéricos de la columna <code>stock</code>.</p>
+    </div>
+
+    <!-- SLIDE 35: EJEMPLO 3 GROUP BY + AVG -->
+    <div v-if="current === 35" class="slide">
+      <p class="kicker">5 · GROUP BY · Ejemplo 3</p>
+      <h2>Calcular el promedio por grupo (<code>AVG</code>)</h2>
+      <p class="lead">¿Cuál es el precio promedio en cada categoría?</p>
+      <div class="cols-2">
+        <pre class="sql-block" style="margin:0;"><code class="language-sql">SELECT categoria,
+       ROUND(AVG(precio), 0) AS precio_promedio
+FROM productos
+GROUP BY categoria;</code></pre>
+        <div tabindex="0" role="region" aria-label="Precio promedio por categoría" class="table-wrapper" style="margin:0;">
+          <table class="data-table">
+            <thead><tr><th>categoria</th><th>precio_promedio</th></tr></thead>
+            <tbody>
+              <tr><td>Periféricos</td><td>35000</td></tr>
+              <tr><td>Audio</td><td>70000</td></tr>
+              <tr><td>Video</td><td>220000</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 36: EJEMPLO 4 GROUP BY + MIN Y MAX -->
+    <div v-if="current === 36" class="slide">
+      <p class="kicker">5 · GROUP BY · Ejemplo 4</p>
+      <h2>Mínimo y máximo por grupo (<code>MIN</code> y <code>MAX</code>)</h2>
+      <p class="lead">Podemos incluir múltiples funciones de agregación en la misma consulta:</p>
+      <div class="cols-2">
+        <pre class="sql-block" style="margin:0;"><code class="language-sql">SELECT categoria,
+       MIN(precio) AS mas_barato,
+       MAX(precio) AS mas_caro
+FROM productos
+GROUP BY categoria;</code></pre>
+        <div tabindex="0" role="region" aria-label="Precio mínimo y máximo por categoría" class="table-wrapper" style="margin:0;">
+          <table class="data-table">
+            <thead><tr><th>categoria</th><th>mas_barato</th><th>mas_caro</th></tr></thead>
+            <tbody>
+              <tr><td>Periféricos</td><td>25000</td><td>45000</td></tr>
+              <tr><td>Audio</td><td>60000</td><td>80000</td></tr>
+              <tr><td>Video</td><td>220000</td><td>220000</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 37: REGLA DE ORO DE GROUP BY -->
+    <div v-if="current === 37" class="slide">
+      <p class="kicker">5 · Regla Sintáctica de GROUP BY</p>
+      <h2>La regla fundamental de <code>GROUP BY</code></h2>
+      <p class="lead">Toda columna presente en el <code>SELECT</code> que <strong>no</strong> esté dentro de una función de agregación <strong>debe</strong> aparecer en el <code>GROUP BY</code>.</p>
+      <div class="cols-2">
+        <div>
+          <p style="font-weight:700; color:#B91C1C; margin:0 0 6px 0;">Incorrecto (ORA-00979)</p>
+          <pre class="sql-block" style="margin:0; font-size:1.1rem;"><code class="language-sql">SELECT categoria, nombre, COUNT(*)
+FROM productos
+GROUP BY categoria;
+-- 'nombre' no está agrupada ni agregada</code></pre>
+        </div>
+        <div>
+          <p style="font-weight:700; color:#15803D; margin:0 0 6px 0;">Correcto</p>
+          <pre class="sql-block" style="margin:0; font-size:1.1rem;"><code class="language-sql">SELECT categoria, COUNT(*)
+FROM productos
+GROUP BY categoria;</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 38: EJEMPLO 5 AGRUPAR POR 2 COLUMNAS -->
+    <div v-if="current === 38" class="slide">
+      <p class="kicker">5 · GROUP BY · Ejemplo 5</p>
+      <h2>Agrupar por más de una columna</h2>
+      <p class="lead">Forma subgrupos combinando ambas columnas (por ejemplo, cada combinación de categoría y estado):</p>
+      <pre class="sql-block"><code class="language-sql">SELECT categoria,
+       estado,
+       COUNT(*) AS cantidad
+FROM productos
+GROUP BY categoria, estado;</code></pre>
+    </div>
+
+    <!-- SLIDE 39: EJEMPLO 6 WHERE + GROUP BY + ORDER BY -->
+    <div v-if="current === 39" class="slide">
+      <p class="kicker">5 · GROUP BY · Ejemplo 6</p>
+      <h2>Combinar <code>WHERE</code>, <code>GROUP BY</code> y <code>ORDER BY</code></h2>
+      <pre class="sql-block"><code class="language-sql">SELECT categoria,
+       SUM(stock) AS stock_total
+FROM productos
+WHERE precio >= 30000
+GROUP BY categoria
+ORDER BY stock_total DESC;</code></pre>
+      <div class="sequence-bar">
+        <div class="seq-node">1. SELECT</div>
+        <span class="seq-arrow">→</span>
+        <div class="seq-node">2. FROM</div>
+        <span class="seq-arrow">→</span>
+        <div class="seq-node">3. WHERE</div>
+        <span class="seq-arrow">→</span>
+        <div class="seq-node">4. GROUP BY</div>
+        <span class="seq-arrow">→</span>
+        <div class="seq-node">5. ORDER BY</div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         BLOQUE 6: JOIN BÁSICO (SLIDES 40 A 44)
+         ========================================================================= -->
+
+    <!-- SLIDE 40: POR QUÉ USAMOS JOIN -->
+    <div v-if="current === 40" class="slide">
+      <p class="kicker">6 · Consultas Multitabla (JOIN)</p>
+      <h2>¿Para qué sirve <code>JOIN</code>?</h2>
+      <p class="lead">Cuando los datos que necesitamos mostrar están repartidos en dos o más tablas relacionadas entre sí.</p>
+      <div class="cols-2">
+        <div class="panel">
+          <h3>Tabla <code>tabla_a</code></h3>
+          <p>Contiene la clave foránea <code>b_id</code>.</p>
+        </div>
+        <div class="panel">
+          <h3>Tabla <code>tabla_b</code></h3>
+          <p>Contiene la clave primaria <code>id</code> y el nombre o detalle que buscamos.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 41: SINTAXIS DE JOIN -->
+    <div v-if="current === 41" class="slide">
+      <p class="kicker">6 · Consultas Multitabla (JOIN)</p>
+      <h2>Estructura de un <code>JOIN</code> básico</h2>
+      <pre class="sql-block"><code class="language-sql">SELECT tabla_a.columna,
+       tabla_b.columna
+FROM tabla_a
+JOIN tabla_b ON tabla_a.b_id = tabla_b.id;</code></pre>
+      <p class="note-line">La cláusula <code>ON</code> iguala la clave foránea de una tabla con la clave primaria de la otra.</p>
+    </div>
+
+    <!-- SLIDE 42: ALIAS DE TABLA EN JOIN -->
+    <div v-if="current === 42" class="slide">
+      <p class="kicker">6 · Consultas Multitabla (JOIN)</p>
+      <h2>Uso de alias de tabla en <code>JOIN</code></h2>
+      <pre class="sql-block"><code class="language-sql">SELECT p.nombre AS producto,
+       p.precio,
+       c.nombre AS categoria
+FROM productos p
+JOIN categorias c ON p.categoria_id = c.id;</code></pre>
+      <p class="note-line">Definir un alias corto en <code>FROM productos p</code> y <code>JOIN categorias c</code> abrevia la consulta y evita ambigüedades cuando ambas tablas tienen columnas llamadas <code>id</code> o <code>nombre</code>.</p>
+    </div>
+
+    <!-- SLIDE 43: CRUZAR TABLA PIVOTE -->
+    <div v-if="current === 43" class="slide">
+      <p class="kicker">6 · Consultas Multitabla (JOIN)</p>
+      <h2>Cruzar una tabla pivote (Doble <code>JOIN</code>)</h2>
+      <p class="lead">Partimos desde la tabla intermedia y conectamos hacia cada tabla maestra:</p>
+      <pre class="sql-block"><code class="language-sql">SELECT a.nombre,
+       b.nombre,
+       piv.monto
+FROM pivote piv
+JOIN tabla_a a ON piv.a_id = a.id
+JOIN tabla_b b ON piv.b_id = b.id;</code></pre>
+    </div>
+
+    <!-- SLIDE 44: JOIN + GROUP BY + ORDER BY -->
+    <div v-if="current === 44" class="slide">
+      <p class="kicker">6 · Consultas Multitabla (JOIN)</p>
+      <h2>Agrupar después de hacer <code>JOIN</code></h2>
+      <pre class="sql-block"><code class="language-sql">SELECT c.nombre AS categoria,
+       COUNT(*) AS total_productos
+FROM productos p
+JOIN categorias c ON p.categoria_id = c.id
+GROUP BY c.nombre
+ORDER BY total_productos DESC;</code></pre>
+      <p class="note-line">Al unir las tablas primero, podemos agrupar directamente por el nombre de la categoría en vez de su código numérico.</p>
+    </div>
+
+    <!-- =========================================================================
+         BLOQUE 7: METODOLOGÍA DE RESOLUCIÓN (SLIDES 45 A 48)
+         ========================================================================= -->
+
+    <!-- SLIDE 45: LOS 4 PASOS -->
+    <div v-if="current === 45" class="slide">
+      <p class="kicker">7 · Metodología de trabajo</p>
+      <h2>Cómo enfrentar un ejercicio de consulta</h2>
+      <div class="cols-4">
+        <div class="panel">
+          <h3>1. Análisis</h3>
+          <p>¿Qué columnas piden mostrar y bajo qué condición?</p>
+        </div>
+        <div class="panel">
+          <h3>2. Estrategia</h3>
+          <p>¿En qué tablas están esos datos? ¿Hay que unir tablas o agrupar?</p>
+        </div>
+        <div class="panel">
+          <h3>3. Herramientas</h3>
+          <p>Elegir las cláusulas: <code>WHERE</code>, <code>JOIN</code>, <code>GROUP BY</code>, <code>ORDER BY</code>.</p>
+        </div>
+        <div class="panel">
+          <h3>4. Resolución</h3>
+          <p>Escribir la consulta respetando el orden de las cláusulas.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 46: EJEMPLO APLICADO 1 -->
+    <div v-if="current === 46" class="slide">
+      <p class="kicker">7 · Aplicación del Método · Caso 1</p>
+      <h2>"Mostrar nickname, sueldo mensual y nombre del equipo de los jugadores que ganan más de 20.000, ordenados de mayor a menor sueldo"</h2>
+      <div class="cols-3" style="margin-bottom: 14px;">
+        <div class="panel">
+          <h3>1. Análisis</h3>
+          <p>Mostrar <code>nickname</code>, <code>sueldo_mensual</code> y nombre del equipo. Filtrar sueldos mayores a 20000.</p>
+        </div>
+        <div class="panel">
+          <h3>2. Estrategia</h3>
+          <p>Los datos están en <code>jugadores</code> y <code>equipos</code>. Unir por <code>equipo_id = id</code>.</p>
+        </div>
+        <div class="panel">
+          <h3>3. Herramientas</h3>
+          <p><code>JOIN ... ON</code>, <code>WHERE &gt; 20000</code> y <code>ORDER BY DESC</code>.</p>
+        </div>
+      </div>
+      <pre class="sql-block" style="margin:0;"><code class="language-sql">SELECT j.nickname,
+       j.sueldo_mensual,
+       e.nombre AS equipo
+FROM jugadores j
+JOIN equipos e ON j.equipo_id = e.id
+WHERE j.sueldo_mensual > 20000
+ORDER BY j.sueldo_mensual DESC;</code></pre>
+    </div>
+
+    <!-- SLIDE 47: EJEMPLO APLICADO 2 -->
+    <div v-if="current === 47" class="slide">
+      <p class="kicker">7 · Aplicación del Método · Caso 2</p>
+      <h2>"Mostrar el nombre de cada agente y el total de kills logradas con él en el torneo, de mayor a menor"</h2>
+      <div class="cols-3" style="margin-bottom: 14px;">
+        <div class="panel">
+          <h3>1. Análisis</h3>
+          <p>Mostrar un resumen de kills totales agrupado por el nombre de cada agente.</p>
+        </div>
+        <div class="panel">
+          <h3>2. Estrategia</h3>
+          <p>Cruzar <code>participaciones</code> con <code>agentes</code> mediante <code>agente_id = id</code> y agrupar.</p>
+        </div>
+        <div class="panel">
+          <h3>3. Herramientas</h3>
+          <p><code>JOIN</code>, <code>SUM(kills)</code>, <code>GROUP BY a.nombre</code> y <code>ORDER BY DESC</code>.</p>
+        </div>
+      </div>
+      <pre class="sql-block" style="margin:0;"><code class="language-sql">SELECT a.nombre AS agente,
+       SUM(p.kills) AS total_kills
+FROM participaciones p
+JOIN agentes a ON p.agente_id = a.id
+GROUP BY a.nombre
+ORDER BY total_kills DESC;</code></pre>
+    </div>
+
+    <!-- =========================================================================
+         SLIDE 48: EJERCICIOS SOBRE LA BASE DE DATOS
+         ========================================================================= -->
+    <div v-if="current === 48" class="slide">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; margin-bottom:24px; border-bottom:2px solid var(--ink); padding-bottom:18px;">
+        <div>
+          <p class="kicker">Práctica en Laboratorio</p>
+          <h2 style="margin:0;">40 Ejercicios — Torneo de eSports</h2>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn-minimal" @click="copySqlScript">
+            {{ copied ? '✓ Script SQL copiado' : 'Copiar Script SQL (DDL + Datos)' }}
+          </button>
+          <a href="esports_torneo_3fn.sql" download="esports_torneo_3fn.sql" class="btn-minimal">
+            Descargar esports_torneo_3fn.sql
+          </a>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
+        <button class="btn-minimal" :class="{ active: selectedCategory === 'TODOS' }" @click="selectedCategory = 'TODOS'">
+          Todos ({{ exercises.length }})
+        </button>
+        <button v-for="cat in categories" :key="cat" class="btn-minimal" :class="{ active: selectedCategory === cat }" @click="selectedCategory = cat">
+          {{ cat }}
+        </button>
+      </div>
+
+      <div>
+        <div v-for="ex in filteredExercises" :key="ex.id" class="ex-row">
+          <div class="ex-row-head">
+            <p class="ex-title">
+              <span class="ex-num-label">#{{ ex.id }}</span>
+              {{ ex.statement }}
+            </p>
+            <button class="btn-minimal" style="flex-shrink:0; font-size:12px; padding:5px 11px;" @click="ex.showGuide = !ex.showGuide">
+              {{ ex.showGuide ? 'Ocultar guía' : 'Guía de pasos' }}
+            </button>
+          </div>
+          <div v-if="ex.showGuide" class="ex-hint-grid">
+            <div>
+              <strong>1. Análisis</strong>
+              <span>{{ ex.analysis }}</span>
+            </div>
+            <div>
+              <strong>2. Estrategia</strong>
+              <span>{{ ex.strategy }}</span>
+            </div>
+            <div>
+              <strong>3. Herramientas</strong>
+              <span><code>{{ ex.tools }}</code></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const { createApp, ref, computed, watch, nextTick, onMounted } = Vue;
+
+createApp({
+  setup() {
+    const current = ref(0);
+    const totalSlides = 49;
+    const copied = ref(false);
+    const selectedCategory = ref('TODOS');
+
+    const fullSqlScript = `-- ============================================================================
+-- BASE DE DATOS: TORNEO INTERNACIONAL DE ESPORTS (ORACLE 19c+)
+-- ============================================================================
+
+DROP TABLE participaciones CASCADE CONSTRAINTS;
+DROP TABLE patrocinios CASCADE CONSTRAINTS;
+DROP TABLE partidas CASCADE CONSTRAINTS;
+DROP TABLE jugadores CASCADE CONSTRAINTS;
+DROP TABLE equipos CASCADE CONSTRAINTS;
+DROP TABLE mapas CASCADE CONSTRAINTS;
+DROP TABLE agentes CASCADE CONSTRAINTS;
+DROP TABLE patrocinadores CASCADE CONSTRAINTS;
+DROP TABLE regiones CASCADE CONSTRAINTS;
+
+CREATE TABLE regiones (
+    id                 NUMBER        GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    codigo             VARCHAR2(10)  NOT NULL UNIQUE,
+    nombre             VARCHAR2(50)  NOT NULL UNIQUE,
+    servidor_principal VARCHAR2(40)  NOT NULL
+);
+
+CREATE TABLE patrocinadores (
+    id          NUMBER        GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre      VARCHAR2(60)  NOT NULL UNIQUE,
+    rubro       VARCHAR2(40)  NOT NULL CHECK (rubro IN ('Hardware', 'Bebidas', 'Mobiliario', 'Telecomunicaciones', 'Ropa Deportiva')),
+    pais_origen VARCHAR2(40)  NOT NULL
+);
+
+CREATE TABLE agentes (
+    id          NUMBER        GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre      VARCHAR2(40)  NOT NULL UNIQUE,
+    rol         VARCHAR2(20)  NOT NULL CHECK (rol IN ('Duelista', 'Iniciador', 'Controlador', 'Centinela')),
+    origen_lore VARCHAR2(40)  NOT NULL
+);
+
+CREATE TABLE mapas (
+    id           NUMBER        GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre       VARCHAR2(40)  NOT NULL UNIQUE,
+    sitios_bomba NUMBER(1)     NOT NULL CHECK (sitios_bomba IN (2, 3)),
+    ambientacion VARCHAR2(50)  NOT NULL
+);
+
+CREATE TABLE equipos (
+    id                NUMBER        GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre            VARCHAR2(60)  NOT NULL UNIQUE,
+    tag               VARCHAR2(6)   NOT NULL UNIQUE,
+    presupuesto_anual NUMBER(10)    NOT NULL CHECK (presupuesto_anual > 0),
+    anio_fundacion    NUMBER(4)     NOT NULL CHECK (anio_fundacion >= 2000),
+    region_id         NUMBER        NOT NULL REFERENCES regiones(id)
+);
+
+CREATE TABLE jugadores (
+    id             NUMBER        GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nickname       VARCHAR2(40)  NOT NULL UNIQUE,
+    nombre_real    VARCHAR2(80)  NOT NULL,
+    pais_natal     VARCHAR2(40)  NOT NULL,
+    edad           NUMBER(2)     NOT NULL CHECK (edad BETWEEN 16 AND 40),
+    sueldo_mensual NUMBER(8)     NOT NULL CHECK (sueldo_mensual >= 0),
+    equipo_id      NUMBER        NOT NULL REFERENCES equipos(id)
+);
+
+CREATE TABLE partidas (
+    id                 NUMBER        GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    fase               VARCHAR2(30)  NOT NULL CHECK (fase IN ('Fase de Grupos', 'Cuartos de Final', 'Semifinal', 'Gran Final')),
+    fecha_partida      DATE          NOT NULL,
+    duracion_min       NUMBER(3)     NOT NULL CHECK (duracion_min > 0),
+    asistencia_publico NUMBER(6)     DEFAULT 0 NOT NULL CHECK (asistencia_publico >= 0),
+    mapa_id            NUMBER        NOT NULL REFERENCES mapas(id)
+);
+
+CREATE TABLE patrocinios (
+    id              NUMBER        GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    monto_anual     NUMBER(9)     NOT NULL CHECK (monto_anual > 0),
+    tipo_contrato   VARCHAR2(20)  NOT NULL CHECK (tipo_contrato IN ('Principal', 'Secundario', 'Equipamiento')),
+    equipo_id       NUMBER        NOT NULL REFERENCES equipos(id),
+    patrocinador_id NUMBER        NOT NULL REFERENCES patrocinadores(id)
+);
+
+CREATE TABLE participaciones (
+    id              NUMBER        GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    kills           NUMBER(3)     DEFAULT 0 NOT NULL CHECK (kills >= 0),
+    deaths          NUMBER(3)     DEFAULT 0 NOT NULL CHECK (deaths >= 0),
+    assists         NUMBER(3)     DEFAULT 0 NOT NULL CHECK (assists >= 0),
+    puntaje_combate NUMBER(4)     NOT NULL CHECK (puntaje_combate >= 0),
+    gano            CHAR(1)       NOT NULL CHECK (gano IN ('S', 'N')),
+    jugador_id      NUMBER        NOT NULL REFERENCES jugadores(id),
+    partida_id      NUMBER        NOT NULL REFERENCES partidas(id),
+    agente_id       NUMBER        NOT NULL REFERENCES agentes(id)
+);
+
+-- POBLAMIENTO DE DATOS (DML - ORACLE GENERA LOS ID AUTOMÁTICAMENTE)
+INSERT INTO regiones (codigo, nombre, servidor_principal) VALUES ('LATAM', 'Latinoamerica', 'Santiago');
+INSERT INTO regiones (codigo, nombre, servidor_principal) VALUES ('NA', 'Norteamerica', 'Los Angeles');
+INSERT INTO regiones (codigo, nombre, servidor_principal) VALUES ('EMEA', 'Europa y Medio Oriente', 'Berlin');
+INSERT INTO regiones (codigo, nombre, servidor_principal) VALUES ('APAC', 'Asia Pacifico', 'Seul');
+
+INSERT INTO patrocinadores (nombre, rubro, pais_origen) VALUES ('Red Bull', 'Bebidas', 'Austria');
+INSERT INTO patrocinadores (nombre, rubro, pais_origen) VALUES ('Razer', 'Hardware', 'Estados Unidos');
+INSERT INTO patrocinadores (nombre, rubro, pais_origen) VALUES ('Secretlab', 'Mobiliario', 'Singapur');
+INSERT INTO patrocinadores (nombre, rubro, pais_origen) VALUES ('Logitech G', 'Hardware', 'Suiza');
+INSERT INTO patrocinadores (nombre, rubro, pais_origen) VALUES ('Monster Energy', 'Bebidas', 'Estados Unidos');
+INSERT INTO patrocinadores (nombre, rubro, pais_origen) VALUES ('Nike Gaming', 'Ropa Deportiva', 'Estados Unidos');
+
+INSERT INTO agentes (nombre, rol, origen_lore) VALUES ('Jett', 'Duelista', 'Corea del Sur');
+INSERT INTO agentes (nombre, rol, origen_lore) VALUES ('Raze', 'Duelista', 'Brasil');
+INSERT INTO agentes (nombre, rol, origen_lore) VALUES ('Omen', 'Controlador', 'Desconocido');
+INSERT INTO agentes (nombre, rol, origen_lore) VALUES ('Sova', 'Iniciador', 'Rusia');
+INSERT INTO agentes (nombre, rol, origen_lore) VALUES ('Killjoy', 'Centinela', 'Alemania');
+INSERT INTO agentes (nombre, rol, origen_lore) VALUES ('Viper', 'Controlador', 'Estados Unidos');
+INSERT INTO agentes (nombre, rol, origen_lore) VALUES ('Fade', 'Iniciador', 'Turquia');
+INSERT INTO agentes (nombre, rol, origen_lore) VALUES ('Cypher', 'Centinela', 'Marruecos');
+
+INSERT INTO mapas (nombre, sitios_bomba, ambientacion) VALUES ('Ascent', 2, 'Venecia, Italia');
+INSERT INTO mapas (nombre, sitios_bomba, ambientacion) VALUES ('Bind', 2, 'Rabat, Marruecos');
+INSERT INTO mapas (nombre, sitios_bomba, ambientacion) VALUES ('Haven', 3, 'Timbu, Butan');
+INSERT INTO mapas (nombre, sitios_bomba, ambientacion) VALUES ('Lotus', 3, 'Ghats Occidentales, India');
+INSERT INTO mapas (nombre, sitios_bomba, ambientacion) VALUES ('Split', 2, 'Tokio, Japon');
+INSERT INTO mapas (nombre, sitios_bomba, ambientacion) VALUES ('Sunset', 2, 'Los Angeles, Estados Unidos');
+
+INSERT INTO equipos (nombre, tag, presupuesto_anual, anio_fundacion, region_id) VALUES ('KRU Esports', 'KRU', 1800000, 2020, 1);
+INSERT INTO equipos (nombre, tag, presupuesto_anual, anio_fundacion, region_id) VALUES ('Leviatan', 'LEV', 2400000, 2020, 1);
+INSERT INTO equipos (nombre, tag, presupuesto_anual, anio_fundacion, region_id) VALUES ('Sentinels', 'SEN', 4500000, 2018, 2);
+INSERT INTO equipos (nombre, tag, presupuesto_anual, anio_fundacion, region_id) VALUES ('G2 Esports', 'G2', 3800000, 2015, 2);
+INSERT INTO equipos (nombre, tag, presupuesto_anual, anio_fundacion, region_id) VALUES ('Fnatic', 'FNC', 4200000, 2004, 3);
+INSERT INTO equipos (nombre, tag, presupuesto_anual, anio_fundacion, region_id) VALUES ('Paper Rex', 'PRX', 2900000, 2020, 4);
+
+INSERT INTO jugadores (nickname, nombre_real, pais_natal, edad, sueldo_mensual, equipo_id) VALUES ('keznit', 'Angelo Mori', 'Chile', 23, 14500, 1);
+INSERT INTO jugadores (nickname, nombre_real, pais_natal, edad, sueldo_mensual, equipo_id) VALUES ('Mazino', 'Roberto Rivas', 'Chile', 23, 14000, 1);
+INSERT INTO jugadores (nickname, nombre_real, pais_natal, edad, sueldo_mensual, equipo_id) VALUES ('Melser', 'Marco Eliot', 'Chile', 24, 12500, 1);
+INSERT INTO jugadores (nickname, nombre_real, pais_natal, edad, sueldo_mensual, equipo_id) VALUES ('kiNgg', 'Francisco Aravena', 'Chile', 22, 18000, 2);
+INSERT INTO jugadores (nickname, nombre_real, pais_natal, edad, sueldo_mensual, equipo_id) VALUES ('aspas', 'Erick Santos', 'Brasil', 21, 32000, 2);
+INSERT INTO jugadores (nickname, nombre_real, pais_natal, edad, sueldo_mensual, equipo_id) VALUES ('tex', 'Ian Botsch', 'Alemania', 25, 15000, 2);
+INSERT INTO jugadores (nickname, nombre_real, pais_natal, edad, sueldo_mensual, equipo_id) VALUES ('TenZ', 'Tyson Ngo', 'Canada', 23, 35000, 3);
+INSERT INTO jugadores (nickname, nombre_real, pais_natal, edad, sueldo_mensual, equipo_id) VALUES ('zekken', 'Zachary Patrone', 'Estados Unidos', 19, 24000, 3);
+INSERT INTO jugadores (nickname, nombre_real, pais_natal, edad, sueldo_mensual, equipo_id) VALUES ('Sacy', 'Gustavo Rossi', 'Brasil', 26, 22000, 3);
+INSERT INTO jugadores (nickname, nombre_real, pais_natal, edad, sueldo_mensual, equipo_id) VALUES ('valyn', 'Jacob Batio', 'Estados Unidos', 21, 19000, 4);
+INSERT INTO jugadores (nickname, nombre_real, pais_natal, edad, sueldo_mensual, equipo_id) VALUES ('trent', 'Trent Cairns', 'Estados Unidos', 19, 17500, 4);
+INSERT INTO jugadores (nickname, nombre_real, pais_natal, edad, sueldo_mensual, equipo_id) VALUES ('leaf', 'Nathan Orf', 'Estados Unidos', 20, 18500, 4);
+INSERT INTO jugadores (nickname, nombre_real, pais_natal, edad, sueldo_mensual, equipo_id) VALUES ('Boaster', 'Jake Howlett', 'Reino Unido', 29, 26000, 5);
+INSERT INTO jugadores (nickname, nombre_real, pais_natal, edad, sueldo_mensual, equipo_id) VALUES ('Alfajer', 'Emir Beder', 'Turquia', 19, 28000, 5);
+INSERT INTO jugadores (nickname, nombre_real, pais_natal, edad, sueldo_mensual, equipo_id) VALUES ('Chronicle', 'Timofey Khromov', 'Rusia', 22, 25000, 5);
+INSERT INTO jugadores (nickname, nombre_real, pais_natal, edad, sueldo_mensual, equipo_id) VALUES ('f0rsakeN', 'Jason Susanto', 'Indonesia', 20, 23000, 6);
+INSERT INTO jugadores (nickname, nombre_real, pais_natal, edad, sueldo_mensual, equipo_id) VALUES ('something', 'Ilya Petrov', 'Rusia', 22, 24000, 6);
+INSERT INTO jugadores (nickname, nombre_real, pais_natal, edad, sueldo_mensual, equipo_id) VALUES ('d4v41', 'Khalish Rusyaidee', 'Malasia', 25, 19500, 6);
+
+INSERT INTO partidas (fase, fecha_partida, duracion_min, asistencia_publico, mapa_id) VALUES ('Fase de Grupos', TO_DATE('2026-08-01', 'YYYY-MM-DD'), 42, 6500, 1);
+INSERT INTO partidas (fase, fecha_partida, duracion_min, asistencia_publico, mapa_id) VALUES ('Fase de Grupos', TO_DATE('2026-08-02', 'YYYY-MM-DD'), 38, 7200, 3);
+INSERT INTO partidas (fase, fecha_partida, duracion_min, asistencia_publico, mapa_id) VALUES ('Fase de Grupos', TO_DATE('2026-08-03', 'YYYY-MM-DD'), 51, 8100, 4);
+INSERT INTO partidas (fase, fecha_partida, duracion_min, asistencia_publico, mapa_id) VALUES ('Cuartos de Final', TO_DATE('2026-08-08', 'YYYY-MM-DD'), 46, 11000, 2);
+INSERT INTO partidas (fase, fecha_partida, duracion_min, asistencia_publico, mapa_id) VALUES ('Cuartos de Final', TO_DATE('2026-08-09', 'YYYY-MM-DD'), 55, 11500, 5);
+INSERT INTO partidas (fase, fecha_partida, duracion_min, asistencia_publico, mapa_id) VALUES ('Semifinal', TO_DATE('2026-08-15', 'YYYY-MM-DD'), 49, 14800, 6);
+INSERT INTO partidas (fase, fecha_partida, duracion_min, asistencia_publico, mapa_id) VALUES ('Semifinal', TO_DATE('2026-08-16', 'YYYY-MM-DD'), 62, 15200, 1);
+INSERT INTO partidas (fase, fecha_partida, duracion_min, asistencia_publico, mapa_id) VALUES ('Gran Final', TO_DATE('2026-08-23', 'YYYY-MM-DD'), 58, 19500, 4);
+
+INSERT INTO patrocinios (monto_anual, tipo_contrato, equipo_id, patrocinador_id) VALUES (450000, 'Principal', 1, 1);
+INSERT INTO patrocinios (monto_anual, tipo_contrato, equipo_id, patrocinador_id) VALUES (180000, 'Equipamiento', 1, 4);
+INSERT INTO patrocinios (monto_anual, tipo_contrato, equipo_id, patrocinador_id) VALUES (600000, 'Principal', 2, 5);
+INSERT INTO patrocinios (monto_anual, tipo_contrato, equipo_id, patrocinador_id) VALUES (220000, 'Secundario', 2, 3);
+INSERT INTO patrocinios (monto_anual, tipo_contrato, equipo_id, patrocinador_id) VALUES (1200000, 'Principal', 3, 2);
+INSERT INTO patrocinios (monto_anual, tipo_contrato, equipo_id, patrocinador_id) VALUES (500000, 'Secundario', 3, 1);
+INSERT INTO patrocinios (monto_anual, tipo_contrato, equipo_id, patrocinador_id) VALUES (350000, 'Equipamiento', 3, 3);
+INSERT INTO patrocinios (monto_anual, tipo_contrato, equipo_id, patrocinador_id) VALUES (950000, 'Principal', 4, 1);
+INSERT INTO patrocinios (monto_anual, tipo_contrato, equipo_id, patrocinador_id) VALUES (420000, 'Equipamiento', 4, 4);
+INSERT INTO patrocinios (monto_anual, tipo_contrato, equipo_id, patrocinador_id) VALUES (1100000, 'Principal', 5, 6);
+INSERT INTO patrocinios (monto_anual, tipo_contrato, equipo_id, patrocinador_id) VALUES (380000, 'Equipamiento', 5, 3);
+INSERT INTO patrocinios (monto_anual, tipo_contrato, equipo_id, patrocinador_id) VALUES (780000, 'Principal', 6, 2);
+
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (21, 16, 4, 248, 'N', 1, 1, 1);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (15, 17, 11, 195, 'N', 2, 1, 4);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (13, 15, 9, 172, 'N', 3, 1, 3);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (18, 14, 10, 230, 'S', 4, 1, 6);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (26, 12, 5, 312, 'S', 5, 1, 1);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (19, 13, 12, 240, 'S', 7, 2, 3);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (24, 14, 6, 289, 'S', 8, 2, 2);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (14, 12, 14, 198, 'S', 9, 2, 4);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (16, 16, 8, 204, 'N', 10, 2, 3);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (15, 17, 7, 188, 'N', 11, 2, 4);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (12, 16, 15, 168, 'S', 13, 3, 3);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (25, 15, 4, 295, 'S', 14, 3, 5);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (18, 14, 11, 224, 'S', 15, 3, 7);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (22, 18, 6, 260, 'N', 16, 3, 2);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (20, 17, 5, 242, 'N', 17, 3, 1);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (23, 15, 5, 275, 'S', 1, 4, 2);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (17, 14, 9, 215, 'S', 2, 4, 7);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (19, 16, 4, 228, 'N', 12, 4, 6);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (27, 18, 7, 318, 'S', 8, 5, 2);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (21, 16, 13, 254, 'S', 7, 5, 3);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (24, 19, 5, 279, 'N', 17, 5, 1);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (16, 18, 10, 201, 'N', 18, 5, 8);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (28, 13, 4, 330, 'S', 5, 6, 1);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (19, 14, 8, 236, 'S', 6, 6, 8);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (20, 18, 3, 232, 'N', 1, 6, 2);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (22, 19, 15, 258, 'S', 7, 7, 3);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (25, 17, 6, 292, 'S', 8, 7, 1);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (26, 18, 5, 301, 'N', 14, 7, 5);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (30, 15, 6, 345, 'S', 5, 8, 2);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (21, 16, 12, 255, 'S', 4, 8, 3);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (23, 19, 8, 270, 'N', 8, 8, 2);
+INSERT INTO participaciones (kills, deaths, assists, puntaje_combate, gano, jugador_id, partida_id, agente_id) VALUES (18, 18, 14, 220, 'N', 7, 8, 3);
+
+COMMIT;`;
+
+    const highlightAll = () => {
+      nextTick(() => {
+        if (window.hljs) {
+          document.querySelectorAll('pre code').forEach((el) => {
+            delete el.dataset.highlighted;
+            window.hljs.highlightElement(el);
+          });
+        }
+      });
+    };
+
+    const nextSlide = () => {
+      if (current.value < totalSlides - 1) current.value++;
+    };
+    const prevSlide = () => {
+      if (current.value > 0) current.value--;
+    };
+
+    watch(current, () => {
+      highlightAll();
+    });
+
+    onMounted(() => {
+      highlightAll();
+      window.addEventListener('keydown', (e) => {
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+        if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          nextSlide();
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          prevSlide();
+        }
+      });
+    });
+
+    const copySqlScript = async () => {
+      try {
+        await navigator.clipboard.writeText(fullSqlScript);
+        copied.value = true;
+        setTimeout(() => { copied.value = false; }, 2500);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    const categories = [
+      '1. SELECT y Alias',
+      '2. WHERE',
+      '3. ORDER BY',
+      '4. GROUP BY',
+      '5. JOIN',
+      '6. Integradores'
+    ];
+
+    const exercises = ref([
+      {
+        id: 1,
+        category: '1. SELECT y Alias',
+        statement: 'Mostrar todas las columnas y filas de la tabla regiones.',
+        analysis: 'Ver todos los datos registrados en regiones.',
+        strategy: 'Consultar la tabla regiones.',
+        tools: 'SELECT * FROM regiones',
+        showGuide: false
+      },
+      {
+        id: 2,
+        category: '1. SELECT y Alias',
+        statement: 'Mostrar únicamente el nombre, el rol y el origen_lore de todos los agentes.',
+        analysis: 'Proyectar tres columnas específicas.',
+        strategy: 'Consultar la tabla agentes.',
+        tools: 'SELECT col1, col2, col3 FROM agentes',
+        showGuide: false
+      },
+      {
+        id: 3,
+        category: '1. SELECT y Alias',
+        statement: 'Mostrar el nickname, nombre_real y sueldo_mensual de los jugadores con los alias jugador, nombre_completo y salario_usd.',
+        analysis: 'Renombrar encabezados en la salida.',
+        strategy: 'Consultar la tabla jugadores.',
+        tools: 'SELECT ... AS alias FROM jugadores',
+        showGuide: false
+      },
+      {
+        id: 4,
+        category: '1. SELECT y Alias',
+        statement: 'Mostrar el nickname, el sueldo_mensual y una columna calculada llamada sueldo_anual (sueldo_mensual * 12).',
+        analysis: 'Operación aritmética en el SELECT con alias.',
+        strategy: 'Consultar la tabla jugadores.',
+        tools: 'SELECT ..., sueldo_mensual * 12 AS sueldo_anual',
+        showGuide: false
+      },
+      {
+        id: 5,
+        category: '1. SELECT y Alias',
+        statement: 'Mostrar el nombre del equipo, su tag y su presupuesto_anual dividido entre 1000000 con el alias presupuesto_millones.',
+        analysis: 'División en el SELECT con alias.',
+        strategy: 'Consultar la tabla equipos.',
+        tools: 'SELECT ..., presupuesto_anual / 1000000 AS presupuesto_millones',
+        showGuide: false
+      },
+      {
+        id: 6,
+        category: '1. SELECT y Alias',
+        statement: 'En participaciones, mostrar id, kills, assists, deaths y la suma de kills + assists bajo el alias participacion_ofensiva.',
+        analysis: 'Sumar dos columnas de la misma fila.',
+        strategy: 'Consultar la tabla participaciones.',
+        tools: 'SELECT ..., kills + assists AS participacion_ofensiva',
+        showGuide: false
+      },
+      {
+        id: 7,
+        category: '2. WHERE',
+        statement: "Mostrar el nickname, pais_natal y sueldo_mensual de los jugadores de 'Chile'.",
+        analysis: "Filtrar filas donde pais_natal sea igual a 'Chile'.",
+        strategy: 'Tabla jugadores.',
+        tools: "WHERE pais_natal = 'Chile'",
+        showGuide: false
+      },
+      {
+        id: 8,
+        category: '2. WHERE',
+        statement: 'Mostrar el nickname, edad y sueldo_mensual de los jugadores que ganen más de 25000 mensuales.',
+        analysis: 'Filtro numérico mayor que (>).',
+        strategy: 'Tabla jugadores.',
+        tools: 'WHERE sueldo_mensual > 25000',
+        showGuide: false
+      },
+      {
+        id: 9,
+        category: '2. WHERE',
+        statement: 'Mostrar el nombre y ambientacion de los mapas que tengan 3 sitios de bomba.',
+        analysis: 'Filtro de igualdad numérica.',
+        strategy: 'Tabla mapas.',
+        tools: 'WHERE sitios_bomba = 3',
+        showGuide: false
+      },
+      {
+        id: 10,
+        category: '2. WHERE',
+        statement: 'Mostrar el nickname, edad y sueldo_mensual de los jugadores que tengan entre 19 y 22 años inclusive.',
+        analysis: 'Filtro de rango cerrado.',
+        strategy: 'Tabla jugadores.',
+        tools: 'WHERE edad BETWEEN 19 AND 22',
+        showGuide: false
+      },
+      {
+        id: 11,
+        category: '2. WHERE',
+        statement: "Mostrar el nickname y pais_natal de los jugadores de 'Brasil', 'Canada' o 'Rusia'.",
+        analysis: 'Filtrar valores dentro de una lista.',
+        strategy: 'Tabla jugadores.',
+        tools: "WHERE pais_natal IN ('Brasil', 'Canada', 'Rusia')",
+        showGuide: false
+      },
+      {
+        id: 12,
+        category: '2. WHERE',
+        statement: "Mostrar los agentes cuyo rol sea 'Duelista' o 'Iniciador' y cuyo origen_lore sea distinto de 'Desconocido'.",
+        analysis: 'Combinar pertenencia a lista y desigualdad.',
+        strategy: 'Tabla agentes.',
+        tools: "WHERE rol IN ('Duelista', 'Iniciador') AND origen_lore <> 'Desconocido'",
+        showGuide: false
+      },
+      {
+        id: 13,
+        category: '2. WHERE',
+        statement: "Mostrar las partidas cuya fase contenga la palabra 'Final' y tengan una asistencia_publico superior a 10000.",
+        analysis: 'Búsqueda por patrón de texto y condición numérica.',
+        strategy: 'Tabla partidas.',
+        tools: "WHERE fase LIKE '%Final%' AND asistencia_publico > 10000",
+        showGuide: false
+      },
+      {
+        id: 14,
+        category: '3. ORDER BY',
+        statement: 'Mostrar el nombre, tag y presupuesto_anual de los equipos, del mayor al menor presupuesto.',
+        analysis: 'Ordenar numéricamente de forma descendente.',
+        strategy: 'Tabla equipos.',
+        tools: 'ORDER BY presupuesto_anual DESC',
+        showGuide: false
+      },
+      {
+        id: 15,
+        category: '3. ORDER BY',
+        statement: 'Mostrar el nickname, edad y nombre_real de los jugadores, desde el más joven al de mayor edad.',
+        analysis: 'Ordenamiento ascendente por edad.',
+        strategy: 'Tabla jugadores.',
+        tools: 'ORDER BY edad ASC',
+        showGuide: false
+      },
+      {
+        id: 16,
+        category: '3. ORDER BY',
+        statement: 'Mostrar pais_natal, nickname y sueldo_mensual de los jugadores, ordenados por país natal (A–Z) y, en caso de empate, por sueldo de mayor a menor.',
+        analysis: 'Ordenamiento por dos criterios.',
+        strategy: 'Tabla jugadores.',
+        tools: 'ORDER BY pais_natal ASC, sueldo_mensual DESC',
+        showGuide: false
+      },
+      {
+        id: 17,
+        category: '3. ORDER BY',
+        statement: 'Mostrar todas las partidas ordenadas desde la fecha más reciente a la más antigua.',
+        analysis: 'Orden cronológico descendente.',
+        strategy: 'Tabla partidas.',
+        tools: 'ORDER BY fecha_partida DESC',
+        showGuide: false
+      },
+      {
+        id: 18,
+        category: '3. ORDER BY',
+        statement: "Mostrar las participaciones ganadas (gano = 'S'), proyectando jugador_id, partida_id, kills y puntaje_combate, ordenadas por puntaje_combate de mayor a menor.",
+        analysis: 'Filtrar victorias y ordenar el resultado.',
+        strategy: 'Tabla participaciones.',
+        tools: "WHERE gano = 'S' + ORDER BY puntaje_combate DESC",
+        showGuide: false
+      },
+      {
+        id: 19,
+        category: '3. ORDER BY',
+        statement: 'Mostrar los registros de patrocinios ordenados por tipo_contrato (A–Z) y luego por monto_anual de mayor a menor.',
+        analysis: 'Ordenamiento multinivel en tabla pivote.',
+        strategy: 'Tabla patrocinios.',
+        tools: 'ORDER BY tipo_contrato ASC, monto_anual DESC',
+        showGuide: false
+      },
+      {
+        id: 20,
+        category: '4. GROUP BY',
+        statement: 'Calcular en una sola fila la cantidad total de jugadores, el sueldo promedio, el sueldo mínimo y el sueldo máximo.',
+        analysis: 'Resumen global de la tabla sin agrupar.',
+        strategy: 'Tabla jugadores.',
+        tools: 'COUNT(*), AVG(sueldo_mensual), MIN(...), MAX(...)',
+        showGuide: false
+      },
+      {
+        id: 21,
+        category: '4. GROUP BY',
+        statement: 'Mostrar cuántos agentes existen por cada rol.',
+        analysis: 'Contar filas agrupando por rol.',
+        strategy: 'Tabla agentes.',
+        tools: 'SELECT rol, COUNT(*) ... GROUP BY rol',
+        showGuide: false
+      },
+      {
+        id: 22,
+        category: '4. GROUP BY',
+        statement: 'Mostrar cuántos jugadores hay por cada pais_natal, ordenando de mayor a menor cantidad.',
+        analysis: 'Agrupar por país, contar filas y ordenar.',
+        strategy: 'Tabla jugadores.',
+        tools: 'GROUP BY pais_natal + ORDER BY cantidad DESC',
+        showGuide: false
+      },
+      {
+        id: 23,
+        category: '4. GROUP BY',
+        statement: 'Por cada fase en la tabla partidas, mostrar cuántas partidas se jugaron, la duración promedio y el total de público acumulado.',
+        analysis: 'Aplicar COUNT, AVG y SUM agrupando por fase.',
+        strategy: 'Tabla partidas.',
+        tools: 'COUNT(*), AVG(duracion_min), SUM(asistencia_publico) + GROUP BY fase',
+        showGuide: false
+      },
+      {
+        id: 24,
+        category: '4. GROUP BY',
+        statement: 'Mostrar cuántos patrocinadores existen por cada rubro.',
+        analysis: 'Contar marcas agrupando por rubro.',
+        strategy: 'Tabla patrocinadores.',
+        tools: 'SELECT rubro, COUNT(*) ... GROUP BY rubro',
+        showGuide: false
+      },
+      {
+        id: 25,
+        category: '4. GROUP BY',
+        statement: 'En patrocinios, mostrar por cada tipo_contrato la cantidad de contratos y la suma de monto_anual, ordenado de mayor a menor monto total.',
+        analysis: 'Agrupar contratos por tipo y sumar montos.',
+        strategy: 'Tabla patrocinios.',
+        tools: 'COUNT(*), SUM(monto_anual) + GROUP BY tipo_contrato + ORDER BY DESC',
+        showGuide: false
+      },
+      {
+        id: 26,
+        category: '4. GROUP BY',
+        statement: 'En participaciones, agrupar por gano (S o N) y mostrar la cantidad de registros, el promedio de kills y el promedio de puntaje_combate.',
+        analysis: 'Comparar promedios entre victorias y derrotas.',
+        strategy: 'Tabla participaciones.',
+        tools: 'COUNT(*), AVG(kills), AVG(puntaje_combate) + GROUP BY gano',
+        showGuide: false
+      },
+      {
+        id: 27,
+        category: '4. GROUP BY',
+        statement: 'En jugadores, mostrar por cada equipo_id la cantidad de jugadores, el sueldo mínimo, el sueldo máximo y la suma de sueldos.',
+        analysis: 'Resumen salarial agrupado por equipo_id.',
+        strategy: 'Tabla jugadores.',
+        tools: 'COUNT(*), MIN(...), MAX(...), SUM(...) + GROUP BY equipo_id',
+        showGuide: false
+      },
+      {
+        id: 28,
+        category: '5. JOIN',
+        statement: 'Mostrar el nombre del equipo, su tag, su presupuesto_anual y el nombre de la región a la que pertenece.',
+        analysis: 'Unir equipos con su región.',
+        strategy: 'Cruzar equipos y regiones.',
+        tools: 'FROM equipos e JOIN regiones r ON e.region_id = r.id',
+        showGuide: false
+      },
+      {
+        id: 29,
+        category: '5. JOIN',
+        statement: 'Mostrar el nickname del jugador, su sueldo_mensual y el nombre de su equipo, ordenado por equipo (A–Z) y sueldo de mayor a menor.',
+        analysis: 'Unir jugadores con equipos y ordenar.',
+        strategy: 'Cruzar jugadores y equipos.',
+        tools: 'FROM jugadores j JOIN equipos e ON j.equipo_id = e.id + ORDER BY',
+        showGuide: false
+      },
+      {
+        id: 30,
+        category: '5. JOIN',
+        statement: 'Mostrar el id de la partida, la fase, la fecha_partida, la duracion_min y el nombre del mapa jugado.',
+        analysis: 'Obtener el nombre del mapa para cada partida.',
+        strategy: 'Cruzar partidas y mapas.',
+        tools: 'FROM partidas p JOIN mapas m ON p.mapa_id = m.id',
+        showGuide: false
+      },
+      {
+        id: 31,
+        category: '5. JOIN',
+        statement: 'Mostrar el nombre del equipo, el nombre del patrocinador, el tipo_contrato y el monto_anual.',
+        analysis: 'Conectar equipos y patrocinadores mediante la tabla pivote.',
+        strategy: 'Doble JOIN desde patrocinios hacia equipos y patrocinadores.',
+        tools: 'FROM patrocinios pt JOIN equipos e ON ... JOIN patrocinadores p ON ...',
+        showGuide: false
+      },
+      {
+        id: 32,
+        category: '5. JOIN',
+        statement: 'Mostrar el nickname del jugador, el nombre de su equipo y el nombre de la región a la que pertenece ese equipo.',
+        analysis: 'Cruzar tres tablas en cadena.',
+        strategy: 'jugadores → equipos → regiones.',
+        tools: 'FROM jugadores j JOIN equipos e ON ... JOIN regiones r ON ...',
+        showGuide: false
+      },
+      {
+        id: 33,
+        category: '5. JOIN',
+        statement: 'Mostrar el nickname del jugador, el nombre del agente utilizado, su rol, las kills y el puntaje_combate en cada participación, ordenado por kills de mayor a menor.',
+        analysis: 'Cruzar la tabla pivote participaciones con jugadores y agentes.',
+        strategy: 'participaciones → jugadores y participaciones → agentes.',
+        tools: 'FROM participaciones pa JOIN jugadores j ON ... JOIN agentes a ON ... + ORDER BY',
+        showGuide: false
+      },
+      {
+        id: 34,
+        category: '5. JOIN',
+        statement: "Mostrar el nickname del jugador, la fase de la partida, el nombre del mapa y las kills logradas únicamente en la 'Gran Final'.",
+        analysis: 'Cruzar cuatro tablas y filtrar por fase.',
+        strategy: 'participaciones → jugadores, → partidas, → mapas.',
+        tools: "JOIN ... WHERE pt.fase = 'Gran Final'",
+        showGuide: false
+      },
+      {
+        id: 35,
+        category: '6. Integradores',
+        statement: 'Mostrar el nombre de cada región y la suma de presupuesto_anual de sus equipos, ordenado de mayor a menor presupuesto total.',
+        analysis: 'Sumar presupuestos agrupando por el nombre de la región.',
+        strategy: 'Cruzar equipos con regiones y agrupar por r.nombre.',
+        tools: 'JOIN + SUM(e.presupuesto_anual) + GROUP BY r.nombre + ORDER BY DESC',
+        showGuide: false
+      },
+      {
+        id: 36,
+        category: '6. Integradores',
+        statement: 'Mostrar el nombre de cada equipo, cuántos patrocinios tiene y el monto total anual que recibe por patrocinios, ordenado de mayor a menor monto.',
+        analysis: 'Agrupar la tabla pivote patrocinios por el nombre del equipo.',
+        strategy: 'Cruzar patrocinios con equipos y agrupar por e.nombre.',
+        tools: 'JOIN + COUNT(*), SUM(pt.monto_anual) + GROUP BY e.nombre + ORDER BY DESC',
+        showGuide: false
+      },
+      {
+        id: 37,
+        category: '6. Integradores',
+        statement: 'Mostrar el nickname de cada jugador, cuántas partidas jugó, el total de kills acumuladas y su promedio de puntaje_combate, ordenado por total de kills de mayor a menor.',
+        analysis: 'Resumen de rendimiento individual en el torneo.',
+        strategy: 'Cruzar participaciones con jugadores y agrupar por j.nickname.',
+        tools: 'JOIN + COUNT(*), SUM(pa.kills), ROUND(AVG(pa.puntaje_combate), 0) + GROUP BY j.nickname + ORDER BY',
+        showGuide: false
+      },
+      {
+        id: 38,
+        category: '6. Integradores',
+        statement: 'Mostrar el nombre de cada agente, su rol, cuántas veces fue elegido y el promedio de kills obtenido con él, ordenado desde el más elegido al menos elegido.',
+        analysis: 'Resumen de uso y efectividad por agente.',
+        strategy: 'Cruzar participaciones con agentes y agrupar por a.nombre y a.rol.',
+        tools: 'JOIN + COUNT(*), ROUND(AVG(pa.kills), 1) + GROUP BY a.nombre, a.rol + ORDER BY DESC',
+        showGuide: false
+      },
+      {
+        id: 39,
+        category: '6. Integradores',
+        statement: 'Mostrar el nombre de cada mapa, cuántas partidas se jugaron en él y la duración promedio de esas partidas, ordenado de mayor a menor duración promedio.',
+        analysis: 'Estadísticas de duración agrupadas por nombre de mapa.',
+        strategy: 'Cruzar partidas con mapas y agrupar por m.nombre.',
+        tools: 'JOIN + COUNT(*), ROUND(AVG(p.duracion_min), 1) + GROUP BY m.nombre + ORDER BY DESC',
+        showGuide: false
+      },
+      {
+        id: 40,
+        category: '6. Integradores',
+        statement: "Mostrar el nombre de cada equipo y el total de kills logradas por sus jugadores únicamente en las participaciones ganadas (gano = 'S'), ordenado de mayor a menor.",
+        analysis: 'Filtrar victorias, unir con jugadores y equipos, y sumar kills por equipo.',
+        strategy: 'participaciones → jugadores → equipos + WHERE + GROUP BY + ORDER BY.',
+        tools: "JOIN + WHERE pa.gano = 'S' + SUM(pa.kills) + GROUP BY e.nombre + ORDER BY DESC",
+        showGuide: false
+      }
+    ]);
+
+    const filteredExercises = computed(() => {
+      if (selectedCategory.value === 'TODOS') return exercises.value;
+      return exercises.value.filter(e => e.category === selectedCategory.value);
+    });
+
+    return {
+      current,
+      totalSlides,
+      copied,
+      fullSqlScript,
+      copySqlScript,
+      categories,
+      selectedCategory,
+      exercises,
+      filteredExercises
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
